@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 នៅគេហដ្ឋានខាងស្រី`,
     openGraph: {
       title: `សូមគោរមអញ្ជើញ ${guestName}`,
-      description: `Join us on our special day, ${guestName}!`,
+      description: `ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៦​ វេលាម៉ោង៖ ៦ៈ០០ ល្ងាច
+នៅគេហដ្ឋានខាងស្រី`,
       images: ["/preview-image.webp"],
     },
   };
