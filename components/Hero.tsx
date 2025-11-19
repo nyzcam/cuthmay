@@ -2,48 +2,44 @@
 
 import { motion, Variants } from "framer-motion";
 import React, { useEffect, useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { guestList } from "../data/guestList";
+import { useParams } from "next/navigation";
+import { guestList, getGuestDisplayName, findGuestBySlug } from "../data/guestList";
 import ShortName from "./kbach/ShortName";
 import GuestFrame from "./kbach/GuestFrame";
 import { useTheme } from "../lib/ThemeContext";
 
-export default function Hero() {
+const Hero: React.FC = () => {
   const { currentTheme } = useTheme();
-  const { guestSlug } = useParams<{ guestSlug?: string }>();
+  const params = useParams();
+  
+  const guestSlug = params?.guestSlug as string | null;
   const [dynamicGuestName, setDynamicGuestName] = useState("លោក សែត កុម្ភម្នី");
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
+    if (guestSlug) {
+      const guest = findGuestBySlug(guestSlug);
+      if (guest) {
+        setDynamicGuestName(getGuestDisplayName(guest));
+      } else {
+        // For unknown guests, create a polite generic name
+        const decodedName = decodeURIComponent(guestSlug).replace(/-/g, " ");
+        setDynamicGuestName(decodedName);
+      }
+    }
+  }, [guestSlug]);
+
+  // Rest of your component remains the same...
+  useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
+
     const handler = (e: MediaQueryListEvent) =>
       setPrefersReducedMotion(e.matches);
+
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
-
-  useEffect(() => {
-    if (guestSlug && guestList[guestSlug]) {
-      setDynamicGuestName(guestList[guestSlug]);
-    } else if (guestSlug) {
-      setDynamicGuestName("ភ្ញៀវកិត្តិយស");
-    }
-    document.title = `${invitationTitle} - ${dynamicGuestName}`;
-    document
-      .querySelector('meta[property="og:title"]')
-      ?.setAttribute("content", `${invitationTitle} - ${dynamicGuestName}`);
-    document
-      .querySelector('meta[name="twitter:title"]')
-      ?.setAttribute("content", `${invitationTitle} - ${dynamicGuestName}`);
-    document
-      .querySelector('meta[property="og:url"]')
-      ?.setAttribute("content", window.location.href);
-  }, [guestSlug, dynamicGuestName]);
-
-  const invitationTitle = "សូមគោរមអញ្ជើញ";
-  const invitationDescription = `ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៦ វេលាម៉ោង៖ ៦ៈ០០ ល្ងាច នៅគេហដ្ឋានខាងស្រី`;
-  const invitationImageUrl = "/preview_image.webp";
 
   const fadeUp: Variants = {
     hidden: { opacity: 0, y: 40 },
@@ -57,6 +53,7 @@ export default function Hero() {
       },
     }),
   };
+
   const floatVariants: Variants = {
     float: {
       y: [0, -10, 0],
@@ -71,13 +68,13 @@ export default function Hero() {
   const shimmerStyle: React.CSSProperties = useMemo(
     () => ({
       backgroundImage: `linear-gradient(
-      90deg,
-      var(--gold-dark),
-      var(--gold-light),
-      var(--gold-lightest),
-      var(--gold-medium),
-      var(--gold-dark)
-    )`,
+        90deg,
+        var(--gold-dark),
+        var(--gold-light),
+        var(--gold-lightest),
+        var(--gold-medium),
+        var(--gold-dark)
+      )`,
       backgroundSize: "200% auto",
       WebkitBackgroundClip: "text",
       backgroundClip: "text",
@@ -95,18 +92,16 @@ export default function Hero() {
     []
   );
 
-  interface ShimmerMotionProps {
-    children: React.ReactNode;
-    delay?: number;
-    className?: string;
-    style?: React.CSSProperties;
-  }
-
-  const ShimmerMotion: React.FC<ShimmerMotionProps> = ({
+  const ShimmerMotion = ({
     children,
     delay = 0,
     className = "",
     style = {},
+  }: {
+    children: React.ReactNode;
+    delay?: number;
+    className?: string;
+    style?: React.CSSProperties;
   }) => (
     <motion.span
       className={className}
@@ -121,7 +116,6 @@ export default function Hero() {
         repeat: Infinity,
         ease: "linear",
         delay,
-        ...(!prefersReducedMotion && { repeatDelay: 0 }),
       }}
     >
       {children}
@@ -130,26 +124,6 @@ export default function Hero() {
 
   return (
     <>
-      <title>{`${invitationTitle} - ${dynamicGuestName}`}</title>
-      <meta name="description" content={invitationDescription} />
-
-      <meta
-        property="og:title"
-        content={`${invitationTitle} - ${dynamicGuestName}`}
-      />
-      <meta property="og:description" content={invitationDescription} />
-      <meta property="og:image" content={invitationImageUrl} />
-      <meta property="og:url" content={window.location.href} />
-      <meta property="og:type" content="website" />
-
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta
-        name="twitter:title"
-        content={`${invitationTitle} - ${dynamicGuestName}`}
-      />
-      <meta name="twitter:description" content={invitationDescription} />
-      <meta name="twitter:image" content={invitationImageUrl} />
-
       <div className="flex flex-col items-center text-center px-4 sm:px-6 lg:px-8">
         <motion.div
           className="relative mt-6 sm:mt-8 md:mt-12 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg flex justify-center"
@@ -285,3 +259,5 @@ export default function Hero() {
     </>
   );
 }
+
+export default Hero;

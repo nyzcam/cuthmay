@@ -1,35 +1,25 @@
-"use client";
-
-import React, { Suspense } from "react";
-import LayoutWrapperOld from "../components/LayoutWrapperOld";
-import Hero from "../components/Hero";
-import Detail from "../components/Detail";
-import InvitationContent from "../components/InvitationContent";
-import AbaQr from "../components/AbaQr";
-import Footer from "../components/Footer";
-import ErrorBoundary from "../components/ErrorBoundary";
-import { ThemeProvider } from "../lib/ThemeContext";
+import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
-const PhotosGallary = dynamic(
-  () => import("../components/PhotosGallary"),
-  { ssr: false, loading: () => <div>Loading photos...</div> }
-);
+export const metadata: Metadata = {
+  title: "សិរីសួស្ដីអាពាហ៍ពិពាហ៍",
+  description: "សូមគោរមអញ្ជើញ ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា",
+};
 
-export default function Page() {
+const InvitationContent = dynamic(() => import("@/components/InvitationContent"));
+const Detail = dynamic(() => import("@/components/Detail"));
+const AbaQr = dynamic(() => import("@/components/AbaQr"));
+const Footer = dynamic(() => import("@/components/Footer"));
+import PhotosGallary from "@/components/PhotosGallary";
+
+export default function HomePage() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider>
-        <LayoutWrapperOld>
-          <InvitationContent />
-          <Detail />
-          <Suspense fallback={<div>Loading...</div>}>
-            <PhotosGallary />
-          </Suspense>
-          <AbaQr />
-          <Footer />
-        </LayoutWrapperOld>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <>
+      <InvitationContent />
+      <Detail />
+      <PhotosGallary />
+      <AbaQr />
+      <Footer />
+    </>
   );
 }

@@ -1,41 +1,49 @@
-"use client";
+import type { Metadata } from "next";
+import { guestList, getGuestDisplayName, findGuestBySlug } from "@/data/guestList";
 
-import React, { Suspense } from "react";
-import LayoutWrapperOld from "@/components/LayoutWrapperOld";
+type Props = {
+  params: Promise<{ guestSlug: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { guestSlug } = await params;
+  
+  const guest = findGuestBySlug(guestSlug);
+  let guestName: string;
+  
+  if (guest) {
+    guestName = getGuestDisplayName(guest);
+  } else {
+    const decodedSlug = decodeURIComponent(guestSlug);
+    guestName = decodedSlug ? decodedSlug.replace(/-/g, " ") : "Guest";
+  }
+
+  return {
+    title: `សូមគោរមអញ្ជើញ ${guestName}`,
+    description: `ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៦​ វេលាម៉ោង៖ ៦ៈ០០ ល្ងាច
+នៅគេហដ្ឋានខាងស្រី`,
+    openGraph: {
+      title: `សូមគោរមអញ្ជើញ ${guestName}`,
+      description: `Join us on our special day, ${guestName}!`,
+      images: ["/preview-image.webp"],
+    },
+  };
+}
+
 import Hero from "@/components/Hero";
 import Detail from "@/components/Detail";
 import AbaQr from "@/components/AbaQr";
 import Footer from "@/components/Footer";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import { ThemeProvider } from "@/lib/ThemeContext";
-import dynamic from "next/dynamic";
+import PhotosGallary from "@/components/PhotosGallary";
 
-const PhotosGallary = dynamic(
-  () => import("@/components/PhotosGallary"),
-  {
-    ssr: false,
-    loading: () => <div>Loading photos...</div>,
-  }
-);
-
-export default function InvitePage({
-  params,
-}: {
-  params: { guestSlug: string };
-}) {
+export default async function GuestPage({ params }: Props) {
   return (
-    <ErrorBoundary>
-      <ThemeProvider>
-        <LayoutWrapperOld>
-          <Hero />
-          <Detail />
-          <Suspense fallback={<div>Loading photos…</div>}>
-            <PhotosGallary />
-          </Suspense>
-          <AbaQr />
-          <Footer />
-        </LayoutWrapperOld>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <>
+      <Hero />
+      <Detail />
+      <PhotosGallary />
+      <AbaQr />
+      <Footer />
+    </>
   );
 }

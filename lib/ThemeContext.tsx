@@ -45,13 +45,15 @@ interface ThemeProviderProps {
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [currentThemeName, setCurrentThemeName] = useState<ThemeName>(() => {
-    try {
-      const storedTheme = localStorage.getItem("themeName") as ThemeName;
-      if (storedTheme && themeConfig[storedTheme]) {
-        return storedTheme;
+    if (typeof window !== "undefined") {
+      try {
+        const storedTheme = localStorage.getItem("themeName") as ThemeName;
+        if (storedTheme && themeConfig[storedTheme]) {
+          return storedTheme;
+        }
+      } catch (error) {
+        console.error("Failed to load theme from localStorage:", error);
       }
-    } catch (error) {
-      console.error("Failed to load theme from localStorage:", error);
     }
     return DEFAULT_THEME;
   });
@@ -61,15 +63,19 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const setTheme = useCallback((name: ThemeName) => {
     if (themeConfig[name]) {
       setCurrentThemeName(name);
-      try {
-        localStorage.setItem("themeName", name);
-      } catch (error) {
-        console.error("Failed to save theme to localStorage:", error);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("themeName", name);
+        } catch (error) {
+          console.error("Failed to save theme to localStorage:", error);
+        }
       }
     } else {
       console.warn(`Theme "${name}" not found. Using default theme.`);
       setCurrentThemeName(DEFAULT_THEME);
-      localStorage.setItem("themeName", DEFAULT_THEME);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("themeName", DEFAULT_THEME);
+      }
     }
   }, []);
 

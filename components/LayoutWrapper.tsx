@@ -1,3 +1,5 @@
+"use client";
+
 import { FC, ReactNode, useEffect, useMemo, useRef } from "react";
 import {
   motion,
