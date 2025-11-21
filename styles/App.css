@@ -25,16 +25,6 @@ html {
   }
 }
 
-svg {
-  -webkit-mask-image: none;
-}
-
-@media not all and (min-resolution: 0.001dpcm) {
-  svg {
-    shape-rendering: geometricPrecision;
-  }
-}
-
 html,
 body {
   font-family: "Moul", "Cursive", sans-serif;

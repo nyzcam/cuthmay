@@ -17,10 +17,21 @@ const generateGradientFromColor = (
   endOpacity: number
 ) => {
   const hexToRgb = (hex: string) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `${r}, ${g}, ${b}`;
+    try {
+      const normalized = hex?.trim();
+      const match = normalized && normalized.match(/^#?([A-Fa-f0-9]{6})$/);
+      if (!match) {
+        // fallback to black if invalid
+        return `0, 0, 0`;
+      }
+      const hexVal = match[1];
+      const r = parseInt(hexVal.slice(0, 2), 16);
+      const g = parseInt(hexVal.slice(2, 4), 16);
+      const b = parseInt(hexVal.slice(4, 6), 16);
+      return `${r}, ${g}, ${b}`;
+    } catch (e) {
+      return `0, 0, 0`;
+    }
   };
 
   const rgb = hexToRgb(color);
@@ -31,9 +42,17 @@ const LayoutWrapperOld: FC<LayoutWrapperProps> = ({ children }) => {
   const { currentTheme } = useTheme();
 
   useEffect(() => {
+    // Save previous body styles so we can restore them on unmount
+    const prevBackgroundImage = document.body.style.backgroundImage;
+    const prevBackgroundColor = document.body.style.backgroundColor;
+
     document.body.style.backgroundImage = "none";
     document.body.style.backgroundColor = "transparent";
-    return () => {};
+
+    return () => {
+      document.body.style.backgroundImage = prevBackgroundImage || "";
+      document.body.style.backgroundColor = prevBackgroundColor || "";
+    };
   }, []);
 
   const orbGradient1 = useMemo(

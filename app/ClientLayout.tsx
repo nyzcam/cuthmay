@@ -1,31 +1,28 @@
 "use client";
+import React from 'react';
 import { ThemeProvider } from "@/lib/ThemeContext";
 import LayoutWrapperOld from "@/components/LayoutWrapperOld";
-import { AnimatePresence } from 'framer-motion';
-import { useState } from "react";
-import dynamic from "next/dynamic";
+import SplashProvider from "@/providers/SplashProvider";
 import "../styles/index.css";
 import "../styles/App.css";
 
-const Preloader = dynamic(() => import("@/components/Preloader"));
+export default function ClientLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
 
-export default function ClientLayout({ children }: { children: React.ReactNode }) {
-const [showSplash, setShowSplash] = useState(true);
   return (
+
     <>
-      <AnimatePresence mode="wait">
-       
-          <Preloader 
-                onComplete={() => setShowSplash(false)}
-                minimumDisplayTime={1500}
-                />
-        
-      </AnimatePresence>
-      <ThemeProvider>
-        <LayoutWrapperOld>
-          {children}
-        </LayoutWrapperOld>
-      </ThemeProvider>
+      <SplashProvider>
+        <ThemeProvider>
+          <LayoutWrapperOld>{children}</LayoutWrapperOld>
+        </ThemeProvider>
+
+      </SplashProvider>
+
     </>
+
   );
 }

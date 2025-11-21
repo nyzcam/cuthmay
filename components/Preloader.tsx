@@ -1,56 +1,68 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import React, { useEffect, useState } from "react";
+import { AppPhase } from "@/types/types";
 import Lottie from "lottie-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-interface SplashScreenProps {
-  onComplete: () => void;
-  minimumDisplayTime?: number;
+interface PreloaderProps {
+  phase: AppPhase;
+  visible: boolean;
 }
 
-const Preloader: React.FC<SplashScreenProps> = ({ 
-  onComplete, 
-  minimumDisplayTime = 2000 
-}) => {
-  const [isComplete, setIsComplete] = useState(false);
+export default function Preloader({ phase, visible }: PreloaderProps) {
+  const [animationData, setAnimationData] = useState<any>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsComplete(true);
-      setTimeout(() => onComplete(), 300);
-    }, minimumDisplayTime);
-
-    return () => clearTimeout(timer);
-  }, [onComplete, minimumDisplayTime]);
+    fetch("/romdoul.json")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load Lottie JSON");
+        return res.json();
+      })
+      .then(setAnimationData)
+      .catch((err) =>
+        console.error("Failed to load romdoul.json animation:", err)
+      );
+  }, []);
 
   return (
     <AnimatePresence>
-      {!isComplete && (
+      {visible && (
         <motion.div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,#6f0000_0%,#200122_100%)]"
+          key="preloader"
           initial={{ opacity: 1 }}
-          exit={{
-            opacity: 0,
-            transition: {
-              duration: 0.8,
-              ease: "easeInOut",
-            },
-          }}
-          role="status"
-          aria-label="Application splash screen"
+          animate={{ opacity: phase === AppPhase.COMPLETE ? 0 : 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1, ease: "easeInOut" }}
+          className="
+            fixed inset-0 z-50 
+            flex items-center justify-center
+            overflow-hidden
+          "
         >
-          <div className="relative w-[350px] h-auto flex items-center justify-center">
-            <Lottie
-              animationData={require("../public/romdoul.json")}
-              loop={true}
-              autoplay
-            />
-          </div>
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[128px] animate-pulse-slow" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-500/20 rounded-full blur-[128px] animate-pulse-slow delay-75" />
+
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative w-72 h-72 flex items-center justify-center"
+          >
+            <div className="absolute inset-0 bg-white/5 blur-3xl rounded-full animate-pulse"></div>
+
+            {animationData && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="relative z-10 w-full h-full drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+              >
+                <Lottie animationData={animationData} loop className="w-full h-full" />
+              </motion.div>
+            )}
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   );
-};
-
-export default Preloader;
+}
