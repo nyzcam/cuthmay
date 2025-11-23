@@ -18,15 +18,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     guestName = decodedSlug ? decodedSlug.replace(/-/g, " ") : "Guest";
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const title = `សូមគោរមអញ្ជើញ ${guestName}`;
+  const description = `កាលបរិច្ឆេទ៖ អាទិត្យ ១៧ មេសា ២០២៦ • វេលាម៉ោង ៦:០០ ល្ងាច — សូមចូលរួមនៅគេហដ្ឋានខាងស្រី`;
+  const imageUrl = `${siteUrl.replace(/\/$/, "")}/preview-image.webp`;
+
   return {
-    title: `សូមគោរមអញ្ជើញ ${guestName}`,
-    description: `ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៦​ វេលាម៉ោង៖ ៦ៈ០០ ល្ងាច
-នៅគេហដ្ឋានខាងស្រី`,
+    title,
+    description,
+    keywords: ["wedding", "invitation", "សម្ងាត់", "invite", guestName],
     openGraph: {
-      title: `សូមគោរមអញ្ជើញ ${guestName}`,
-      description: `ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៦​ វេលាម៉ោង៖ ៦ៈ០០ ល្ងាច
-នៅគេហដ្ឋានខាងស្រី`,
-      images: ["/preview-image.webp"],
+      title,
+      description,
+      images: [
+        {
+          url: imageUrl,
+          alt: `Invitation preview for ${guestName}`,
+        },
+      ],
+      siteName: "Cuthmay Invitation",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
     },
   };
 }
