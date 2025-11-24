@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { guestList, getGuestDisplayName, findGuestBySlug } from "@/data/guestList";
+import PreviewImg from "@public/preview-image.webp";
 
 type Props = {
   params: Promise<{ guestSlug: string }>;
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay-digi.vercel.app/";
   const title = `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`;
   const description = `អាទិត្យ ១៧ មេសា ២០២៦ • វេលាម៉ោង ៦:០០ ល្ងាច — នៅគេហដ្ឋានខាងស្រី`;
-  const imageUrl = `${siteUrl.replace(/\/$/, "")}/preview-image.webp`;
+  const imageUrl = PreviewImg.src;
 
   return {
     title,
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           alt: `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`,
         },
       ],
-      siteName: "Cuthmay Invitation",
+      siteName: "ចុតហ្មាយទំនើប",
     },
     twitter: {
       card: "summary_large_image",
