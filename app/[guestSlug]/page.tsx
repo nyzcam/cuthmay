@@ -18,9 +18,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     guestName = decodedSlug ? decodedSlug.replace(/-/g, " ") : "Guest";
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const title = `សូមគោរមអញ្ជើញ ${guestName}`;
-  const description = `កាលបរិច្ឆេទ៖ អាទិត្យ ១៧ មេសា ២០២៦ • វេលាម៉ោង ៦:០០ ល្ងាច — សូមចូលរួមនៅគេហដ្ឋានខាងស្រី`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay-digi.vercel.app/";
+  const title = `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`;
+  const description = `អាទិត្យ ១៧ មេសា ២០២៦ • វេលាម៉ោង ៦:០០ ល្ងាច — នៅគេហដ្ឋានខាងស្រី`;
   const imageUrl = `${siteUrl.replace(/\/$/, "")}/preview-image.webp`;
 
   return {
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [
         {
           url: imageUrl,
-          alt: `Invitation preview for ${guestName}`,
+          alt: `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`,
         },
       ],
       siteName: "Cuthmay Invitation",
