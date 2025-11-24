@@ -1,52 +1,55 @@
 import type { Metadata } from "next";
 import { guestList, getGuestDisplayName, findGuestBySlug } from "@/data/guestList";
-import PreviewImg from "@public/preview-image.webp";
 
 type Props = {
-  params: Promise<{ guestSlug: string }>;
+  params: { guestSlug: string };
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { guestSlug } = await params;
-  
+  const { guestSlug } = params;
+
   const guest = findGuestBySlug(guestSlug);
   let guestName: string;
-  
+
   if (guest) {
     guestName = getGuestDisplayName(guest);
   } else {
-    const decodedSlug = decodeURIComponent(guestSlug);
-    guestName = decodedSlug ? decodedSlug.replace(/-/g, " ") : "Guest";
+    const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
+    guestName = decoded || "Guest";
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay-digi.vercel.app/";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay-digi.vercel.app";
+
   const title = `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`;
   const description = `អាទិត្យ ១៧ មេសា ២០២៦ • វេលាម៉ោង ៦:០០ ល្ងាច — នៅគេហដ្ឋានខាងស្រី`;
-  const imageUrl = PreviewImg.src;
+
+  const ogUrl = `${siteUrl}/api/og/${guestSlug}`;
 
   return {
     title,
     description,
-    keywords: ["wedding", "invitation", "សម្ងាត់", "invite", guestName],
     openGraph: {
       title,
       description,
+      url: `${siteUrl}/invite/${guestSlug}`,
       images: [
         {
-          url: imageUrl,
-          alt: `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`,
+          url: ogUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
         },
       ],
-      siteName: "ចុតហ្មាយទំនើប",
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [imageUrl],
+      images: [ogUrl],
     },
   };
 }
+
 
 import Hero from "@/components/Hero";
 import Detail from "@/components/Detail";
