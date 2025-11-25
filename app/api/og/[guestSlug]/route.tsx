@@ -92,7 +92,7 @@ export async function GET(
     // LOAD LOCAL FONT
     // ---------------------------------------------------------
     // This assumes the file is at: /public/fonts/khmer.ttf
-    const fontPath = join(process.cwd(), "public", "fonts", "khmer.ttf");
+    const fontPath = join(process.cwd(), "fonts", "khmer.ttf");
     const fontData = await readFile(fontPath);
 
     return new ImageResponse(
