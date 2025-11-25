@@ -1,164 +1,218 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
-import { themeConfig } from "@/config/themeConfig";
-import { findGuestBySlug, getGuestDisplayName } from "@/data/guestList";
 
 export const runtime = "edge";
+
+type ThemeName =
+  | "red"
+  | "green"
+  | "blue"
+  | "roseGold"
+  | "peach"
+  | "aurora"
+  | "ocean"
+  | "sunset"
+  | "jade";
+
+interface Theme {
+  gradient: string;
+  accent: string;
+}
+
+const themeConfig: Record<ThemeName, Theme> = {
+  red: {
+    gradient: "radial-gradient(ellipse at center, #6f0000 0%, #200122 100%)",
+    accent: "#efbf04",
+  },
+  green: {
+    gradient:
+      "radial-gradient(ellipse at center, #15803d 0%, #166534 50%, #052e16 100%)",
+    accent: "#efbf04",
+  },
+  blue: {
+    gradient: "radial-gradient(ellipse at center, #004e92 0%, #000428 100%)",
+    accent: "#efbf04",
+  },
+  roseGold: {
+    gradient: "radial-gradient(ellipse at center, #dbe6f6 0%, #c5796d 100%)",
+    accent: "#5d2f40",
+  },
+  peach: {
+    gradient: "radial-gradient(ellipse at center, #ffedbc 0%, #ed4264 100%)",
+    accent: "#5d2f40",
+  },
+  aurora: {
+    gradient:
+      "radial-gradient(ellipse at center, #667eea 0%, #764ba2 50%, #2b1055 100%)",
+    accent: "#fbbf24",
+  },
+  ocean: {
+    gradient:
+      "radial-gradient(ellipse at center, #006d77 0%, #003049 50%, #001219 100%)",
+    accent: "#ffd60a",
+  },
+  sunset: {
+    gradient:
+      "radial-gradient(ellipse at center, #ff6b35 0%, #f7931e 30%, #c1121f 70%, #370617 100%)",
+    accent: "#ffe5d9",
+  },
+  jade: {
+    gradient:
+      "radial-gradient(ellipse at center, #064e3b 0%, #022c22 50%, #0a0e0d 100%)",
+    accent: "#10b981",
+  },
+};
+
+const DEFAULT_THEME: ThemeName = "red";
+
+const getTheme = (themeName: string = DEFAULT_THEME): Theme => {
+  return themeConfig[themeName as ThemeName] || themeConfig[DEFAULT_THEME];
+};
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ guestSlug: string }> }
 ) {
-  const { guestSlug } = await params;
+  try {
+    const { guestSlug } = await params;
+    const { searchParams } = new URL(req.url);
+    const themeName = searchParams.get("theme") || DEFAULT_THEME;
+    const theme = getTheme(themeName);
 
-  let guestName = "ភ្ញៀវកិត្តិយស";
+    const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
+    const guestName = decoded || "ភ្ញៀវ";
 
-  if (guestSlug) {
-    const matched = findGuestBySlug(guestSlug);
-    if (matched) {
-      guestName = getGuestDisplayName(matched);
-    } else {
-      try {
-        const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
-        if (decoded) guestName = decoded;
-      } catch (e) {
-        // keep default
-      }
-    }
-  }
+    const title = `សូមគោរមអញ្ជើញ ${guestName}`;
+    const subtitle = "សិរីសួស្ដីអាពាហ៍ពិពាហ៍";
+    const details = "អាទិត្យ ១៧ មេសា ២០២៦ • ម៉ោង ៦:០០ល្ងាច";
 
-  const { searchParams } = new URL(req.url);
-  const themeName = (searchParams.get("theme") as keyof typeof themeConfig) ?? "red";
-
-  const theme = themeConfig?.[themeName] ?? themeConfig?.["red"] ?? {
-    gradient: "linear-gradient(to right, #b91d47, #ef233c)",
-    accent: "#fca311",
-    cssVars: {
-      goldDark: "#B8860B",
-      goldLight: "#F0E68C",
-      goldLightest: "#FFFACD",
-      goldMedium: "#FFD700",
-    },
-  };
-
-  const fontMoulData = await fetch(
-    new URL("https://fonts.gstatic.com/s/moul/v26/P5sHzZjMdOrmPHDP.ttf")
-  ).then((res) => res.arrayBuffer());
-
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          textAlign: "center",
-          fontFamily: '"Moul"',
-          backgroundImage: theme.gradient,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          padding: "40px",
-        }}
-      >
-        <div style={{ marginBottom: "20px", opacity: 0.9, display: "flex" }}>
-          <svg width={120} height={120} viewBox="0 0 100 100">
-            <circle
-              cx={50}
-              cy={50}
-              r={45}
-              stroke={theme.accent}
-              strokeWidth={4}
-              fill="none"
-            />
-            <circle cx={50} cy={50} r={5} fill={theme.accent} />
-          </svg>
-        </div>
-
+    return new ImageResponse(
+      (
         <div
           style={{
-            fontSize: "56px",
+            width: "100%",
+            height: "100%",
             display: "flex",
-            marginBottom: "16px",
-            backgroundImage: `linear-gradient(90deg, ${theme.cssVars.goldDark}, ${theme.cssVars.goldLight}, ${theme.cssVars.goldLightest}, ${theme.cssVars.goldMedium}, ${theme.cssVars.goldDark})`,
-            backgroundClip: "text",
-            color: "transparent",
-            textShadow: "0 2px 4px rgba(0,0,0,0.25)",
+            justifyContent: "center",
+            alignItems: "center",
+            flexDirection: "column",
+            background: theme.gradient,
+            color: "white",
+            textAlign: "center",
+            padding: "60px 40px",
+            fontFamily: "system-ui, sans-serif",
           }}
         >
-          សិរីសួស្ដីអាពាហ៍ពិពាហ៍
-        </div>
-
-        <div
-          style={{
-            fontSize: "42px",
-            color: theme.cssVars.goldLight,
-            marginBottom: "8px",
-          }}
-        >
-          សូមគោរមអញ្ជើញ
-        </div>
-
-        <div
-          style={{
-            fontSize: "32px",
-            color: theme.cssVars.goldLight,
-            marginBottom: "30px",
-          }}
-        >
-          ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            border: `6px solid ${theme.accent}`,
-            borderRadius: "16px",
-            padding: "20px 40px",
-            marginBottom: "35px",
-            backgroundColor: "rgba(0,0,0,0.1)",
-          }}
-        >
-          <span
+          {/* Decorative elements */}
+          <div
             style={{
-              fontSize: "40px",
-              backgroundImage: `linear-gradient(90deg, ${theme.cssVars.goldDark}, ${theme.cssVars.goldLight}, ${theme.cssVars.goldLightest}, ${theme.cssVars.goldMedium}, ${theme.cssVars.goldDark})`,
+              position: "absolute",
+              top: 40,
+              left: 40,
+              right: 40,
+              height: 2,
+              background: `linear-gradient(90deg, transparent, ${theme.accent}66, transparent)`,
+            }}
+          />
+          
+          <div
+            style={{
+              fontSize: 64,
+              fontWeight: 700,
+              marginBottom: 30,
+              background: `linear-gradient(45deg, ${theme.accent}, #ffffff)`,
               backgroundClip: "text",
               color: "transparent",
+              textShadow: "0 2px 4px rgba(0,0,0,0.1)",
             }}
           >
-            {guestName}
-          </span>
-        </div>
+            {subtitle}
+          </div>
+          
+          <div
+            style={{
+              fontSize: 56,
+              fontWeight: 600,
+              marginBottom: 40,
+              lineHeight: 1.3,
+              maxWidth: "90%",
+            }}
+          >
+            {title}
+          </div>
+          
+          <div
+            style={{
+              fontSize: 32,
+              opacity: 0.9,
+              marginBottom: 20,
+              borderTop: `1px solid ${theme.accent}4d`,
+              paddingTop: 30,
+              paddingLeft: 40,
+              paddingRight: 40,
+            }}
+          >
+            {details}
+          </div>
+          
+          <div
+            style={{
+              fontSize: 24,
+              opacity: 0.7,
+            }}
+          >
+            នៅគេហដ្ឋានខាងស្រី
+          </div>
 
+          {/* Bottom decorative element */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 40,
+              left: 40,
+              right: 40,
+              height: 2,
+              background: `linear-gradient(90deg, transparent, ${theme.accent}66, transparent)`,
+            }}
+          />
+        </div>
+      ),
+      {
+        width: 1200,
+        height: 630,
+      }
+    );
+  } catch (error) {
+    console.error("Error generating OG image:", error);
+    
+    return new ImageResponse(
+      (
         <div
           style={{
+            width: "100%",
+            height: "100%",
             display: "flex",
-            flexDirection: "column",
+            justifyContent: "center",
             alignItems: "center",
-            fontSize: "30px",
-            color: theme.cssVars.goldLight,
-            lineHeight: 1.4,
+            flexDirection: "column",
+            background: "linear-gradient(135deg, #0a1220, #123456)",
+            color: "white",
+            textAlign: "center",
+            padding: "40px",
           }}
         >
-          <span>ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៦</span>
-          <span>វេលាម៉ោង៖ ៦ៈ០០ ល្ងាច នៅគេហដ្ឋានខាងស្រី</span>
+          <div style={{ fontSize: 60, fontWeight: 600 }}>
+            សិរីសួស្ដីអាពាហ៍ពិពាហ៍
+          </div>
+          <div style={{ fontSize: 40, marginTop: 20 }}>
+            សូមគោរមអញ្ជើញ
+          </div>
         </div>
-      </div>
-    ),
-    {
-      width: 1200,
-      height: 630,
-      fonts: [
-        {
-          name: "Moul",
-          data: fontMoulData,
-          style: "normal",
-          weight: 400,
-        },
-      ],
-    }
-  );
+      ),
+      {
+        width: 1200,
+        height: 630,
+      }
+    );
+  }
 }
