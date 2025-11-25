@@ -1,22 +1,33 @@
-/* eslint-disable @next/next/no-img-element */
-
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
-import { themeConfig } from "@/config/themeConfig";
+import { themeConfig } from "@/config/themeConfig"; 
 
 export const runtime = "edge";
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  props: { params: Promise<{ guestSlug?: string }> }
+) {
   const { searchParams } = new URL(req.url);
-
+  const guestParam = searchParams.get("guest");
+  
   const guestName =
-    searchParams.get("guest")?.replace(/-/g, " ") ||
+    guestParam?.replace(/-/g, " ") ||
     "លោក សែត កុម្ភម្នី";
 
   const themeName =
     (searchParams.get("theme") as keyof typeof themeConfig) ?? "red";
 
-  const theme = themeConfig[themeName] ?? themeConfig["red"];
+  const theme = themeConfig?.[themeName] ?? themeConfig?.["red"] ?? {
+    gradient: "linear-gradient(to right, #b91d47, #ef233c)",
+    accent: "#fca311",
+    cssVars: {
+      goldDark: "#B8860B",
+      goldLight: "#F0E68C",
+      goldLightest: "#FFFACD",
+      goldMedium: "#FFD700",
+    }
+  };
 
   return new ImageResponse(
     (
@@ -29,14 +40,13 @@ export async function GET(req: NextRequest) {
           justifyContent: "center",
           alignItems: "center",
           textAlign: "center",
-          fontFamily: "Khmer",
+          fontFamily: "font-khmer",
           backgroundImage: theme.gradient,
           backgroundSize: "cover",
           backgroundPosition: "center",
           padding: "40px",
         }}
       >
-        {/* TOP ORNAMENT */}
         <div style={{ marginBottom: "20px", opacity: 0.9 }}>
           <svg width="150" height="150" viewBox="0 0 100 100">
             <circle
@@ -50,7 +60,6 @@ export async function GET(req: NextRequest) {
           </svg>
         </div>
 
-        {/* TITLE */}
         <h1
           style={{
             fontSize: "56px",
@@ -73,7 +82,6 @@ export async function GET(req: NextRequest) {
           សិរីសួស្ដីអាពាហ៍ពិពាហ៍
         </h1>
 
-        {/* SUBTEXT */}
         <h2
           style={{
             fontSize: "42px",
@@ -94,7 +102,6 @@ export async function GET(req: NextRequest) {
           ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា
         </h3>
 
-        {/* GUEST FRAME */}
         <div
           style={{
             width: "500px",
@@ -130,7 +137,6 @@ export async function GET(req: NextRequest) {
           </span>
         </div>
 
-        {/* DATE + LOCATION */}
         <div
           style={{
             fontSize: "30px",
