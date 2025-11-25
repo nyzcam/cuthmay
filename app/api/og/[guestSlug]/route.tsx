@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const runtime = "nodejs";
 
@@ -86,19 +88,12 @@ export async function GET(
     const subtitle = "សិរីសួស្ដីអាពាហ៍ពិពាហ៍";
     const details = "អាទិត្យ ១៧ មេសា ២០២៦";
 
-    // Fetch Khmer font (Moul from Google Fonts)
-    let fontData: ArrayBuffer | null = null;
-    try {
-      const fontRes = await fetch(
-        "https://fonts.gstatic.com/s/moul/v26/P5sHzZjMdOrmPHDP.ttf",
-        { next: { revalidate: 604800 } } // cache for 1 week
-      );
-      if (fontRes.ok) {
-        fontData = await fontRes.arrayBuffer();
-      }
-    } catch (e) {
-      console.warn("Failed to fetch Khmer font, using system fonts");
-    }
+    // ---------------------------------------------------------
+    // LOAD LOCAL FONT
+    // ---------------------------------------------------------
+    // This assumes the file is at: /public/fonts/khmer.ttf
+    const fontPath = join(process.cwd(), "public", "fonts", "khmer.ttf");
+    const fontData = await readFile(fontPath);
 
     return new ImageResponse(
       (
@@ -114,7 +109,8 @@ export async function GET(
             color: "white",
             textAlign: "center",
             padding: "60px 40px",
-            fontFamily: fontData ? "Moul, sans-serif" : "sans-serif",
+            // Use the name defined in the fonts config below
+            fontFamily: '"Khmer Boran"', 
           }}
         >
           <div
@@ -131,7 +127,8 @@ export async function GET(
           <div
             style={{
               fontSize: 64,
-              fontWeight: 700,
+              // Ensure this matches the weight in fonts config
+              fontWeight: 700, 
               marginBottom: 30,
               background: `linear-gradient(45deg, ${theme.accent}, #ffffff)`,
               backgroundClip: "text",
@@ -145,7 +142,7 @@ export async function GET(
           <div
             style={{
               fontSize: 56,
-              fontWeight: 600,
+              fontWeight: 700,
               marginBottom: 40,
               lineHeight: 1.3,
               maxWidth: "90%",
@@ -163,6 +160,7 @@ export async function GET(
               paddingTop: 30,
               paddingLeft: 40,
               paddingRight: 40,
+              fontWeight: 700,
             }}
           >
             {details}
@@ -172,6 +170,7 @@ export async function GET(
             style={{
               fontSize: 24,
               opacity: 0.7,
+              fontWeight: 700,
             }}
           >
             នៅគេហដ្ឋានខាងស្រី
@@ -192,23 +191,26 @@ export async function GET(
       {
         width: 1200,
         height: 630,
-        ...(fontData
-          ? {
-              fonts: [
-                {
-                  name: "Moul",
-                  data: fontData,
-                  style: "normal" as const,
-                  weight: 400,
-                },
-              ],
-            }
-          : {}),
+        fonts: [
+          {
+            name: "Khmer Boran",
+            data: fontData,
+            style: "normal",
+            // Mapping to 700 because your CSS uses bold/fontWeight:700
+            weight: 700, 
+          },
+          {
+            name: "Khmer Boran",
+            data: fontData,
+            style: "normal",
+            // Mapping to 400 as fallback
+            weight: 400, 
+          },
+        ],
       }
     );
   } catch (error) {
     console.error("Error generating OG image:", error);
-    
     return new ImageResponse(
       (
         <div
@@ -216,27 +218,17 @@ export async function GET(
             width: "100%",
             height: "100%",
             display: "flex",
+            background: "#1a1a1a",
+            color: "white",
             justifyContent: "center",
             alignItems: "center",
-            flexDirection: "column",
-            background: "linear-gradient(135deg, #0a1220, #123456)",
-            color: "white",
-            textAlign: "center",
-            padding: "40px",
+            fontSize: 50
           }}
         >
-          <div style={{ fontSize: 60, fontWeight: 600 }}>
-            សិរីសួស្ដីអាពាហ៍ពិពាហ៍
-          </div>
-          <div style={{ fontSize: 40, marginTop: 20 }}>
-            សូមគោរមអញ្ជើញ
-          </div>
+           Error: Could not load font
         </div>
       ),
-      {
-        width: 1200,
-        height: 630,
-      }
+      { width: 1200, height: 630 }
     );
   }
 }
