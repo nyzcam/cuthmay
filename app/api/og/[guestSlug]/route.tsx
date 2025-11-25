@@ -3,18 +3,13 @@ import type { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
-// Consider loading a custom font for better Khmer script rendering
-// const interBold = fetch(
-//   new URL("./Inter-Bold.ttf", import.meta.url)
-// ).then((res) => res.arrayBuffer());
-
 export async function GET(
   req: NextRequest,
-  { params }: { params: { guestSlug: string } }
+  { params }: { params: Promise<{ guestSlug: string }> }
 ) {
-  const { guestSlug } = params;
-
   try {
+    const { guestSlug } = await params;
+
     const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
     const guestName = decoded || "ភ្ញៀវ";
 
@@ -116,13 +111,6 @@ export async function GET(
       {
         width: 1200,
         height: 630,
-        // fonts: [
-        //   {
-        //     name: "Inter",
-        //     data: await interBold,
-        //     weight: 700,
-        //   },
-        // ],
       }
     );
   } catch (error) {
