@@ -7,20 +7,26 @@ export const runtime = "edge";
 
 export async function GET(
   req: NextRequest,
-  props: { params: Promise<{ guestSlug: string }> }
+  { params }: { params: { guestSlug: string } }
 ) {
-  const params = await props.params;
-  const { guestSlug } = params;
-  
+  const guestSlug = params?.guestSlug;
+
   let guestName = "ភ្ញៀវកិត្តិយស";
 
-  const guest = findGuestBySlug(guestSlug);
-  
-  if (guest) {
-    guestName = getGuestDisplayName(guest);
-  } else {
-    const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
-    if (decoded) guestName = decoded;
+  if (guestSlug) {
+    // exact match from guest list
+    const matched = findGuestBySlug(guestSlug);
+    if (matched) {
+      guestName = getGuestDisplayName(matched);
+    } else {
+      // fallback: decode slug and replace dashes
+      try {
+        const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
+        if (decoded) guestName = decoded;
+      } catch (e) {
+        // keep default
+      }
+    }
   }
 
   const { searchParams } = new URL(req.url);
@@ -58,7 +64,6 @@ export async function GET(
           padding: "40px",
         }}
       >
-        {/* Decorative Circle */}
         <div style={{ marginBottom: "20px", opacity: 0.9, display: 'flex' }}>
           <svg width="120" height="120" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="45" stroke={theme.accent} strokeWidth="4" fill="none" />
@@ -66,7 +71,6 @@ export async function GET(
           </svg>
         </div>
 
-        {/* Main Title */}
         <div
           style={{
             fontSize: "56px",
@@ -89,7 +93,6 @@ export async function GET(
           ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា
         </div>
 
-        {/* Guest Name Box */}
         <div
           style={{
             display: "flex",
@@ -112,7 +115,6 @@ export async function GET(
           </span>
         </div>
 
-        {/* Footer Info */}
         <div
           style={{
             display: "flex",
