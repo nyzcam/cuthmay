@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 type ThemeName =
   | "red"
@@ -86,6 +86,20 @@ export async function GET(
     const subtitle = "សិរីសួស្ដីអាពាហ៍ពិពាហ៍";
     const details = "អាទិត្យ ១៧ មេសា ២០២៦ • ម៉ោង ៦:००ល្ងាច";
 
+    // Fetch Khmer font (Moul from Google Fonts)
+    let fontData: ArrayBuffer | null = null;
+    try {
+      const fontRes = await fetch(
+        "https://fonts.gstatic.com/s/moul/v26/P5sHzZjMdOrmPHDP.ttf",
+        { next: { revalidate: 604800 } } // cache for 1 week
+      );
+      if (fontRes.ok) {
+        fontData = await fontRes.arrayBuffer();
+      }
+    } catch (e) {
+      console.warn("Failed to fetch Khmer font, using system fonts");
+    }
+
     return new ImageResponse(
       (
         <div
@@ -100,7 +114,7 @@ export async function GET(
             color: "white",
             textAlign: "center",
             padding: "60px 40px",
-            fontFamily: "sans-serif",
+            fontFamily: fontData ? "Moul, sans-serif" : "sans-serif",
           }}
         >
           <div
@@ -178,6 +192,18 @@ export async function GET(
       {
         width: 1200,
         height: 630,
+        ...(fontData
+          ? {
+              fonts: [
+                {
+                  name: "Moul",
+                  data: fontData,
+                  style: "normal" as const,
+                  weight: 400,
+                },
+              ],
+            }
+          : {}),
       }
     );
   } catch (error) {
