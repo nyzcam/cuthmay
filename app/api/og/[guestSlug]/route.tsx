@@ -1,22 +1,30 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
-import { themeConfig } from "@/config/themeConfig"; 
+import { themeConfig } from "@/config/themeConfig";
+import { findGuestBySlug, getGuestDisplayName } from "@/data/guestList";
 
 export const runtime = "edge";
 
 export async function GET(
   req: NextRequest,
-  props: { params: Promise<{ guestSlug?: string }> }
+  props: { params: Promise<{ guestSlug: string }> }
 ) {
-  const { searchParams } = new URL(req.url);
-  const guestParam = searchParams.get("guest");
+  const params = await props.params;
+  const { guestSlug } = params;
   
-  const guestName =
-    guestParam?.replace(/-/g, " ") ||
-    "លោក សែត កុម្ភម្នី";
+  let guestName = "ភ្ញៀវកិត្តិយស";
 
-  const themeName =
-    (searchParams.get("theme") as keyof typeof themeConfig) ?? "red";
+  const guest = findGuestBySlug(guestSlug);
+  
+  if (guest) {
+    guestName = getGuestDisplayName(guest);
+  } else {
+    const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
+    if (decoded) guestName = decoded;
+  }
+
+  const { searchParams } = new URL(req.url);
+  const themeName = (searchParams.get("theme") as keyof typeof themeConfig) ?? "red";
 
   const theme = themeConfig?.[themeName] ?? themeConfig?.["red"] ?? {
     gradient: "linear-gradient(to right, #b91d47, #ef233c)",
@@ -28,130 +36,109 @@ export async function GET(
       goldMedium: "#FFD700",
     }
   };
+  const fontMoulData = await fetch(
+    new URL("https://fonts.gstatic.com/s/moul/v26/P5sHzZjMdOrmPHDP.ttf")
+  ).then((res) => res.arrayBuffer());
 
   return new ImageResponse(
     (
       <div
         style={{
-          width: "1200px",
-          height: "630px",
+          width: "100%",
+          height: "100%",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
           textAlign: "center",
-          fontFamily: "font-khmer",
+          fontFamily: '"Moul"',
           backgroundImage: theme.gradient,
           backgroundSize: "cover",
           backgroundPosition: "center",
           padding: "40px",
         }}
       >
-        <div style={{ marginBottom: "20px", opacity: 0.9 }}>
-          <svg width="150" height="150" viewBox="0 0 100 100">
-            <circle
-              cx="50"
-              cy="50"
-              r="45"
-              stroke={theme.accent}
-              strokeWidth="4"
-              fill="none"
-            />
+        {/* Decorative Circle */}
+        <div style={{ marginBottom: "20px", opacity: 0.9, display: 'flex' }}>
+          <svg width="120" height="120" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" stroke={theme.accent} strokeWidth="4" fill="none" />
+            <circle cx="50" cy="50" r="5" fill={theme.accent} />
           </svg>
         </div>
 
-        <h1
+        {/* Main Title */}
+        <div
           style={{
             fontSize: "56px",
-            fontWeight: 700,
+            display: "flex",
             marginBottom: "16px",
-            backgroundImage: `linear-gradient(
-              90deg,
-              ${theme.cssVars.goldDark},
-              ${theme.cssVars.goldLight},
-              ${theme.cssVars.goldLightest},
-              ${theme.cssVars.goldMedium},
-              ${theme.cssVars.goldDark}
-            )`,
-            backgroundSize: "200% auto",
-            WebkitBackgroundClip: "text",
+            backgroundImage: `linear-gradient(90deg, ${theme.cssVars.goldDark}, ${theme.cssVars.goldLight}, ${theme.cssVars.goldLightest}, ${theme.cssVars.goldMedium}, ${theme.cssVars.goldDark})`,
+            backgroundClip: "text",
             color: "transparent",
             textShadow: "0 2px 4px rgba(0,0,0,0.25)",
           }}
         >
           សិរីសួស្ដីអាពាហ៍ពិពាហ៍
-        </h1>
+        </div>
 
-        <h2
-          style={{
-            fontSize: "42px",
-            color: theme.cssVars.goldLight,
-            marginBottom: "8px",
-          }}
-        >
+        <div style={{ fontSize: "42px", color: theme.cssVars.goldLight, marginBottom: "8px" }}>
           សូមគោរមអញ្ជើញ
-        </h2>
+        </div>
 
-        <h3
-          style={{
-            fontSize: "32px",
-            color: theme.cssVars.goldLight,
-            marginBottom: "30px",
-          }}
-        >
+        <div style={{ fontSize: "32px", color: theme.cssVars.goldLight, marginBottom: "30px" }}>
           ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា
-        </h3>
+        </div>
 
+        {/* Guest Name Box */}
         <div
           style={{
-            width: "500px",
-            height: "140px",
+            display: "flex",
             border: `6px solid ${theme.accent}`,
             borderRadius: "16px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "20px",
+            padding: "20px 40px",
             marginBottom: "35px",
+            backgroundColor: "rgba(0,0,0,0.1)",
           }}
         >
           <span
             style={{
               fontSize: "40px",
-              fontWeight: 600,
-              backgroundImage: `linear-gradient(
-                90deg,
-                ${theme.cssVars.goldDark},
-                ${theme.cssVars.goldLight},
-                ${theme.cssVars.goldLightest},
-                ${theme.cssVars.goldMedium},
-                ${theme.cssVars.goldDark}
-              )`,
-              backgroundSize: "200% auto",
-              WebkitBackgroundClip: "text",
+              backgroundImage: `linear-gradient(90deg, ${theme.cssVars.goldDark}, ${theme.cssVars.goldLight}, ${theme.cssVars.goldLightest}, ${theme.cssVars.goldMedium}, ${theme.cssVars.goldDark})`,
+              backgroundClip: "text",
               color: "transparent",
-              textShadow: "0 1px 3px rgba(0,0,0,0.25)",
             }}
           >
             {guestName}
           </span>
         </div>
 
+        {/* Footer Info */}
         <div
           style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
             fontSize: "30px",
             color: theme.cssVars.goldLight,
-            lineHeight: "1.5",
+            lineHeight: "1.4",
           }}
         >
-          <div>ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៦ វេលាម៉ោង៖ ៦ៈ០០ ល្ងាច</div>
-          <div>នៅគេហដ្ឋានខាងស្រី</div>
+          <span>ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៦</span>
+          <span>វេលាម៉ោង៖ ៦ៈ០០ ល្ងាច នៅគេហដ្ឋានខាងស្រី</span>
         </div>
       </div>
     ),
     {
       width: 1200,
       height: 630,
+      fonts: [
+        {
+          name: "Moul",
+          data: fontMoulData,
+          style: "normal",
+          weight: 400,
+        },
+      ],
     }
   );
 }
