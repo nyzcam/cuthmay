@@ -84,7 +84,7 @@ export async function GET(
 
     const title = `សូមគោរមអញ្ជើញ ${guestName}`;
     const subtitle = "សិរីសួស្ដីអាពាហ៍ពិពាហ៍";
-    const details = "អាទិត្យ ១៧ មេសា ២០២៦ • ម៉ោង ៦:००ល្ងាច";
+    const details = "អាទិត្យ ១៧ មេសា ២០២៦";
 
     // Fetch Khmer font (Moul from Google Fonts)
     let fontData: ArrayBuffer | null = null;
