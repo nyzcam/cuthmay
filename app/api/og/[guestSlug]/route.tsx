@@ -3,6 +3,8 @@ import type { NextRequest } from "next/server";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { findGuestBySlug, getGuestDisplayName } from "@/data/guestList";
+
 export const runtime = "nodejs";
 
 type ThemeName =
@@ -81,18 +83,21 @@ export async function GET(
     const themeName = searchParams.get("theme") || DEFAULT_THEME;
     const theme = getTheme(themeName);
 
-    const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
-    const guestName = decoded || "ភ្ញៀវ";
+    const guest = findGuestBySlug(guestSlug);
+    let displayName = "ភ្ញៀវកិត្តិយស";
 
-    const title = `សូមគោរមអញ្ជើញ ${guestName}`;
+    if (guest) {
+      displayName = getGuestDisplayName(guest);
+    } else {
+      const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
+      if (decoded) displayName = decoded;
+    }
+
+    const title = `សូមគោរពអញ្ជើញ ${displayName}`;
     const subtitle = "សិរីសួស្ដីអាពាហ៍ពិពាហ៍";
     const details = "អាទិត្យ ១៧ មេសា ២០២៦";
 
-    // ---------------------------------------------------------
-    // LOAD LOCAL FONT
-    // ---------------------------------------------------------
-    // This assumes the file is at: /public/fonts/khmer.ttf
-    const fontPath = join(process.cwd(), "fonts", "khmer.ttf");
+    const fontPath = join(process.cwd(), "public", "fonts", "khmer.ttf");
     const fontData = await readFile(fontPath);
 
     return new ImageResponse(
@@ -109,10 +114,10 @@ export async function GET(
             color: "white",
             textAlign: "center",
             padding: "60px 40px",
-            // Use the name defined in the fonts config below
             fontFamily: '"Khmer Boran"', 
           }}
         >
+          {/* Decorative Top Line */}
           <div
             style={{
               position: "absolute",
@@ -127,8 +132,7 @@ export async function GET(
           <div
             style={{
               fontSize: 64,
-              // Ensure this matches the weight in fonts config
-              fontWeight: 700, 
+              fontWeight: 700,
               marginBottom: 30,
               background: `linear-gradient(45deg, ${theme.accent}, #ffffff)`,
               backgroundClip: "text",
@@ -146,6 +150,9 @@ export async function GET(
               marginBottom: 40,
               lineHeight: 1.3,
               maxWidth: "90%",
+              display: "flex",
+              flexWrap: "wrap", 
+              justifyContent: "center",
             }}
           >
             {title}
@@ -176,6 +183,7 @@ export async function GET(
             នៅគេហដ្ឋានខាងស្រី
           </div>
 
+          {/* Decorative Bottom Line */}
           <div
             style={{
               position: "absolute",
@@ -196,15 +204,13 @@ export async function GET(
             name: "Khmer Boran",
             data: fontData,
             style: "normal",
-            // Mapping to 700 because your CSS uses bold/fontWeight:700
-            weight: 700, 
+            weight: 700,
           },
           {
             name: "Khmer Boran",
             data: fontData,
             style: "normal",
-            // Mapping to 400 as fallback
-            weight: 400, 
+            weight: 400,
           },
         ],
       }
@@ -222,10 +228,12 @@ export async function GET(
             color: "white",
             justifyContent: "center",
             alignItems: "center",
-            fontSize: 50
+            fontSize: 30,
+            flexDirection: "column"
           }}
         >
-           Error: Could not load font
+           <div>Error Generating Invite</div>
+           <div style={{fontSize: 20, marginTop: 10}}>{(error as Error).message}</div>
         </div>
       ),
       { width: 1200, height: 630 }
