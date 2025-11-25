@@ -86,20 +86,7 @@ export async function GET(
     const subtitle = "សិរីសួស្ដីអាពាហ៍ពិពាហ៍";
     const details = "អាទិត្យ ១៧ មេសា ២០២៦ • ម៉ោង ៦:००ល្ងាច";
 
-    // Fetch Khmer font
-    let fontData: ArrayBuffer | null = null;
-    try {
-      const fontRes = await fetch(
-        "https://fonts.gstatic.com/s/moul/v26/P5sHzZjMdOrmPHDP.ttf"
-      );
-      if (fontRes.ok) {
-        fontData = await fontRes.arrayBuffer();
-      }
-    } catch (e) {
-      console.warn("Failed to fetch Khmer font, using system fonts");
-    }
-
-    const imageResponse = new ImageResponse(
+    return new ImageResponse(
       (
         <div
           style={{
@@ -113,7 +100,7 @@ export async function GET(
             color: "white",
             textAlign: "center",
             padding: "60px 40px",
-            fontFamily: fontData ? "Moul, sans-serif" : "sans-serif",
+            fontFamily: "sans-serif",
           }}
         >
           <div
@@ -191,18 +178,6 @@ export async function GET(
       {
         width: 1200,
         height: 630,
-        ...(fontData
-          ? {
-              fonts: [
-                {
-                  name: "Moul",
-                  data: fontData,
-                  style: "normal" as const,
-                  weight: 400,
-                },
-              ],
-            }
-          : {}),
       }
     );
   } catch (error) {
