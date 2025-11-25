@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { themeConfig } from "@/config/themeConfig";
 import { findGuestBySlug, getGuestDisplayName } from "@/data/guestList";
 
-export const runtime = "edge" as const;
+export const runtime = "edge";
 
 export async function GET(
   req: NextRequest,
