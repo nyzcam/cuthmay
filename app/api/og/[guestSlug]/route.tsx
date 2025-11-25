@@ -100,10 +100,9 @@ export async function GET(
             color: "white",
             textAlign: "center",
             padding: "60px 40px",
-            fontFamily: "system-ui, sans-serif",
+            fontFamily: "font-khmer",
           }}
         >
-          {/* Decorative elements */}
           <div
             style={{
               position: "absolute",
