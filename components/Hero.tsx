@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { guestList, getGuestDisplayName, findGuestBySlug } from "../data/guestList";
 import ShortName from "./kbach/ShortName";
 import GuestFrame from "./kbach/GuestFrame";
-import { useTheme } from "../lib/ThemeContext";
+import { useTheme } from "../providers/ThemeContext";
 
 const Hero: React.FC = () => {
   const { currentTheme } = useTheme();

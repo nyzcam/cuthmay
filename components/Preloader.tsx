@@ -14,15 +14,69 @@ export default function Preloader({ phase, visible }: PreloaderProps) {
   const [animationData, setAnimationData] = useState<any>(null);
 
   useEffect(() => {
-    fetch("/romdoul.json")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load Lottie JSON");
-        return res.json();
-      })
-      .then(setAnimationData)
-      .catch((err) =>
-        console.error("Failed to load romdoul.json animation:", err)
-      );
+    const assets: string[] = [
+      "/romdoul.json",
+      "/aba-qr.png",
+      "/hol-khmer.svg",
+      "/pkarchan-pattern.svg",
+      "/preview_image.webp",
+      "/nokor-reach.mp3",
+      "/fonts/khmer.ttf",
+      "/fonts/tacteng.ttf",
+    ];
+
+    let mounted = true;
+
+    const loadImage = (src: string) =>
+      new Promise<void>((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+        img.src = src;
+      });
+
+    const loadAudio = (src: string) =>
+      new Promise<void>((resolve) => {
+        try {
+          const a = new Audio();
+          a.preload = "auto";
+          a.oncanplaythrough = () => resolve();
+          a.onerror = () => resolve();
+          a.src = src;
+        } catch (e) {
+          resolve();
+        }
+      });
+
+    const loadFetch = (src: string) => fetch(src).then(() => {}).catch(() => {});
+    
+    const handleAsset = async (asset: string) => {
+      try {
+        if (asset.endsWith(".json")) {
+            const resp = await fetch(asset);
+            if (resp.ok && mounted) {
+                const json = await resp.json();
+                if (asset === "/romdoul.json") setAnimationData(json);
+            }
+        } else if (asset.match(/\.(png|jpg|jpeg|webp|svg)$/)) {
+            await loadImage(asset);
+        } else if (asset.match(/\.(mp3|wav|ogg)$/)) {
+            await loadAudio(asset);
+        } else {
+            await loadFetch(asset);
+        }
+      } catch (e) {
+        console.warn(`Failed to preload ${asset}`, e);
+      }
+    };
+
+    (async () => {
+      await Promise.all(assets.map((asset) => handleAsset(asset)));
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
@@ -33,15 +87,11 @@ export default function Preloader({ phase, visible }: PreloaderProps) {
           initial={{ opacity: 1 }}
           animate={{ opacity: phase === AppPhase.COMPLETE ? 0 : 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1, ease: "easeInOut" }}
-          className="
-            fixed inset-0 z-50 
-            flex items-center justify-center
-            overflow-hidden
-          "
+          transition={{ duration: 0.8, ease: "easeInOut" }}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,#6f0000_0%,#200122_100%)]"
         >
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[128px] animate-pulse-slow" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-500/20 rounded-full blur-[128px] animate-pulse-slow delay-75" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[128px] animate-pulse-slow pointer-events-none" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-500/20 rounded-full blur-[128px] animate-pulse-slow delay-75 pointer-events-none" />
 
           <motion.div
             initial={{ scale: 0.85, opacity: 0 }}
@@ -49,15 +99,19 @@ export default function Preloader({ phase, visible }: PreloaderProps) {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="relative w-72 h-72 flex items-center justify-center"
           >
-            <div className="absolute inset-0 bg-white/5 blur-3xl rounded-full animate-pulse"></div>
+            <div className="absolute inset-0 bg-white/5 blur-3xl rounded-full animate-pulse" />
 
             {animationData && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="relative z-10 w-full h-full drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+                className="relative z-10 w-full h-full drop-shadow-[0_0_30px_rgba(239,191,4,0.4)]"
               >
-                <Lottie animationData={animationData} loop className="w-full h-full" />
+                <Lottie 
+                    animationData={animationData} 
+                    loop={true} 
+                    className="w-full h-full" 
+                />
               </motion.div>
             )}
           </motion.div>

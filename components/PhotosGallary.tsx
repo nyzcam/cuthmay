@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { useTheme } from "../lib/ThemeContext";
+import { useTheme } from "../providers/ThemeContext";
 
 interface Photo {
   id: number;

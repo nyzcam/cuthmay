@@ -14,7 +14,7 @@ import TopLeft from "./kbach/TopLeft";
 import TopRight from "./kbach/TopRight";
 import BottomLeft from "./kbach/BottomLeft";
 import BottomRight from "./kbach/BottomRight";
-import { useTheme } from "../lib/ThemeContext";
+import { useTheme } from "../providers/ThemeContext";
 
 const top = `0%`;
 const bottom = `100%`;

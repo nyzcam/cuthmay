@@ -2,7 +2,7 @@
 
 import { motion, Variants } from "framer-motion";
 import { Heart, ExternalLink, Sparkles } from "lucide-react";
-import { useTheme } from "../lib/ThemeContext";
+import { useTheme } from "../providers/ThemeContext";
 
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 20 },

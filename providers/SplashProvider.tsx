@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Preloader from "../components/Preloader";
+import { useEffect, useState } from "react";
+import Preloader from "@/components/Preloader";
 import { AppPhase } from "@/types/types";
 
 export default function SplashProvider({
@@ -9,32 +9,49 @@ export default function SplashProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const playedOnce = useRef(false);
   const [phase, setPhase] = useState<AppPhase>(AppPhase.LOADING);
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    if (playedOnce.current) {
-      setVisible(false);
-      return;
-    }
+    const lockScroll = () => {
+      document.body.classList.add("overflow-hidden");
+      document.documentElement.classList.add("overflow-hidden");
+    };
 
-    const t = setTimeout(() => {
+    const unlockScroll = () => {
+      document.body.classList.remove("overflow-hidden");
+      document.documentElement.classList.remove("overflow-hidden");
+    };
+
+    lockScroll();
+
+    const timerPhase = setTimeout(() => {
       setPhase(AppPhase.COMPLETE);
+    }, 2500);
 
-      setTimeout(() => {
-        playedOnce.current = true;
-        setVisible(false);
-      }, 900);
-    }, 1500);
+    const timerRemove = setTimeout(() => {
+      setVisible(false);
+      unlockScroll();
+    }, 3300);
 
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(timerPhase);
+      clearTimeout(timerRemove);
+      unlockScroll();
+    };
   }, []);
 
   return (
     <>
       <Preloader phase={phase} visible={visible} />
-      {children}
+      <div 
+        style={{ 
+           height: visible ? '100vh' : 'auto', 
+           overflow: visible ? 'hidden' : 'visible' 
+        }}
+      >
+        {children}
+      </div>
     </>
   );
 }

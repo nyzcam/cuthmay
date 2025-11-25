@@ -8,7 +8,7 @@ import {
   MotionValue,
 } from "motion/react";
 import React, { useState, useEffect, useMemo } from "react";
-import { useTheme } from "../lib/ThemeContext";
+import { useTheme } from "../providers/ThemeContext";
 
 interface TimeLeft {
   days: number;

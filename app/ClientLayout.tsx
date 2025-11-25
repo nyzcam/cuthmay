@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { ThemeProvider } from "@/lib/ThemeContext";
+import { ThemeProvider } from "@/providers/ThemeContext";
 import LayoutWrapperOld from "@/components/LayoutWrapperOld";
 import SplashProvider from "@/providers/SplashProvider";
 import "../styles/index.css";

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { QrCode } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useTheme } from "../lib/ThemeContext";
+import { useTheme } from "../providers/ThemeContext";
 import Image from "next/image";
 
 type AbaQrProps = {

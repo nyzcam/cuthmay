@@ -3,7 +3,7 @@ import React, { lazy, Suspense, useMemo, useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
 import ShortName from "./kbach/ShortName";
 import GuestFrame from "./kbach/GuestFrame";
-import { useTheme } from "../lib/ThemeContext";
+import { useTheme } from "../providers/ThemeContext";
 
 export default function InvitationContent() {
   const { currentTheme } = useTheme();
