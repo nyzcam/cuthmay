@@ -6,79 +6,84 @@ export interface Guest {
   plusOnes?: number;
 }
 
-export const guestList: { [key: string]: Guest } = {
+export const guestList: { [key: string]: any } = {
 
   "seth-kompheakmony": {
     khmerName: "សែត កុម្ភម្នី",
     englishName: "Seth Kompheakmony",
     title: "លោក",
-    relationship: "family"
-  },
-  
-  "sok-sreyneang": {
-    khmerName: "សុក ស្រីនាង",
-    englishName: "Sok Sreyneang", 
-    title: "លោកស្រី",
-    relationship: "family"
+    relationship: "family",
   },
 
-  // Family - Parents
+  "sok-sreyneang": {
+    khmerName: "សុក ស្រីនាង",
+    englishName: "Sok Sreyneang",
+    title: "លោកស្រី",
+    relationship: "family",
+  },
+
   "parents-seth": {
     khmerName: "ឪពុកម្តាយ សែត",
     englishName: "Seth's Parents",
     title: "គ្រួសារ",
     relationship: "immediate-family",
-    plusOnes: 0
+    plusOnes: 0,
   },
 
   "parents-sok": {
-    khmerName: "ឪពុកម្តាយ សុក", 
+    khmerName: "ឪពុកម្តាយ សុក",
     englishName: "Sok's Parents",
     title: "គ្រួសារ",
     relationship: "immediate-family",
-    plusOnes: 0
+    plusOnes: 0,
   },
 
-  // Close Friends
   "chan-thida": {
     khmerName: "ចាន់ ធីដា",
     englishName: "Chan Thida",
     title: "អ្នកនាង",
-    relationship: "friend"
+    relationship: "friend",
   },
 
   "ly-sopheap": {
     khmerName: "លី សុភាព",
     englishName: "Ly Sopheap",
-    title: "លោក", 
+    title: "លោក",
     relationship: "friend",
-    plusOnes: 1
+    plusOnes: 1,
   },
 
-  // Colleagues
   "kimseng-company": {
     khmerName: "ក្រុមការងារ គីមសេង",
     englishName: "Kimseng Company Team",
     title: "ក្រុម",
     relationship: "colleague",
-    plusOnes: 0
+    plusOnes: 0,
   },
 
-  // VIP Guests
   "heang-sophorn": {
     khmerName: "ហៀង សុផុន",
     englishName: "Heang Sophorn",
     title: "ឯកឧត្តម",
-    relationship: "vip"
+    relationship: "vip",
   },
 
   "meach-samphy": {
     khmerName: "មាស សំផី",
-    englishName: "Meach Samphy", 
+    englishName: "Meach Samphy",
     title: "លោកជំទាវ",
-    relationship: "vip"
-  }
+    relationship: "vip",
+  },
+
+  "song-rambot": {
+    khmerName: "សុង រាំប៉ូ និង ភរិយា",
+    englishName: "Song Rambot",
+    title: "លោក",
+    relationship: "vip",
+  },
+
 };
+
 
 export const getGuestDisplayName = (guest: Guest): string => {
   if (guest.title && guest.title === "គ្រួសារ") {
