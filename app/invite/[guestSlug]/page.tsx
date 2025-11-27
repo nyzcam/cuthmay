@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { guestList, getGuestDisplayName, findGuestBySlug } from "@/data/guestList";
+import { getGuestDisplayName, findGuestBySlug } from "@/data/guestList";
 
 type Props = {
   params: Promise<{ guestSlug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // Await the params promise
   const { guestSlug } = await params;
 
   const guest = findGuestBySlug(guestSlug);
@@ -58,8 +57,6 @@ import Footer from "@/components/Footer";
 import PhotosGallary from "@/components/PhotosGallary";
 
 export default async function GuestPage({ params }: Props) {
-  // Await params in the page component too
-  const { guestSlug } = await params;
 
   return (
     <>

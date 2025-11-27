@@ -28,21 +28,18 @@ if (idx === -1) {
   process.exit(1);
 }
 
-// Find the '=' after the marker
 const eqIdx = raw.indexOf('=', idx);
 if (eqIdx === -1) {
   console.error('Could not find "=" after guestList declaration');
   process.exit(1);
 }
 
-// Find opening brace of the object literal
 let i = raw.indexOf('{', eqIdx);
 if (i === -1) {
   console.error('Could not find opening "{" for guestList object');
   process.exit(1);
 }
 
-// Find matching closing brace by counting braces
 let depth = 0;
 let start = i;
 let end = -1;
@@ -65,7 +62,6 @@ if (end === -1) {
 
 const objectLiteral = raw.slice(start, end + 1);
 
-// Evaluate the object literal in a VM to get a plain JS object
 let guestListObj;
 try {
   const scriptText = '(function(){ return ' + objectLiteral + '; })()';

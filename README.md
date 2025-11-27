@@ -68,12 +68,4 @@ npm run export:guests
 - The output CSV will contain all original columns plus a `url` column with values like `https://yourdomain.com/invite/<slug>`.
 - The exporter supports quoted fields and will escape values as needed.
 
-Optional: add an npm script to `package.json` for convenience. Example `package.json` snippet:
-
-```json
-"scripts": {
-	"export:guests": "npm run export:guests"
-}
-```
-
 After running the exporter, open `data/guestList_with_urls.csv` to view or share the invite links.

@@ -1,15 +1,14 @@
-#!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
 
 function usage() {
   console.error('Usage: node scripts/export-guestlist.js [inputCsv] [baseUrl] [outputCsv]');
-  console.error('Defaults: inputCsv=data/guestList.csv baseUrl=http://localhost:3000 outputCsv=data/guestList_with_urls.csv');
+  console.error('Defaults: inputCsv=data/guestList.csv baseUrl=https://cuthmay-digi.vercel.app outputCsv=data/guestList_with_urls.csv');
   process.exit(1);
 }
 
 const input = process.argv[2] || 'data/guestList.csv';
-const baseUrl = process.argv[3] || 'http://localhost:3000';
+const baseUrl = process.argv[3] || 'https://cuthmay-digi.vercel.app';
 const output = process.argv[4] || 'data/guestList_with_urls.csv';
 
 const inPath = path.resolve(process.cwd(), input);
@@ -25,7 +24,6 @@ if (lines.length === 0) {
   process.exit(1);
 }
 
-// Robust CSV line parse (handles quoted fields with commas)
 function parseCsvLine(line) {
   const cols = [];
   let cur = '';
@@ -35,7 +33,7 @@ function parseCsvLine(line) {
     if (ch === '"') {
       if (inQuotes && line[i+1] === '"') {
         cur += '"';
-        i++; // skip escaped quote
+        i++;
       } else {
         inQuotes = !inQuotes;
       }

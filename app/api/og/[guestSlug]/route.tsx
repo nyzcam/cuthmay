@@ -1,11 +1,10 @@
 import { ImageResponse } from "next/og";
-import type { NextRequest } from "next/server";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-
+import { NextRequest } from "next/server";
 import { findGuestBySlug, getGuestDisplayName } from "@/data/guestList";
 
-export const runtime = "nodejs";
+// "edge" is preferred for OG images for performance.
+// "nodejs" causes issues with file paths (process.cwd) in production environments.
+export const runtime = "edge";
 
 type ThemeName =
   | "red"
@@ -79,7 +78,7 @@ export async function GET(
 ) {
   try {
     const { guestSlug } = await params;
-    const { searchParams } = new URL(req.url);
+    const { searchParams, protocol, host } = new URL(req.url);
     const themeName = searchParams.get("theme") || DEFAULT_THEME;
     const theme = getTheme(themeName);
 
@@ -97,8 +96,13 @@ export async function GET(
     const subtitle = "សិរីសួស្ដីអាពាហ៍ពិពាហ៍";
     const details = "អាទិត្យ ១៧ មេសា ២០២៦";
 
-    const fontPath = join(process.cwd(), "public", "fonts", "khmer.ttf");
-    const fontData = await readFile(fontPath);
+    // LOAD FONT: We use fetch instead of fs.readFile for Edge compatibility
+    // Make sure 'public/fonts/khmer.ttf' exists in your project
+    const fontUrl = `${protocol}//${host}/fonts/khmer.ttf`;
+    const fontData = await fetch(fontUrl).then((res) => {
+      if (!res.ok) throw new Error("Failed to load font");
+      return res.arrayBuffer();
+    });
 
     return new ImageResponse(
       (
@@ -114,7 +118,7 @@ export async function GET(
             color: "white",
             textAlign: "center",
             padding: "60px 40px",
-            fontFamily: '"Khmer Boran"', 
+            fontFamily: '"Khmer Boran", sans-serif',
           }}
         >
           {/* Decorative Top Line */}
@@ -128,7 +132,7 @@ export async function GET(
               background: `linear-gradient(90deg, transparent, ${theme.accent}66, transparent)`,
             }}
           />
-          
+
           <div
             style={{
               fontSize: 64,
@@ -138,26 +142,28 @@ export async function GET(
               backgroundClip: "text",
               color: "transparent",
               textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              fontFamily: '"Khmer Boran"', // Explicitly apply font
             }}
           >
             {subtitle}
           </div>
-          
+
           <div
             style={{
               fontSize: 56,
               fontWeight: 700,
               marginBottom: 40,
-              lineHeight: 1.3,
+              lineHeight: 1.4, // Increased slightly for Khmer subscripts
               maxWidth: "90%",
               display: "flex",
-              flexWrap: "wrap", 
+              flexWrap: "wrap",
               justifyContent: "center",
+              fontFamily: '"Khmer Boran"',
             }}
           >
             {title}
           </div>
-          
+
           <div
             style={{
               fontSize: 32,
@@ -168,16 +174,18 @@ export async function GET(
               paddingLeft: 40,
               paddingRight: 40,
               fontWeight: 700,
+              fontFamily: '"Khmer Boran"',
             }}
           >
             {details}
           </div>
-          
+
           <div
             style={{
               fontSize: 24,
               opacity: 0.7,
               fontWeight: 700,
+              fontFamily: '"Khmer Boran"',
             }}
           >
             នៅគេហដ្ឋានខាងស្រី
@@ -206,12 +214,6 @@ export async function GET(
             style: "normal",
             weight: 700,
           },
-          {
-            name: "Khmer Boran",
-            data: fontData,
-            style: "normal",
-            weight: 400,
-          },
         ],
       }
     );
@@ -228,12 +230,11 @@ export async function GET(
             color: "white",
             justifyContent: "center",
             alignItems: "center",
-            fontSize: 30,
-            flexDirection: "column"
+            fontSize: 24,
+            flexDirection: "column",
           }}
         >
-           <div>Error Generating Invite</div>
-           <div style={{fontSize: 20, marginTop: 10}}>{(error as Error).message}</div>
+          <div>Unable to generate invite</div>
         </div>
       ),
       { width: 1200, height: 630 }
