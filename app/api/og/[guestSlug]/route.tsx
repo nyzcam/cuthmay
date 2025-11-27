@@ -2,8 +2,6 @@ import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { findGuestBySlug, getGuestDisplayName } from "@/data/guestList";
 
-// "edge" is preferred for OG images for performance.
-// "nodejs" causes issues with file paths (process.cwd) in production environments.
 export const runtime = "edge";
 
 type ThemeName =
@@ -96,8 +94,6 @@ export async function GET(
     const subtitle = "សិរីសួស្ដីអាពាហ៍ពិពាហ៍";
     const details = "អាទិត្យ ១៧ មេសា ២០២៦";
 
-    // LOAD FONT: We use fetch instead of fs.readFile for Edge compatibility
-    // Make sure 'public/fonts/khmer.ttf' exists in your project
     const fontUrl = `${protocol}//${host}/fonts/khmer.ttf`;
     const fontData = await fetch(fontUrl).then((res) => {
       if (!res.ok) throw new Error("Failed to load font");
@@ -121,7 +117,6 @@ export async function GET(
             fontFamily: '"Khmer Boran", sans-serif',
           }}
         >
-          {/* Decorative Top Line */}
           <div
             style={{
               position: "absolute",
@@ -142,7 +137,7 @@ export async function GET(
               backgroundClip: "text",
               color: "transparent",
               textShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              fontFamily: '"Khmer Boran"', // Explicitly apply font
+              fontFamily: '"Khmer Boran"',
             }}
           >
             {subtitle}
@@ -153,7 +148,7 @@ export async function GET(
               fontSize: 56,
               fontWeight: 700,
               marginBottom: 40,
-              lineHeight: 1.4, // Increased slightly for Khmer subscripts
+              lineHeight: 1.4,
               maxWidth: "90%",
               display: "flex",
               flexWrap: "wrap",
@@ -191,7 +186,6 @@ export async function GET(
             នៅគេហដ្ឋានខាងស្រី
           </div>
 
-          {/* Decorative Bottom Line */}
           <div
             style={{
               position: "absolute",
