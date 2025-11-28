@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Moul&display=swap");
-
 :root {
   --accent-color: #efbf04;
   --green-dark: rgb(20, 83, 45);
@@ -27,7 +25,6 @@ html {
 
 html,
 body {
-  font-family: "Moul", "Cursive", sans-serif;
   color: var(--gold-primary);
   overflow-x: hidden;
   line-height: 1.6;

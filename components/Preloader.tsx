@@ -21,8 +21,6 @@ export default function Preloader({ phase, visible }: PreloaderProps) {
       "/pkarchan-pattern.svg",
       "/preview_image.webp",
       "/nokor-reach.mp3",
-      "/fonts/khmer.ttf",
-      "/fonts/tacteng.ttf",
     ];
 
     let mounted = true;

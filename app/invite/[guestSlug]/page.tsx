@@ -55,13 +55,30 @@ import Detail from "@/components/Detail";
 import AbaQr from "@/components/AbaQr";
 import Footer from "@/components/Footer";
 import PhotosGallary from "@/components/PhotosGallary";
+import ClientSideOGGenerator from "@/components/ClientSideOGGenerator";
 
 export default async function GuestPage({ params }: Props) {
+  const { guestSlug } = await params;
+  
+  const guest = findGuestBySlug(guestSlug);
+  let guestName: string;
+
+  if (guest) {
+    guestName = getGuestDisplayName(guest);
+  } else {
+    const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
+    guestName = decoded || "Guest";
+  }
 
   return (
     <>
-      <Hero/>
-      <Detail/>
+      <ClientSideOGGenerator 
+        guestSlug={guestSlug}
+        displayName={guestName}
+      />
+      
+      <Hero />
+      <Detail />
       <PhotosGallary />
       <AbaQr />
       <Footer />
