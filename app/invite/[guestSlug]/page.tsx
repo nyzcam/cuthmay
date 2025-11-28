@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay-digi.vercel.app";
 
   const title = `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`;
-  const description = `អាទិត្យ ១៧ មេសា ២០២៦ • វេលាម៉ោង ៦:០០ ល្ងាច — នៅគេហដ្ឋានខាងស្រី`;
+  const description = `អាទិត្យ ១៧ មេសា ២០២៦ • វេលាម៉ោង ៦:០០ ល្ងាច — នៅគេហដ្ឋានខាងស្រី ភូមិល សង្កាត់ស្ទឹងមានជ័យ ខណ្ឌចំការមន រាជធានីភ្នំពេញ។ សូមចូលរួមអបអរសាទរពិធីមង្គលការរវាង កុម្ភម្នី & កញ្ញា គន្ធា។`;
 
   const ogUrl = `${siteUrl}/preview_image.webp`;
 
