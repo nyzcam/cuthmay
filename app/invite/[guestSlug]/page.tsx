@@ -6,37 +6,50 @@ import AbaQr from "@/components/AbaQr";
 import Footer from "@/components/Footer";
 import PhotosGallary from "@/components/PhotosGallary";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay-digi.vercel.app";
+const DEFAULT_GUEST_NAME = "Guest";
+const WEDDING_DATE = "ថ្ងៃអាទិត្យ ១៧ មេសា ២០២៦";
+const WEDDING_LOCATION = "នៅភូមិល សង្កាត់ស្ទឹងមានជ័យ ខណ្ឌចំការមន រាជធានីភ្នំពេញ";
+const WEDDING_DESCRIPTION = `${WEDDING_DATE} — ${WEDDING_LOCATION}។ សូមចូលរួមអបអរសាទរពិធីមង្គលការរវាង កុម្ភម្នី & កញ្ញា គន្ធា។`;
+
 type Props = {
   params: Promise<{ guestSlug: string }>;
 };
 
+function normalizeGuestName(guestSlug: string): string {
+  if (!guestSlug) return DEFAULT_GUEST_NAME;
+  
+  const guest = findGuestBySlug(guestSlug);
+  if (guest) {
+    return getGuestDisplayName(guest);
+  }
+  
+  try {
+    const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
+    return decoded || DEFAULT_GUEST_NAME;
+  } catch {
+    return DEFAULT_GUEST_NAME;
+  }
+}
+
+function generatePageTitle(guestName: string): string {
+  return `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { guestSlug } = await params;
-
-  const guest = findGuestBySlug(guestSlug);
-  let guestName: string;
-
-  if (guest) {
-    guestName = getGuestDisplayName(guest);
-  } else {
-    const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
-    guestName = decoded || "Guest";
-  }
-
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay-digi.vercel.app";
-
-  const title = `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`;
-  const description = `អាទិត្យ ១៧ មេសា ២០២៦ • វេលាម៉ោង ៦:០០ ល្ងាច — នៅគេហដ្ឋានខាងស្រី ភូមិល សង្កាត់ស្ទឹងមានជ័យ ខណ្ឌចំការមន រាជធានីភ្នំពេញ។ សូមចូលរួមអបអរសាទរពិធីមង្គលការរវាង កុម្ភម្នី & កញ្ញា គន្ធា។`;
-
-  const ogUrl = `${siteUrl}/preview_image.webp`;
+  const guestName = normalizeGuestName(guestSlug);
+  const title = generatePageTitle(guestName);
+  const ogUrl = `${SITE_URL}/preview_image.webp`;
+  const pageUrl = `${SITE_URL}/invite/${guestSlug}`;
 
   return {
     title,
-    description,
+    description: WEDDING_DESCRIPTION,
     openGraph: {
       title,
-      description,
-      url: `${siteUrl}/invite/${guestSlug}`,
+      description: WEDDING_DESCRIPTION,
+      url: pageUrl,
       images: [
         {
           url: ogUrl,
@@ -46,37 +59,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         },
       ],
       type: "website",
+      locale: "km_KH",
+      siteName: "Cuthmay",
     },
     twitter: {
       card: "summary_large_image",
       title,
-      description,
+      description: WEDDING_DESCRIPTION,
       images: [ogUrl],
     },
-    metadataBase: new URL(siteUrl),
+    metadataBase: new URL(SITE_URL),
+    alternates: {
+      canonical: pageUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 
+
 export default async function GuestPage({ params }: Props) {
   const { guestSlug } = await params;
-  
-  const guest = findGuestBySlug(guestSlug);
-  let guestName: string;
-
-  if (guest) {
-    guestName = getGuestDisplayName(guest);
-  } else {
-    const decoded = decodeURIComponent(guestSlug).replace(/-/g, " ");
-    guestName = decoded || "Guest";
-  }
+  const guestName = normalizeGuestName(guestSlug);
 
   return (
-    <>
+    <main className="min-h-screen">
       <Hero guestName={guestName} />
       <Detail />
       <PhotosGallary />
       <AbaQr />
       <Footer />
-    </>
+    </main>
   );
 }
