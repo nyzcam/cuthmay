@@ -1,7 +1,5 @@
 {
   "functions": {
-    "app/api/og/[guestSlug]/route.tsx": {
-      "runtime": "nodejs18.x"
-    }
+    
   }
 }
