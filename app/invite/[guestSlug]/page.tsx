@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import { getGuestDisplayName, findGuestBySlug } from "@/data/guestList";
+import Hero from "@/components/Hero";
+import Detail from "@/components/Detail";
+import AbaQr from "@/components/AbaQr";
+import Footer from "@/components/Footer";
+import PhotosGallary from "@/components/PhotosGallary";
 
 type Props = {
   params: Promise<{ guestSlug: string }>;
@@ -23,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`;
   const description = `អាទិត្យ ១៧ មេសា ២០២៦ • វេលាម៉ោង ៦:០០ ល្ងាច — នៅគេហដ្ឋានខាងស្រី`;
 
-  const ogUrl = `${siteUrl}/api/og/${guestSlug}`;
+  const ogUrl = `${siteUrl}/preview_image.webp`;
 
   return {
     title,
@@ -40,6 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           alt: title,
         },
       ],
+      type: "website",
     },
     twitter: {
       card: "summary_large_image",
@@ -47,15 +53,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       images: [ogUrl],
     },
+    metadataBase: new URL(siteUrl),
   };
 }
-
-import Hero from "@/components/Hero";
-import Detail from "@/components/Detail";
-import AbaQr from "@/components/AbaQr";
-import Footer from "@/components/Footer";
-import PhotosGallary from "@/components/PhotosGallary";
-import ClientSideOGGenerator from "@/components/ClientSideOGGenerator";
 
 export default async function GuestPage({ params }: Props) {
   const { guestSlug } = await params;
@@ -72,12 +72,7 @@ export default async function GuestPage({ params }: Props) {
 
   return (
     <>
-      <ClientSideOGGenerator 
-        guestSlug={guestSlug}
-        displayName={guestName}
-      />
-      
-      <Hero />
+      <Hero guestName={guestName} />
       <Detail />
       <PhotosGallary />
       <AbaQr />

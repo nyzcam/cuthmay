@@ -8,7 +8,11 @@ import ShortName from "./kbach/ShortName";
 import GuestFrame from "./kbach/GuestFrame";
 import { useTheme } from "../providers/ThemeContext";
 
-const Hero: React.FC = () => {
+interface HeroProps {
+  guestName?: string;
+}
+
+export default function Hero({ guestName = "ភ្ញៀវកិត្តិយស" }: HeroProps) {
   const { currentTheme } = useTheme();
   const params = useParams();
   
@@ -259,5 +263,3 @@ const Hero: React.FC = () => {
     </>
   );
 }
-
-export default Hero;
