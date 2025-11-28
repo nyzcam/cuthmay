@@ -13,44 +13,45 @@ interface Photo {
 const photos: Photo[] = [
   {
     id: 1,
-    src: "https://picsum.photos/seed/p1/800/1200",
+    src: "https://res.cloudinary.com/djuzggce9/image/upload/v1764323693/40ff102232c5123b984eb9dcb6c2b6b7_zwoekf.jpg",
     alt: "Tall portrait image",
   },
   {
     id: 2,
-    src: "https://picsum.photos/seed/p2/1200/800",
+    src: "https://res.cloudinary.com/djuzggce9/image/upload/v1764323760/c239909af9ad923a4ae3d207cccb3eef_uinxk4.jpg",
     alt: "Wide landscape image",
   },
   {
     id: 3,
-    src: "https://picsum.photos/seed/p3/800/800",
+    src: "https://res.cloudinary.com/djuzggce9/image/upload/v1764323845/c310081e783e8a16632d3104724943d1_zvcdxu.jpg",
     alt: "Square image",
   },
   {
     id: 4,
-    src: "https://picsum.photos/seed/p4/800/1000",
+    src: "https://res.cloudinary.com/djuzggce9/image/upload/v1764323938/f6c39307e32cee03933e3a6edfef07d8_rchque.jpg",
     alt: "Another portrait",
   },
   {
     id: 5,
-    src: "https://picsum.photos/seed/p5/1000/800",
+    src: "https://res.cloudinary.com/djuzggce9/image/upload/v1764324012/01658af1694e93a17598e4ffa1dd0f7a_do9ljd.jpg",
     alt: "Scenic view",
   },
   {
     id: 6,
-    src: "https://picsum.photos/seed/p6/800/1100",
+    src: "https://res.cloudinary.com/djuzggce9/image/upload/v1764324068/4088d06683cca308a6674a6e4d3db0fd_hbl8nw.jpg",
     alt: "Architecture detail",
   },
   {
     id: 7,
-    src: "https://picsum.photos/seed/p7/1200/900",
+    src: "https://res.cloudinary.com/djuzggce9/image/upload/v1764324134/423cd07c160ae3decd53ff0616709267_vg9dfv.jpg",
     alt: "Nature shot",
   },
   {
     id: 8,
-    src: "https://picsum.photos/seed/p8/800/900",
+    src: "https://res.cloudinary.com/djuzggce9/image/upload/v1764324225/97e6215d37055f215820ce5cf61608ab_in3xgs.jpg",
     alt: "Urban photography",
   },
+  
 ];
 
 const PhotosGallery: React.FC = () => {
