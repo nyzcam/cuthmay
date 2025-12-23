@@ -142,7 +142,6 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             onChange={handleChange}
             placeholder="ឈ្មោះ​ខ្មែរ"
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white placeholder-white/50"
-            style={{ focusRingColor: goldLight }}
             required
           />
         </motion.div>
@@ -159,7 +158,6 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             onChange={handleChange}
             placeholder="English Name"
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white placeholder-white/50"
-            style={{ focusRingColor: goldLight }}
           />
         </motion.div>
 
@@ -175,7 +173,6 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             onChange={handleChange}
             placeholder="លោក, អ្នកនាង"
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white placeholder-white/50"
-            style={{ focusRingColor: goldLight }}
           />
         </motion.div>
 
@@ -189,7 +186,6 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             value={formData.relationship}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white"
-            style={{ focusRingColor: goldLight }}
           >
             <option value="family" className="bg-slate-800">គ្រួសារ</option>
             <option value="friend" className="bg-slate-800">មិត្តភ័ក្តិ</option>
@@ -209,7 +205,6 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             value={formData.status}
             onChange={handleChange}
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white"
-            style={{ focusRingColor: goldLight }}
           >
             <option value="pending" className="bg-slate-800">រង់ចាំ</option>
             <option value="sent" className="bg-slate-800">បានផ្ញើ</option>
