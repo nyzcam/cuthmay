@@ -9,6 +9,7 @@ import {
 } from "motion/react";
 import React, { useState, useEffect, useMemo } from "react";
 import { useTheme } from "../providers/ThemeContext";
+import { defaultDetailData, toKhmerNumber, getDirectionsMapUrl, type DetailData } from "../data/detailData";
 
 interface TimeLeft {
   days: number;
@@ -23,9 +24,13 @@ interface Direction {
   detail: string;
 }
 
-export default function Details() {
+interface DetailsProps {
+  detailData?: DetailData;
+  targetDate?: string;
+}
+
+export default function Details({ detailData = defaultDetailData, targetDate = "2025-12-26T11:59:59" }: DetailsProps) {
   const { currentTheme } = useTheme();
-  const targetDate = "2025-12-26T11:59:59";
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
     hours: 0,
@@ -137,12 +142,12 @@ export default function Details() {
   };
 
   const handleRedirect = () => {
-    const url = `https://maps.app.goo.gl/ZiEYZU2GpxkvH49DA?g_st=ic`;
+    const url = getDirectionsMapUrl();
     window.open(url, "_blank");
   };
 
   const khmerNumerals = ["០", "១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩"];
-  const toKhmerNumber = (num: number): string =>
+  const oldToKhmerNumber = (num: number): string =>
     num
       .toString()
       .split("")
@@ -164,44 +169,23 @@ export default function Details() {
 
   const km1Khmer = useTransform(
     kmSpring1,
-    (latest) => `${toKhmerNumber(Math.round(latest))} គ.ម`
+    (latest) => `${oldToKhmerNumber(Math.round(latest))} គ.ម`
   );
   const km2Khmer = useTransform(
     kmSpring2,
-    (latest) => `${toKhmerNumber(Math.round(latest))} គ.ម`
+    (latest) => `${oldToKhmerNumber(Math.round(latest))} គ.ម`
   );
 
-  const parents = [
-    { father: "លោក យ៉ង់ វីរៈ", mother: "លោកស្រី ហួត សុមន" },
-    { father: "លោក ខួន ពិនុច", mother: "លោកស្រី គីម ណេត" },
-  ];
+  const parents = detailData.parents;
 
-  const couple = {
-    groom: "ហួត សុមន",
-    bride: "គីម ណេត",
-  };
+  const couple = detailData.couple;
 
-  const dateInfo = {
-    lunar: "ថ្ងៃសុក្រ ៧ កើត ខែបុស្ស ឆ្នាំម្សាញ់ សប្តស័ក ពុទ្ធសករាជ ២៥៦៩",
-    solar: "ថ្ងៃទី២៦ ខែធ្នូ ឆ្នាំ២០២៥",
-  };
+  const dateInfo = detailData.dateInfo;
 
-  const directions = [
-    {
-      id: 1,
-      description: "ចេញពីស្ពានអាកាសចោមចៅ តាមផ្លូវជាតិលេខ ៣ ចម្ងាយប្រមាណ",
-      distance: km1Khmer,
-      detail:
-        "ដល់ខ្លោងទ្វារវត្តសិរីធានីខាងឆ្វេងដៃ រួចបត់ចូលប្រមាណ ១.៥គ.ម លោកអ្នកនឹងទៅដល់ផ្ទះពិធីមង្គលការ។",
-    },
-    {
-      id: 2,
-      description: "ចេញពីរង្វង់មូលទុរេន តាមផ្លូវជាតិលេខ ៣ ចម្ងាយប្រមាណ",
-      distance: km2Khmer,
-      detail:
-        "ដល់ខ្លោងទ្វារវត្តសិរីធានីខាងស្ដាំដៃ រួចបត់ចូលប្រមាណ ១.៥គ.ម លោកអ្នកនឹងទៅដល់ផ្ទះពិធីមង្គលការ។",
-    },
-  ];
+  const directions = detailData.directions.map((dir) => ({
+    ...dir,
+    distance: km1Khmer, // These would need to be passed as props to be truly dynamic
+  }));
 
   return (
     <div className="flex flex-col items-center text-center px-4 sm:px-6 lg:px-8">

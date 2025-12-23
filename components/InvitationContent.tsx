@@ -4,8 +4,18 @@ import { motion, Variants } from "framer-motion";
 import ShortName from "./kbach/ShortName";
 import GuestFrame from "./kbach/GuestFrame";
 import { useTheme } from "../providers/ThemeContext";
+import { defaultInvitationContentData, type InvitationContentData } from "../data/invitationContentData";
+import { defaultHeroData, formatEventDate, type HeroData } from "../data/heroData";
 
-export default function InvitationContent() {
+interface InvitationContentProps {
+  heroData?: HeroData;
+  invitationData?: InvitationContentData;
+}
+
+export default function InvitationContent({ 
+  heroData = defaultHeroData,
+  invitationData = defaultInvitationContentData 
+}: InvitationContentProps) {
   const { currentTheme } = useTheme();
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -182,7 +192,7 @@ export default function InvitationContent() {
           role="heading"
           aria-level={1}
         >
-          <ShimmerText>សិរីសួស្ដីអាពាហ៍ពិពាហ៍</ShimmerText>
+          <ShimmerText>{heroData.title}</ShimmerText>
         </motion.h1>
 
         <motion.h3
@@ -193,7 +203,7 @@ export default function InvitationContent() {
           role="heading"
           aria-level={3}
         >
-          សូមគោរមអញ្ជើញ
+          {heroData.subtitle}
         </motion.h3>
 
         <motion.h4
@@ -204,7 +214,7 @@ export default function InvitationContent() {
           role="heading"
           aria-level={4}
         >
-          ឯកឧត្តម លោកជំទាវ​​ លោក លោកស្រី អ្នកនាងកញ្ញា
+          {heroData.invitation}
         </motion.h4>
       </motion.div>
 
@@ -238,9 +248,9 @@ export default function InvitationContent() {
         custom={5}
       >
         <h6 className="leading-6" aria-label="Event Date and Time">
-          ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៦​ វេលាម៉ោង៖ ៦ៈ០០ ល្ងាច
+          {formatEventDate(heroData.eventDate)}
         </h6>
-        <h6 aria-label="Event Location">នៅគេហដ្ឋានខាងស្រី</h6>
+        <h6 aria-label="Event Location">{heroData.location}</h6>
       </motion.div>
     </div>
   );

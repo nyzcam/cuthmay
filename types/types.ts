@@ -15,3 +15,12 @@ export interface LoadingState {
   phase: AppPhase;
   statusMessage: string;
 }
+
+export interface TimelineEvent {
+  id: string;
+  time: string;
+  title: string;
+  description: string;
+  icon: 'ring' | 'users' | 'scissors' | 'music' | 'camera' | 'utensils' | 'heart' | 'moon' | 'sun';
+  session?: 'morning' | 'evening';
+}

@@ -6,7 +6,7 @@ export interface Guest {
   plusOnes?: number;
 }
 
-export const guestList: { [key: string]: any } = {
+export const guestList: Record<string, Guest> = {
 
   "seth-kompheakmony": {
     khmerName: "សែត កុម្ភម្នី",

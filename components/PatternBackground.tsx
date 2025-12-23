@@ -3,10 +3,10 @@
 import React, { memo } from "react";
 
 const PatternBackground = memo(() => {
-  const style: React.CSSProperties = {
-    ["--bg-url" as any]: `url(/hol-khmer.svg)`,
-    ["--tile-size" as any]: "100px",
-  };
+  const style = {
+    "--bg-url": `url(/hol-khmer.svg)`,
+    "--tile-size": "100px",
+  } as React.CSSProperties;
 
   return <div className="pattern-bg" style={style} />;
 });

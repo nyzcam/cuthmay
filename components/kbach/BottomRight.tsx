@@ -1,4 +1,6 @@
 "use client";
+import React from "react";
+
 interface BottomRight {
   color: string;
 }
@@ -35,4 +37,4 @@ const BottomRight = ({ color }: BottomRight) => {
     </svg>
   );
 };
-export default BottomRight;
+export default React.memo(BottomRight);

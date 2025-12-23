@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { QrCode } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useTheme } from "../providers/ThemeContext";
+import { defaultAbaQrData, getAbaPaymentLink, type AbaQrData } from "../data/abaQrData";
 import Image from "next/image";
 
 type AbaQrProps = {
@@ -10,32 +11,25 @@ type AbaQrProps = {
   size?: number;
   showAnimation?: boolean;
   cornerColor?: string;
+  abaQrData?: AbaQrData;
 };
 
-const quotes = [
-  "ថ្ងៃនេះថ្ងៃជា មេបាគ្រប់គ្នា ចូលមកត្រៀបត្រា ជាអធិតេយ្យ ក្នុងមង្គលការ ឱ្យបានសុខា ដល់បុត្រជៀងជាក់។",
-  "លោកអើយពាក្យពរ ពិរោះសាទ រុងរឿងសិទ្ធិស័ក្ត ខ្ញុំនឹងថ្លាថ្លែង​ ចាចែងដោយថ្នាក់ ដោយបទជើងជាក់ ជួបចប់វាចារ។",
-  "អំបោះសសម គួរគាប់ឧត្តម ដូចលួសសុវណ្ណា កកាន់លើកឡើង ថ្កល់ថ្កើងថ្លៃថ្លា ចូលចងហត្ថា ឱ្យអ្នកសុខសាន្ត។",
-  "ឱ្យអ្នកបានទី ខ្ពង់ខ្ពស់ឫទ្ធី បរិបូណ៌ថ្កើនថ្កាន អាយុយឺនយូរ កបគូបុរាណ មួយរយឆ្នាំបាន ចៀសចាករោគា។",
-  "នីរទុក្ខំ ទោមនស្សំ ឧបទ្ទវា នីរសោកេ រោគេពាធា ស្វាមីភរិយា ហោន្តុសុខំ។",
-  "ធនធនា ទាសីទាសា ធនធនំ អស្សធនោ ភោគោឧត្តម បរិសុខ ពហុយសា។",
-];
-
 export default function AbaQr({
-  merchant = "SET K. & DETH V.",
+  merchant = defaultAbaQrData.merchant,
   size = 200,
   showAnimation = true,
   cornerColor,
+  abaQrData = defaultAbaQrData,
 }: AbaQrProps) {
   const { currentTheme } = useTheme();
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length);
+      setCurrentQuoteIndex((prev) => (prev + 1) % abaQrData.quotes.length);
     }, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [abaQrData.quotes.length]);
 
   const activeCornerColor = cornerColor || `border-[${currentTheme.accent}]`;
 
@@ -50,7 +44,7 @@ export default function AbaQr({
       >
         <div className="flex items-center justify-center">
           <h4 className="font-khmer text-gold text-xl md:text-2xl">
-            សូមពរជ័យគ្រប់ប្រការ
+            {abaQrData.title}
           </h4>
         </div>
         <div
@@ -71,7 +65,7 @@ export default function AbaQr({
         <div className="flex-1 flex flex-col items-center justify-center">
           <div className="relative group">
             <a
-              href="https://pay.ababank.com/oRF8/miaea0t0"
+              href={getAbaPaymentLink()}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -134,7 +128,7 @@ export default function AbaQr({
                 className="w-4 h-4"
                 style={{ color: currentTheme.accent }}
               />
-              <span className="font-mono tracking-wide">{merchant}</span>
+              <span className="font-mono tracking-wide">{abaQrData.merchant}</span>
             </div>
           </div>
         </div>
@@ -175,14 +169,14 @@ export default function AbaQr({
                   exit={{ opacity: 0, y: -20, filter: "blur(4px)" }}
                   transition={{ duration: 0.6, ease: "easeInOut" }}
                 >
-                  {quotes[currentQuoteIndex]}
+                  {abaQrData.quotes[currentQuoteIndex]}
                 </motion.p>
               </AnimatePresence>
             </div>
 
             <div className="flex items-center justify-center gap-4 mt-6">
               <div className="flex gap-1">
-                {quotes.map((_, index) => (
+                {abaQrData.quotes.map((_, index) => (
                   <motion.button
                     key={index}
                     className={`w-2 h-2 rounded-full transition-all duration-300 ${

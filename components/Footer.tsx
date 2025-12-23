@@ -3,6 +3,11 @@
 import { motion, Variants } from "framer-motion";
 import { Heart, ExternalLink, Sparkles } from "lucide-react";
 import { useTheme } from "../providers/ThemeContext";
+import { defaultFooterData, type FooterData } from "../data/footerData";
+
+interface FooterProps {
+  footerData?: FooterData;
+}
 
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -54,7 +59,7 @@ const dotPulseAnimation: Variants = {
   },
 };
 
-export default function Footer() {
+export default function Footer({ footerData = defaultFooterData }: FooterProps) {
   const { currentTheme } = useTheme();
 
   const { goldPrimary, goldDark, goldLight, goldLightest, goldMedium } =
@@ -147,7 +152,7 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-center text-center space-y-6">
           <motion.div className="space-y-3" variants={fadeInUp}>
             <p className="text-lg text-gold md:text-xl tracking-wide leading-relaxed">
-              សូមអរគុណចំពោះការចូលរួម
+              {footerData.thankYouMessage}
             </p>
             <motion.p
               className="text-sm text-gold md:text-base max-w-md mx-auto"
@@ -155,7 +160,7 @@ export default function Footer() {
               animate={{ opacity: 1 }}
               transition={{ delay: 1, duration: 0.8 }}
             >
-              ការចូលរួមរបស់លោកអ្នកគឺជាកិត្តិយសយ៉ាងធំសម្រាប់ពួកយើង
+              {footerData.thankYouSubtext}
             </motion.p>
           </motion.div>
 
@@ -197,7 +202,7 @@ export default function Footer() {
                 style={{ color: `${goldPrimary}60` }}
                 strokeWidth={1.5}
               />
-              នាំមកជួនដោយ
+              {footerData.creditText}
               <Sparkles
                 className="w-4 h-4"
                 style={{ color: `${goldPrimary}60` }}
@@ -206,11 +211,11 @@ export default function Footer() {
             </motion.p>
 
             <motion.a
-              href="https://nyzcam.vercel.app/"
+              href={footerData.creditorUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="group inline-flex items-center space-x-2 transition-all duration-300"
-              aria-label="Visit Nyz Cam website (opens in new tab)"
+              aria-label={`Visit ${footerData.creditorName} website (opens in new tab)`}
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -218,7 +223,7 @@ export default function Footer() {
                 className="relative font-medium text-lg"
                 style={{ color: goldPrimary }}
               >
-                Nyz Cam
+                {footerData.creditorName}
                 <motion.div
                   className="absolute -bottom-1 left-0 h-px"
                   style={{

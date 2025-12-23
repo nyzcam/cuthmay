@@ -63,6 +63,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const setTheme = useCallback((name: ThemeName) => {
     if (themeConfig[name]) {
       setCurrentThemeName(name);
+      // Only access localStorage if available (handles SSR)
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem("themeName", name);
@@ -74,10 +75,14 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
       console.warn(`Theme "${name}" not found. Using default theme.`);
       setCurrentThemeName(DEFAULT_THEME);
       if (typeof window !== "undefined") {
-        localStorage.setItem("themeName", DEFAULT_THEME);
+        try {
+          localStorage.setItem("themeName", DEFAULT_THEME);
+        } catch (error) {
+          console.error("Failed to save theme to localStorage:", error);
+        }
       }
     }
-  }, []);
+  }, [DEFAULT_THEME]);
 
   useEffect(() => {
     applyThemeStyles(currentTheme);

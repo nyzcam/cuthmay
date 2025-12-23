@@ -4,15 +4,17 @@ import { motion, Variants } from "framer-motion";
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { guestList, getGuestDisplayName, findGuestBySlug } from "../data/guestList";
+import { defaultHeroData, formatEventDate, type HeroData } from "../data/heroData";
 import ShortName from "./kbach/ShortName";
 import GuestFrame from "./kbach/GuestFrame";
 import { useTheme } from "../providers/ThemeContext";
 
 interface HeroProps {
   guestName?: string;
+  heroData?: HeroData;
 }
 
-export default function Hero({ guestName = "ភ្ញៀវកិត្តិយស" }: HeroProps) {
+export default function Hero({ guestName = "ភ្ញៀវកិត្តិយស", heroData = defaultHeroData }: HeroProps) {
   const { currentTheme } = useTheme();
   const params = useParams();
   
@@ -205,7 +207,7 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
             variants={fadeUp}
             custom={1}
           >
-            <ShimmerMotion delay={1}>សិរីសួស្ដីអាពាហ៍ពិពាហ៍</ShimmerMotion>
+            <ShimmerMotion delay={1}>{heroData.title}</ShimmerMotion>
           </motion.h1>
 
           <motion.h3
@@ -213,7 +215,7 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
             variants={fadeUp}
             custom={2}
           >
-            សូមគោរមអញ្ជើញ
+            {heroData.subtitle}
           </motion.h3>
 
           <motion.h4
@@ -221,7 +223,7 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
             variants={fadeUp}
             custom={3}
           >
-            ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា
+            {heroData.invitation}
           </motion.h4>
         </motion.div>
 
@@ -255,9 +257,9 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
           custom={5}
         >
           <h6 className="leading-6">
-            ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៦ វេលាម៉ោង៖ ៦ៈ០០ ល្ងាច
+            {formatEventDate(heroData.eventDate)}
           </h6>
-          <h6>នៅគេហដ្ឋានខាងស្រី</h6>
+          <h6>{heroData.location}</h6>
         </motion.div>
       </div>
     </>

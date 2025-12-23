@@ -10,8 +10,18 @@ interface PreloaderProps {
   visible: boolean;
 }
 
+interface AnimationData {
+  v: string;
+  fr: number;
+  ip: number;
+  op: number;
+  w: number;
+  h: number;
+  [key: string]: unknown;
+}
+
 export default function Preloader({ phase, visible }: PreloaderProps) {
-  const [animationData, setAnimationData] = useState<any>(null);
+  const [animationData, setAnimationData] = useState<AnimationData | null>(null);
 
   useEffect(() => {
     const assets: string[] = [
@@ -48,7 +58,7 @@ export default function Preloader({ phase, visible }: PreloaderProps) {
 
     const loadFetch = (src: string) => fetch(src).then(() => {}).catch(() => {});
     
-    const handleAsset = async (asset: string) => {
+    const handleAsset = async (asset: string): Promise<void> => {
       try {
         if (asset.endsWith(".json")) {
             const resp = await fetch(asset);
@@ -69,7 +79,8 @@ export default function Preloader({ phase, visible }: PreloaderProps) {
     };
 
     (async () => {
-      await Promise.all(assets.map((asset) => handleAsset(asset)));
+      // Use Promise.allSettled to prevent one failed asset from blocking others
+      await Promise.allSettled(assets.map((asset) => handleAsset(asset)));
     })();
 
     return () => {

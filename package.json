@@ -11,18 +11,15 @@
     "export:guests": "node scripts/export-from-ts.js https://cuthmay-digi.vercel.app data/guestList_with_urls_from_ts.csv"
   },
   "dependencies": {
-    "@resvg/resvg-js": "^2.6.2",
     "@vercel/og": "^0.8.5",
     "framer-motion": "^12.23.24",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.554.0",
     "motion": "^12.23.24",
-    "next": "16.0.3",
+    "next": "^16.1.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "react-router-dom": "^7.9.6",
-    "resvg-wasm": "^0.4.1",
-    "satori": "^0.18.3"
+    "react-router-dom": "^7.9.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

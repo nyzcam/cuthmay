@@ -68,6 +68,12 @@ body::-webkit-scrollbar {
   padding-top: 0.3em;
   padding-bottom: 0.3em;
   background-attachment: scroll;
+  /* GPU acceleration */
+  will-change: background-position;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .combined-gold {

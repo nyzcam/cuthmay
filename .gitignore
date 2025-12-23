@@ -39,3 +39,49 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+*.log
+
+# Performance analysis
+.next/static/chunks/*.js.map
+.next/static/**/*.js.map
+
+# Local development
+.turbo/
+.cache/
+dist/
+build/
+
+# Package manager lock files (optional - uncomment if preferred)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Environment variables - local development
+.env.local.example
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor temporary files
+*.tmp
+*.bak
+*.backup
