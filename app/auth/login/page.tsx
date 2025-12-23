@@ -62,11 +62,21 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = () => {
+  const handleDemoLogin = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      router.push('/admin/guests');
-    }, 500);
+    setError(null);
+    try {
+      const response = await fetch('/api/auth/demo', { method: 'POST' });
+      if (response.ok) {
+        router.push('/admin/guests');
+      } else {
+        setError('Demo login failed');
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Demo login failed');
+      setIsLoading(false);
+    }
   };
 
   return (

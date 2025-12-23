@@ -109,13 +109,13 @@ export const guestList: Record<string, Guest> = {
 };
 
 /**
- * Get display name for a guest (English or Khmer)
+ * Get display name for a guest (Khmer name preferred)
  */
 export function getGuestDisplayName(guest: Guest): string {
   if (guest.title) {
-    return `${guest.title} ${guest.englishName || guest.khmerName}`;
+    return `${guest.title} ${guest.khmerName}`;
   }
-  return guest.englishName || guest.khmerName;
+  return guest.khmerName;
 }
 
 /**
