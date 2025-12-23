@@ -1,11 +1,15 @@
-slug,khmerName,englishName,title,relationship,plusOnes
-seth-kompheakmony,សែត កុម្ភម្នី,Seth Kompheakmony,លោក,family,
-sok-sreyneang,សុក ស្រីនាង,Sok Sreyneang,លោកស្រី,family,
-parents-seth,ឪពុកម្តាយ សែត,Seth's Parents,គ្រួសារ,immediate-family,0
-parents-sok,ឪពុកម្តាយ សុក,Sok's Parents,គ្រួសារ,immediate-family,0
-chan-thida,ចាន់ ធីដា,Chan Thida,អ្នកនាង,friend,
-ly-sopheap,លី សុភាព,Ly Sopheap,លោក,friend,1
-kimseng-company,ក្រុមការងារ គីមសេង,Kimseng Company Team,ក្រុម,colleague,0
-heang-sophorn,ហៀង សុផុន,Heang Sophorn,ឯកឧត្តម,vip,
-meach-samphy,មាស សំផី,Meach Samphy,លោកជំទាវ,vip,
-song-rambot,សុង រំបត់,Song Rambot,លោក,vip,
+﻿khmerName,englishName,title,relationship
+ចាន់ ធីដា,Chan Thida,អ្នកនាង,friend
+ហៀង សុផុន,Heang Sophorn,ឯកឧត្តម,vip
+ខួន ពិនុច,Khoun Pinuch,អ្នកនាង,vip
+ក្រុមការងារ គីមសេង,Kimseng Company Team,ក្រុម,colleague
+លី សុភាព,Ly Sopheap,លោក,friend
+មាស សំផី,Meach Samphy,លោកជំទាវ,vip
+ពន្លឺក,Pon Leak,លោក,family
+សែត កុម្ភម្នី,Seth Kompheakmony,លោក,family
+ឪពុកម្តាយ សែត,Seth's Parents,គ្រួសារ,immediate-family
+សុក ស្រីនាង,Sok Sreyneang,លោកស្រី,family
+ឪពុកម្តាយ សុក,Sok's Parents,គ្រួសារ,immediate-family
+សុង រាំប៉ូ និង ភរិយា,Song Rambot,លោក,vip
+វង្ស សុធា,Vong Sothea,លោក,family
+យ៉េង វីរៈសុមេធិ,Yeng Vireak Sumeth,លោក,vip

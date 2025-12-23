@@ -35,37 +35,149 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Importing Guests from CSV
+## Guest List Management
 
-You can convert a CSV file of guests into the TypeScript `guestList` mapping with the included script.
+This project includes comprehensive tools for managing wedding guest lists with CSV import/export functionality.
 
-- Create a CSV (see `data/guestList.csv` for example) with headers: `slug,khmerName,englishName,title,relationship,plusOnes`.
-- Run the converter and capture output to a file (or copy-paste into `data/guestList.ts`):
+### CSV Format
+
+**Import CSV Format** (for `data/guestList.csv`):
+Guest data should be in CSV format with the following columns:
+
+- `khmerName` (required): Guest name in Khmer script
+- `englishName` (required): Guest name in English (used for slug generation)
+- `title` (optional): Honorific title (e.g., "លោក", "អ្នកនាង")
+- `relationship` (optional): Relationship type (family, immediate-family, friend, colleague, vip, other)
+
+**Note:** Status is managed internally and not included in import CSV files.
+
+**Exported CSV Format** (from export commands):
+Exported CSV files include status and optionally invitation URLs:
+
+- `khmerName`: Guest name in Khmer script
+- `englishName`: Guest name in English
+- `title`: Honorific title
+- `relationship`: Relationship type
+- `status`: Invitation status (pending, sent, confirmed, declined)
+- `url` (optional): Invitation URL when using --base-url
+
+**Note:** Slugs are automatically generated from the English name using URL-safe formatting.
+
+### Importing Guests from CSV
+
+Convert a CSV file into the TypeScript `guestList` mapping:
 
 ```bash
-# Print TypeScript mapping to stdout
-node scripts/import-csv.js data/guestList.csv > tmpGuestList.ts
+# Import CSV and generate TypeScript file
+npm run import:csv data/new-guests.csv
 
-# Review `tmpGuestList.ts`, then paste the object contents into `data/guestList.ts` (replace the `guestList` object body)
+# Or specify custom output file
+node scripts/import-csv.js data/new-guests.csv data/custom-guestList.ts
 ```
 
-Notes:
-- The converter is a simple script and does a naive CSV split on commas — avoid embedding commas inside fields or pre-quote and adapt the script to use a proper CSV parser if needed.
-- The script prints a `guestList` export you can paste into your TypeScript file.
+**Features:**
+- ✅ Proper CSV parsing with quoted fields
+- ✅ Data validation (required fields, status validation)
+- ✅ Slug auto-generation from English names
+- ✅ TypeScript interface generation
+- ✅ Progress indicators and error reporting
 
-## Exporting Guest List With Full URLs
+### Exporting Guest List
 
-You can append a full invite `url` for each guest (based on their `slug`) using the included export script.
-
-- The script: `scripts/export-guestlist.js`
-- Default usage (reads `data/guestList.csv` and writes `data/guestList_with_urls.csv`):
+Export guest data from TypeScript to various formats:
 
 ```bash
-# Use a base URL for the invite (e.g., your deployed site URL)
+# Export to CSV (without slugs)
+npm run export:csv
+
+# Export with invitation URLs (without slugs)
 npm run export:guests
+
+# Export to JSON format
+npm run export:json
+
+# Validate data with status statistics
+npm run validate:guests
 ```
 
-- The output CSV will contain all original columns plus a `url` column with values like `https://yourdomain.com/invite/<slug>`.
-- The exporter supports quoted fields and will escape values as needed.
+**CSV Export Format:**
+```csv
+khmerName,englishName,title,relationship,status[,url]
+ចាន់ ធីដា,Chan Thida,អ្នកនាង,friend,pending[,https://example.com/invite/chan-thida]
+```
 
-After running the exporter, open `data/guestList_with_urls.csv` to view or share the invite links.
+**Note:** Slugs are auto-generated internally for URL creation but are not included in the exported CSV files. All exported CSV files include the status column for invitation tracking. CSV files include UTF-8 BOM for proper Unicode/Khmer text display in spreadsheet applications.
+
+**Advanced export options:**
+
+```bash
+# Export to multiple formats
+node scripts/export-from-ts.js --format both --output guests
+
+# Custom base URL and output
+node scripts/export-from-ts.js --base-url https://yourdomain.com --output custom.csv
+
+# Skip backups
+node scripts/export-from-ts.js --no-backup --output guests.csv
+```
+
+**Features:**
+- ✅ Data validation and statistics
+- ✅ Automatic backup creation
+- ✅ Multiple output formats (CSV, JSON)
+- ✅ Invitation URL generation
+- ✅ Comprehensive error handling
+
+### Processing Existing CSV Files
+
+Enhance existing CSV files with validation and URL generation:
+
+```bash
+# Process CSV with URL generation
+npm run process:guests
+
+# Custom processing
+node scripts/export-guestlist.js --input data/guests.csv --output data/processed.csv --base-url https://yourdomain.com
+```
+
+**Features:**
+- ✅ CSV validation and cleaning
+- ✅ Duplicate detection
+- ✅ Data sanitization
+- ✅ URL column addition
+- ✅ Backup creation
+
+### Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run import:csv <file>` | Import CSV to TypeScript |
+| `npm run export:csv` | Export TypeScript to CSV |
+| `npm run export:guests` | Export with invitation URLs |
+| `npm run export:json` | Export to JSON format |
+| `npm run validate:guests` | Validate guest data only |
+| `npm run process:guests` | Process CSV with enhancements |
+
+### Data Validation Rules
+
+**Import Validation** (for CSV files):
+- **Khmer Name**: Required, non-empty
+- **English Name**: Required for slug generation, non-empty
+- **Title**: Optional
+- **Relationship**: Optional
+
+**Export Validation** (for TypeScript data):
+- **Khmer Name**: Required, non-empty
+- **English Name**: Required for slug generation, non-empty
+- **Status**: Required, valid values: pending, sent, confirmed, declined
+- **Relationship**: Optional
+
+### Error Handling
+
+All scripts provide detailed error messages and will abort on critical issues:
+- Missing required fields
+- Invalid data formats
+- Duplicate entries
+- File access problems
+
+Warnings are shown for non-critical issues but don't prevent processing.

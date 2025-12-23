@@ -3,6 +3,7 @@ import React from 'react';
 import { ThemeProvider } from "@/providers/ThemeContext";
 import LayoutWrapperOld from "@/components/LayoutWrapperOld";
 import SplashProvider from "@/providers/SplashProvider";
+import { AuthProvider } from "@/providers/AuthContext";
 
 export default function ClientLayout({
   children,
@@ -13,12 +14,14 @@ export default function ClientLayout({
   return (
 
     <>
-      <SplashProvider>
-        <ThemeProvider>
-          <LayoutWrapperOld>{children}</LayoutWrapperOld>
-        </ThemeProvider>
+      <AuthProvider>
+        <SplashProvider>
+          <ThemeProvider>
+            <LayoutWrapperOld>{children}</LayoutWrapperOld>
+          </ThemeProvider>
 
-      </SplashProvider>
+        </SplashProvider>
+      </AuthProvider>
 
     </>
 

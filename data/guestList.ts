@@ -3,62 +3,16 @@ export interface Guest {
   englishName?: string;
   title?: string;
   relationship?: string;
-  plusOnes?: number;
+  status?: 'pending' | 'sent' | 'confirmed' | 'declined';
 }
 
 export const guestList: Record<string, Guest> = {
-
-  "seth-kompheakmony": {
-    khmerName: "សែត កុម្ភម្នី",
-    englishName: "Seth Kompheakmony",
-    title: "លោក",
-    relationship: "family",
-  },
-
-  "sok-sreyneang": {
-    khmerName: "សុក ស្រីនាង",
-    englishName: "Sok Sreyneang",
-    title: "លោកស្រី",
-    relationship: "family",
-  },
-
-  "parents-seth": {
-    khmerName: "ឪពុកម្តាយ សែត",
-    englishName: "Seth's Parents",
-    title: "គ្រួសារ",
-    relationship: "immediate-family",
-    plusOnes: 0,
-  },
-
-  "parents-sok": {
-    khmerName: "ឪពុកម្តាយ សុក",
-    englishName: "Sok's Parents",
-    title: "គ្រួសារ",
-    relationship: "immediate-family",
-    plusOnes: 0,
-  },
 
   "chan-thida": {
     khmerName: "ចាន់ ធីដា",
     englishName: "Chan Thida",
     title: "អ្នកនាង",
     relationship: "friend",
-  },
-
-  "ly-sopheap": {
-    khmerName: "លី សុភាព",
-    englishName: "Ly Sopheap",
-    title: "លោក",
-    relationship: "friend",
-    plusOnes: 1,
-  },
-
-  "kimseng-company": {
-    khmerName: "ក្រុមការងារ គីមសេង",
-    englishName: "Kimseng Company Team",
-    title: "ក្រុម",
-    relationship: "colleague",
-    plusOnes: 0,
   },
 
   "heang-sophorn": {
@@ -68,11 +22,67 @@ export const guestList: Record<string, Guest> = {
     relationship: "vip",
   },
 
+  "khoun-pinuch": {
+    khmerName: "ខួន ពិនុច",
+    englishName: "Khoun Pinuch",
+    title: "អ្នកនាង",
+    relationship: "vip",
+  },
+
+  "kimseng-company-team": {
+    khmerName: "ក្រុមការងារ គីមសេង",
+    englishName: "Kimseng Company Team",
+    title: "ក្រុម",
+    relationship: "colleague",
+  },
+
+  "ly-sopheap": {
+    khmerName: "លី សុភាព",
+    englishName: "Ly Sopheap",
+    title: "លោក",
+    relationship: "friend",
+  },
+
   "meach-samphy": {
     khmerName: "មាស សំផី",
     englishName: "Meach Samphy",
     title: "លោកជំទាវ",
     relationship: "vip",
+  },
+
+  "pon-leak": {
+    khmerName: "ពន្លឺក",
+    englishName: "Pon Leak",
+    title: "លោក",
+    relationship: "family",
+  },
+
+  "seth-kompheakmony": {
+    khmerName: "សែត កុម្ភម្នី",
+    englishName: "Seth Kompheakmony",
+    title: "លោក",
+    relationship: "family",
+  },
+
+  "seths-parents": {
+    khmerName: "ឪពុកម្តាយ សែត",
+    englishName: "Seth's Parents",
+    title: "គ្រួសារ",
+    relationship: "immediate-family",
+  },
+
+  "sok-sreyneang": {
+    khmerName: "សុក ស្រីនាង",
+    englishName: "Sok Sreyneang",
+    title: "លោកស្រី",
+    relationship: "family",
+  },
+
+  "soks-parents": {
+    khmerName: "ឪពុកម្តាយ សុក",
+    englishName: "Sok's Parents",
+    title: "គ្រួសារ",
+    relationship: "immediate-family",
   },
 
   "song-rambot": {
@@ -82,16 +92,48 @@ export const guestList: Record<string, Guest> = {
     relationship: "vip",
   },
 
+  "vong-sothea": {
+    khmerName: "វង្ស សុធា",
+    englishName: "Vong Sothea",
+    title: "លោក",
+    relationship: "family",
+  },
+
+  "yeng-vireak-sumeth": {
+    khmerName: "យ៉េង វីរៈសុមេធិ",
+    englishName: "Yeng Vireak Sumeth",
+    title: "លោក",
+    relationship: "vip",
+  },
+
 };
 
-
-export const getGuestDisplayName = (guest: Guest): string => {
-  if (guest.title && guest.title === "គ្រួសារ") {
-    return guest.khmerName;
+/**
+ * Get display name for a guest (English or Khmer)
+ */
+export function getGuestDisplayName(guest: Guest): string {
+  if (guest.title) {
+    return `${guest.title} ${guest.englishName || guest.khmerName}`;
   }
-  return `${guest.title} ${guest.khmerName}`.trim();
-};
+  return guest.englishName || guest.khmerName;
+}
 
-export const findGuestBySlug = (slug: string): Guest | null => {
+/**
+ * Find a guest by slug (key in guestList)
+ */
+export function findGuestBySlug(slug: string): Guest | null {
   return guestList[slug] || null;
-};
+}
+
+/**
+ * Get slug from guest name
+ */
+export function getGuestSlug(khmerName: string, englishName?: string): string {
+  const name = (englishName || khmerName).toLowerCase();
+  return name
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]/g, '')
+    .replace(/-+/g, '-')
+    .trim();
+}
+

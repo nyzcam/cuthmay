@@ -35,12 +35,12 @@ export interface DetailData {
 
 export const defaultDetailData: DetailData = {
   parents: [
-    { father: "លោក យ៉ង់ វីរៈ", mother: "លោកស្រី ហួត សុមន" },
-    { father: "លោក ខួន ពិនុច", mother: "លោកស្រី គីម ណេត" },
+    { father: "លោក យ៉ង់ វីរៈ", mother: "លោកស្រី ប្រាក់ សូមាន" },
+    { father: "លោក ខួន ពិឡុត", mother: "លោកស្រី គាំ​រេខា" },
   ],
   couple: {
-    groom: "ហួត សុមន",
-    bride: "គីម ណេត",
+    groom: "យ៉េង​ វីរៈសុមេធិ",
+    bride: "ខួន ពិនុច",
   },
   dateInfo: {
     lunar: "ថ្ងៃសុក្រ ៧ កើត ខែបុស្ស ឆ្នាំម្សាញ់ សប្តស័ក ពុទ្ធសករាជ ២៥៦៩",
