@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Guest } from '@/data/guestList';
+import { writeFile, readFile } from 'fs/promises';
+import { join } from 'path';
 
 interface ImportRequest {
   guests: Guest[];
@@ -34,6 +36,47 @@ function generateSlug(khmerName: string, englishName?: string): string {
     .trim();
 }
 
+// Helper function to persist guests to guestList.ts
+async function persistGuestsToFile(newGuests: Array<{ slug: string; guest: Guest }>) {
+  try {
+    const guestListPath = join(process.cwd(), 'data', 'guestList.ts');
+    
+    // Read the existing file
+    let fileContent = await readFile(guestListPath, 'utf-8');
+    
+    // Generate new guest entries
+    const newEntries = newGuests
+      .map(({ slug, guest }) => {
+        const entry = `  "${slug}": {
+    khmerName: "${guest.khmerName}",${
+      guest.englishName ? `\n    englishName: "${guest.englishName}",` : ''
+    }${
+      guest.title ? `\n    title: "${guest.title}",` : ''
+    }${
+      guest.relationship ? `\n    relationship: "${guest.relationship}",` : ''
+    }
+  },`;
+        return entry;
+      })
+      .join('\n');
+    
+    // Find the position to insert new guests (after the opening of guestList)
+    const insertPosition = fileContent.indexOf('export const guestList: Record<string, Guest> = {') + 
+                          'export const guestList: Record<string, Guest> = {'.length;
+    
+    // Insert new guests
+    fileContent = fileContent.slice(0, insertPosition) + '\n\n' + newEntries + fileContent.slice(insertPosition);
+    
+    // Write back to file
+    await writeFile(guestListPath, fileContent, 'utf-8');
+    
+    return true;
+  } catch (error) {
+    console.error('Error persisting guests to file:', error);
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     // Check authentication
@@ -66,7 +109,6 @@ export async function POST(request: Request) {
     const errors: Array<{ row: number; error: string }> = [];
     const validGuests: Array<{ slug: string; guest: Guest }> = [];
 
-    // Validate all guests
     body.guests.forEach((guest, index) => {
       const validation = validateGuest(guest, index);
       if (!validation.valid) {
@@ -77,7 +119,6 @@ export async function POST(request: Request) {
       }
     });
 
-    // If there are validation errors, return them
     if (errors.length > 0 && body.type === 'single') {
       return NextResponse.json(
         { 
@@ -89,11 +130,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // In a real implementation, you would:
-    // 1. Save guests to a database
-    // 2. Update the guestList.ts file
-    // 3. Return confirmation
-
     const response: ImportResponse = {
       success: errors.length === 0,
       message: 
@@ -104,8 +140,13 @@ export async function POST(request: Request) {
       ...(errors.length > 0 && { errors }),
     };
 
+    // Persist guests to file if valid guests exist
+    if (validGuests.length > 0) {
+      await persistGuestsToFile(validGuests);
+    }
+
     return NextResponse.json(response, {
-      status: errors.length === 0 ? 200 : 206, // 206 Partial Content if some failed
+      status: errors.length === 0 ? 200 : 206,
     });
   } catch (error) {
     console.error('Import error:', error);

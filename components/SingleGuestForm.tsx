@@ -90,7 +90,17 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
 
       if (response.ok || response.status === 206) {
         setMessage({ type: 'success', text: data.message });
-        onGuestAdded(formData);
+        
+        // Create a proper guest object with only defined fields
+        const newGuest: Guest = {
+          khmerName: formData.khmerName,
+          ...(formData.englishName && { englishName: formData.englishName }),
+          ...(formData.title && { title: formData.title }),
+          ...(formData.relationship && { relationship: formData.relationship }),
+          ...(formData.status && { status: formData.status }),
+        };
+        
+        onGuestAdded(newGuest);
 
         setFormData({
           khmerName: '',
@@ -126,13 +136,13 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
         }}
       >
         <UserPlus size={24} style={{ color: goldLight }} />
-        <h2 className="text-lg font-bold text-white">បន្ថែមភ្ញៀវម្នាក់</h2>
+        <h2 className="text-lg text-gray">បន្ថែមភ្ញៀវម្នាក់</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         {/* Khmer Name */}
         <motion.div variants={fadeInUp} custom={0}>
-          <label className="block text-sm font-semibold text-white/80 mb-2">
+          <label className="block text-sm text-gold mb-2">
             ឈ្មោះខ្មែរ *
           </label>
           <input
@@ -141,14 +151,14 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             value={formData.khmerName}
             onChange={handleChange}
             placeholder="ឈ្មោះ​ខ្មែរ"
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white placeholder-white/50"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-gray/20 placeholder-gray/50"
             required
           />
         </motion.div>
 
         {/* English Name */}
         <motion.div variants={fadeInUp} custom={1}>
-          <label className="block text-sm font-semibold text-white/80 mb-2">
+          <label className="block text-sm text-gold mb-2">
             ឈ្មោះអង់គ្លេស
           </label>
           <input
@@ -157,13 +167,13 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             value={formData.englishName}
             onChange={handleChange}
             placeholder="English Name"
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white placeholder-white/50"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-gray/20 placeholder-gray/50"
           />
         </motion.div>
 
         {/* Title */}
         <motion.div variants={fadeInUp} custom={2}>
-          <label className="block text-sm font-semibold text-white/80 mb-2">
+          <label className="block text-sm text-gold mb-2">
             ចំណងជTitle
           </label>
           <input
@@ -172,20 +182,20 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             value={formData.title}
             onChange={handleChange}
             placeholder="លោក, អ្នកនាង"
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white placeholder-white/50"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-gray/20 placeholder-gray/50"
           />
         </motion.div>
 
         {/* Relationship */}
         <motion.div variants={fadeInUp} custom={3}>
-          <label className="block text-sm font-semibold text-white/80 mb-2">
+          <label className="block text-sm text-gold mb-2">
             ទំនាក់ទំនង
           </label>
           <select
             name="relationship"
             value={formData.relationship}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-gray/20"
           >
             <option value="family" className="bg-slate-800">គ្រួសារ</option>
             <option value="friend" className="bg-slate-800">មិត្តភ័ក្តិ</option>
@@ -197,14 +207,14 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
 
         {/* Status */}
         <motion.div variants={fadeInUp} custom={4}>
-          <label className="block text-sm font-semibold text-white/80 mb-2">
+          <label className="block text-sm text-gold mb-2">
             ស្ថានភាព
           </label>
           <select
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-gray/20"
           >
             <option value="pending" className="bg-slate-800">រង់ចាំ</option>
             <option value="sent" className="bg-slate-800">បានផ្ញើ</option>

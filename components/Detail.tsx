@@ -29,7 +29,7 @@ interface DetailsProps {
   targetDate?: string;
 }
 
-export default function Details({ detailData = defaultDetailData, targetDate = "2025-12-26T11:59:59" }: DetailsProps) {
+export default function Details({ detailData = defaultDetailData, targetDate = "2026-12-26T11:59:59" }: DetailsProps) {
   const { currentTheme } = useTheme();
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,

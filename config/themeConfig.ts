@@ -7,7 +7,8 @@ export type ThemeName =
   | "aurora"
   | "ocean"
   | "sunset"
-  | "jade";
+  | "jade"
+  | "silver";
 
 export interface Theme {
   gradient: string;
@@ -126,9 +127,21 @@ export const themeConfig: Record<ThemeName, Theme> = {
       goldMedium: "#10b981",
     },
   },
+  silver: {
+    gradient:
+      "radial-gradient(ellipse at center, #e6e9ee 0%, #cfd6dc 50%, #9aa5b1 100%)",
+    accent: "#6b7280",
+    cssVars: {
+      goldPrimary: "#9fa6ad",
+      goldDark: "#808589",
+      goldLight: "#8c9194",
+      goldLightest: "#a7adb0",
+      goldMedium: "#b1b6b8",
+    },
+  },
 };
 
-export const DEFAULT_THEME: ThemeName = "red";
+export const DEFAULT_THEME: ThemeName = "silver";
 
 export const getTheme = (themeName: ThemeName = DEFAULT_THEME): Theme => {
   return themeConfig[themeName];

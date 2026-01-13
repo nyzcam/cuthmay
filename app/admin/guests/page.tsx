@@ -4,16 +4,11 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LogOut, Home } from 'lucide-react';
-import { motion, Variants } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { useTheme } from '@/providers/ThemeContext';
 import { BulkImportForm } from '@/components/BulkImportForm';
 import { SingleGuestForm } from '@/components/SingleGuestForm';
 import { Guest } from '@/data/guestList';
-import PatternBackground from '@/components/PatternBackground';
-import TopLeft from '@/components/kbach/TopLeft';
-import TopRight from '@/components/kbach/TopRight';
-import BottomLeft from '@/components/kbach/BottomLeft';
-import BottomRight from '@/components/kbach/BottomRight';
 
 export default function GuestManagementPage() {
   const router = useRouter();
@@ -24,6 +19,7 @@ export default function GuestManagementPage() {
 
   const { goldPrimary, goldDark, goldLight, goldLightest, goldMedium } = currentTheme.cssVars;
 
+  // Animation variants
   const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: number = 0) => ({
@@ -49,53 +45,6 @@ export default function GuestManagementPage() {
     [goldDark, goldLight, goldLightest, goldMedium]
   );
 
-  const generateGradientFromColor = (
-    color: string,
-    startOpacity: number,
-    endOpacity: number
-  ) => {
-    const hexToRgb = (hex: string) => {
-      try {
-        const normalized = hex?.trim();
-        const match = normalized && normalized.match(/^#?([A-Fa-f0-9]{6})$/);
-        if (!match) {
-          return `0, 0, 0`;
-        }
-        const hexVal = match[1];
-        const r = parseInt(hexVal.slice(0, 2), 16);
-        const g = parseInt(hexVal.slice(2, 4), 16);
-        const b = parseInt(hexVal.slice(4, 6), 16);
-        return `${r}, ${g}, ${b}`;
-      } catch (e) {
-        return `0, 0, 0`;
-      }
-    };
-
-    const rgb = hexToRgb(color);
-    return `linear-gradient(to top right, rgba(${rgb}, ${startOpacity}) 0%, rgba(${rgb}, ${endOpacity}) 100%)`;
-  };
-
-  const orbGradient1 = useMemo(
-    () => generateGradientFromColor(goldPrimary, 0.4, 0.2),
-    [goldPrimary]
-  );
-  const orbGradient2 = useMemo(
-    () => generateGradientFromColor(goldPrimary, 0.35, 0.25),
-    [goldPrimary]
-  );
-  const orbGradient3 = useMemo(
-    () => generateGradientFromColor(goldPrimary, 0.3, 0.15),
-    [goldPrimary]
-  );
-  const orbGradient4 = useMemo(
-    () => generateGradientFromColor(goldPrimary, 0.3, 0.2),
-    [goldPrimary]
-  );
-  const orbGradient5 = useMemo(
-    () => generateGradientFromColor(goldPrimary, 0.25, 0.15),
-    [goldPrimary]
-  );
-
   const handleGuestAdded = (guest: Guest) => {
     setAddedGuests(prev => [...prev, guest]);
   };
@@ -115,6 +64,12 @@ export default function GuestManagementPage() {
     }
   };
 
+  const stats = [
+    { label: 'ភ្ញៀវសរុប', count: addedGuests.length.toString(), icon: '👥' },
+    { label: 'បានអះអាង', count: '0', icon: '✓' },
+    { label: 'រង់ចាំ', count: addedGuests.length.toString(), icon: '⏳' },
+  ];
+
   return (
     <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center p-12 font-khmer">
 
@@ -129,7 +84,7 @@ export default function GuestManagementPage() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <motion.h1 variants={fadeInUp} custom={0} className="text-4xl font-bold text-white" style={shimmerStyle}>
+              <motion.h1 variants={fadeInUp} custom={0} className="text-2xl text-white/80">
                 ការគ្រប់គ្រងបញ្ជីភ្ញៀវ
               </motion.h1>
               <motion.p variants={fadeInUp} custom={1} className="text-white/60 text-sm mt-2 tracking-widest">
@@ -142,12 +97,12 @@ export default function GuestManagementPage() {
                 className="flex items-center gap-2 px-6 py-3 rounded-xl text-white/80 hover:text-white transition-all backdrop-blur border border-white/10 hover:border-white/30 hover:bg-white/10"
               >
                 <Home size={18} />
-                <span className="text-sm font-semibold">ដើម</span>
+                <span className="text-sm">ដើម</span>
               </Link>
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur border relative overflow-hidden group font-semibold"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur border relative overflow-hidden text-white/80 hover:text-whit group"
                 style={{
                   background: `linear-gradient(135deg, ${goldLight}40, ${goldMedium}40)`,
                   borderColor: `${goldLight}60`,
@@ -170,11 +125,7 @@ export default function GuestManagementPage() {
           transition={{ delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
         >
-          {[
-            { label: 'ភ្ញៀវសរុប', count: '0', icon: '👥' },
-            { label: 'បានអះអាង', count: '0', icon: '✓' },
-            { label: 'រង់ចាំ', count: '0', icon: '⏳' },
-          ].map((stat, i) => (
+          {stats.map((stat, i) => (
             <motion.div
               key={i}
               variants={fadeInUp}
@@ -183,8 +134,8 @@ export default function GuestManagementPage() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-white/60 text-sm tracking-widest">{stat.label}</p>
-                  <p className="text-4xl font-bold mt-2 text-white">{stat.count}</p>
+                  <p className="text-gold/60 text-sm tracking-widest">{stat.label}</p>
+                  <p className="text-4xl font-bold mt-2 text-gold">{stat.count}</p>
                 </div>
                 <div className="text-3xl opacity-50 group-hover:opacity-100 transition-opacity">{stat.icon}</div>
               </div>
@@ -208,10 +159,10 @@ export default function GuestManagementPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as 'single' | 'bulk')}
-                    className={`flex-1 px-6 py-4 font-semibold transition-all duration-300 flex items-center justify-center gap-2 relative text-white ${
+                    className={`flex-1 px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2 relative ${
                       activeTab === tab.id
                         ? 'text-white'
-                        : 'text-white/50 hover:text-white/70'
+                        : 'text-white hover:text-white/80'
                     }`}
                     style={
                       activeTab === tab.id
@@ -244,17 +195,17 @@ export default function GuestManagementPage() {
           <motion.div variants={fadeInUp} custom={4} className="space-y-6">
             {/* Quick Guide */}
             <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all hover:border-white/30">
-              <h3 className="font-bold text-white mb-4 flex items-center gap-2 text-lg">
+              <h3 className="font-bold text-gold mb-4 flex items-center gap-2 text-lg">
                 <span className="text-xl">📋</span>
                 <span>មគ្គុទ្ឋ</span>
               </h3>
-              <div className="space-y-4 text-sm text-white/80">
+              <div className="space-y-4 text-sm text-gold">
                 <div>
-                  <p className="font-semibold text-white mb-1">បន្ថែមភ្ញៀវម្នាក់</p>
+                  <p className="text-gold mb-1">បន្ថែមភ្ញៀវម្នាក់</p>
                   <p className="text-xs">សម្ពូណ៌ចម្លងហើយបន្ថែមភ្ញៀវម្នាក់ៗ</p>
                 </div>
                 <div className="border-t border-white/10 pt-4">
-                  <p className="font-semibold text-white mb-1">នាំចូលច្រើន</p>
+                  <p className="text-gold mb-1">នាំចូលច្រើន</p>
                   <p className="text-xs">ផ្ទុកឯកសារ CSV ដែលមានភ្ញៀវច្រើន</p>
                 </div>
               </div>
@@ -268,15 +219,15 @@ export default function GuestManagementPage() {
                 background: `linear-gradient(135deg, ${goldPrimary}10, ${goldLight}5)`,
               }}
             >
-              <h3 className="font-bold text-white mb-4 flex items-center gap-2 text-lg">
+              <h3 className="font-bold text-gold mb-4 flex items-center gap-2 text-lg">
                 <span className="text-xl">📥</span>
                 <span>ប្រភេទ CSV</span>
               </h3>
-              <code className="text-xs bg-black/40 p-3 rounded-xl block overflow-x-auto text-white/80 font-mono border border-white/10">
+              <code className="text-xs bg-black/40 p-3 rounded-xl block overflow-x-auto text-gold border border-white/10">
                 {`khmerName,englishName
 ចាន់ ធីដា,Chan Thida`}
               </code>
-              <p className="text-xs text-white/60 mt-3">
+              <p className="text-xs text-gold mt-3">
                 ដាក់ឯកសារ CSV ដែលមានឈ្មោះធីដានិងព័ត៌មានលម្អិតរបស់ភ្ញៀវ
               </p>
             </div>
@@ -284,7 +235,7 @@ export default function GuestManagementPage() {
             {/* Recently Added */}
             {addedGuests.length > 0 && (
               <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all hover:border-white/30">
-                <h3 className="font-bold text-white mb-4 text-lg">
+                <h3 className="font-bold text-gold mb-4 text-lg">
                   បានបន្ថែមថ្មីៗ ({addedGuests.length})
                 </h3>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -296,15 +247,15 @@ export default function GuestManagementPage() {
                       className="flex items-center gap-2 p-3 rounded-lg hover:bg-white/10 transition-all border border-transparent hover:border-white/10"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-white truncate">
+                        <p className="font-semibold text-sm text-gold truncate">
                           {guest.khmerName}
                         </p>
-                        <p className="text-xs text-white/60 truncate">
+                        <p className="text-xs text-gold truncate">
                           {guest.englishName}
                         </p>
                       </div>
                       <span
-                        className="text-xs px-2 py-1 rounded-lg whitespace-nowrap text-white font-semibold"
+                        className="text-xs px-2 py-1 rounded-lg whitespace-nowrap text-gold"
                         style={{
                           background: `${goldLight}30`,
                           color: goldLight,

@@ -124,7 +124,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
         }}
       >
         <Upload size={24} style={{ color: goldLight }} />
-        <h2 className="text-lg font-bold text-white">នាំចូលភ្ញៀវច្រើន</h2>
+        <h2 className="text-lg text-gold">នាំចូលភ្ញៀវច្រើន</h2>
       </div>
 
       <div className="p-6 space-y-4">
@@ -165,10 +165,10 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
                 <Upload size={40} className="mx-auto" style={{ color: goldLight }} />
               </motion.div>
               <div>
-                <p className="font-semibold text-white">
+                <p className="font-semibold text-gold">
                   ទម្លាក់ឯកសារ CSV របស់អ្នក
                 </p>
-                <p className="text-sm text-white/60 mt-1">ឬចុចដើម្បីជ្រើសរើស</p>
+                <p className="text-sm text-gray/60 mt-1">ឬចុចដើម្បីជ្រើសរើស</p>
               </div>
               <input
                 type="file"
@@ -179,7 +179,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
               />
               <label
                 htmlFor="file-input"
-                className="inline-block px-6 py-2 rounded-xl cursor-pointer font-semibold text-white transition-all relative overflow-hidden group"
+                className="inline-block px-6 py-2 rounded-xl cursor-pointer text-white transition-all relative overflow-hidden group"
                 style={{
                   background: `linear-gradient(135deg, ${goldLight}, ${goldMedium})`,
                 }}
@@ -202,7 +202,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
           }}
         >
           <span className="text-lg mt-0.5">ℹ️</span>
-          <p className="text-sm text-white/80">
+          <p className="text-sm text-gold">
             <strong>ការងារ CSV:</strong> ឯកសារ​របស់​អ្នក​គួរតែ​មាន​ជួរ​ដូច​ជា​៖ khmerName, englishName, title, relationship, status
           </p>
         </motion.div>
@@ -228,7 +228,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
           <button
             onClick={handleImport}
             disabled={!file || isLoading}
-            className="flex-1 relative overflow-hidden rounded-xl px-6 py-3 font-bold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="flex-1 relative overflow-hidden rounded-xl px-6 py-3 text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
             style={{
               background: `linear-gradient(135deg, ${goldLight}, ${goldMedium})`,
             }}
