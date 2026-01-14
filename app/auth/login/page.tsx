@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { goldPrimary, goldDark, goldLight, goldLightest, goldMedium } = currentTheme.cssVars;
+  const { primary, dark, light, lightest, medium } = currentTheme.cssVars;
 
   const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 30 },
@@ -30,14 +30,14 @@ export default function LoginPage() {
 
   const shimmerStyle = useMemo(
     (): React.CSSProperties => ({
-      backgroundImage: `linear-gradient(90deg, ${goldDark}, ${goldLight}, ${goldLightest}, ${goldMedium}, ${goldDark})`,
+      backgroundImage: `linear-gradient(90deg, ${dark}, ${light}, ${lightest}, ${medium}, ${dark})`,
       backgroundSize: '200% auto',
       WebkitBackgroundClip: 'text',
       backgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       color: 'transparent',
     }),
-    [goldDark, goldLight, goldLightest, goldMedium]
+    [dark, light, lightest, medium]
   );
 
   const handleGoogleLogin = async () => {
@@ -121,12 +121,12 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-3 group relative overflow-hidden rounded-xl px-6 py-3 font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                background: `linear-gradient(135deg, ${goldPrimary}40, ${goldLight}40)`,
-                border: `1px solid ${goldPrimary}60`,
+                background: `linear-gradient(135deg, ${primary}40, ${light}40)`,
+                border: `1px solid ${primary}60`,
               }}
             >
               <div className="absolute inset-0 bg-white/10 transform -skew-x-12 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-              <Mail size={20} style={{ color: goldLight }} className="relative z-10" />
+              <Mail size={20} style={{ color: light }} className="relative z-10" />
               <span className="relative z-10">
                 {isLoading ? 'ចូលប្រើប្រាស់...' : 'Google ដើម្បីចូល'}
               </span>
@@ -137,12 +137,12 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full flex items-center justify-center gap-3 group relative overflow-hidden rounded-xl px-6 py-3 font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                background: `linear-gradient(135deg, ${goldPrimary}30, ${goldMedium}30)`,
-                border: `1px solid ${goldPrimary}50`,
+                background: `linear-gradient(135deg, ${primary}30, ${medium}30)`,
+                border: `1px solid ${primary}50`,
               }}
             >
               <div className="absolute inset-0 bg-white/10 transform -skew-x-12 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-              <Github size={20} style={{ color: goldLight }} className="relative z-10" />
+              <Github size={20} style={{ color: light }} className="relative z-10" />
               <span className="relative z-10">
                 {isLoading ? 'ចូលប្រើប្រាស់...' : 'GitHub ដើម្បីចូល'}
               </span>
@@ -152,7 +152,7 @@ export default function LoginPage() {
           {/* Divider */}
           <motion.div variants={fadeInUp} custom={3} className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div style={{ borderTopColor: `${goldPrimary}40`, borderWidth: '1px' }} className="w-full" />
+              <div style={{ borderTopColor: `${primary}40`, borderWidth: '1px' }} className="w-full" />
             </div>
             <div className="relative flex justify-center">
               <span className="px-4 text-white/60 text-xs" style={{ background: `${currentTheme.gradient}` }}>
@@ -171,7 +171,7 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full relative overflow-hidden rounded-xl px-6 py-3 font-bold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
               style={{
-                background: `linear-gradient(135deg, ${goldLight}, ${goldMedium})`,
+                background: `linear-gradient(135deg, ${light}, ${medium})`,
               }}
             >
               <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
@@ -187,7 +187,7 @@ export default function LoginPage() {
             <Link
               href="/"
               className="inline-block text-white/80 hover:text-white transition-colors"
-              style={{ color: goldLight }}
+              style={{ color: light }}
             >
               ← ត្រលប់ទៅដើម
             </Link>
@@ -212,7 +212,7 @@ export default function LoginPage() {
               'តាមដានម្តងទៀតនិងការឆ្លើយតប',
             ].map((feature, i) => (
               <li key={i} className="flex items-start gap-3 text-white/80">
-                <span style={{ color: goldLight }} className="text-lg">
+                <span style={{ color: light }} className="text-lg">
                   ✓
                 </span>
                 <span>{feature}</span>

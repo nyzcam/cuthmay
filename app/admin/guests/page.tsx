@@ -17,7 +17,7 @@ export default function GuestManagementPage() {
   const [addedGuests, setAddedGuests] = useState<Guest[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const { goldPrimary, goldDark, goldLight, goldLightest, goldMedium } = currentTheme.cssVars;
+  const { primary, dark, light, lightest, medium } = currentTheme.cssVars;
 
   // Animation variants
   const fadeInUp: Variants = {
@@ -35,14 +35,14 @@ export default function GuestManagementPage() {
 
   const shimmerStyle = useMemo(
     (): React.CSSProperties => ({
-      backgroundImage: `linear-gradient(90deg, ${goldDark}, ${goldLight}, ${goldLightest}, ${goldMedium}, ${goldDark})`,
+      backgroundImage: `linear-gradient(90deg, ${dark}, ${light}, ${lightest}, ${medium}, ${dark})`,
       backgroundSize: '200% auto',
       WebkitBackgroundClip: 'text',
       backgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       color: 'transparent',
     }),
-    [goldDark, goldLight, goldLightest, goldMedium]
+    [dark, light, lightest, medium]
   );
 
   const handleGuestAdded = (guest: Guest) => {
@@ -104,8 +104,8 @@ export default function GuestManagementPage() {
                 disabled={isLoggingOut}
                 className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur border relative overflow-hidden text-white/80 hover:text-whit group"
                 style={{
-                  background: `linear-gradient(135deg, ${goldLight}40, ${goldMedium}40)`,
-                  borderColor: `${goldLight}60`,
+                  background: `linear-gradient(135deg, ${light}40, ${medium}40)`,
+                  borderColor: `${light}60`,
                 }}
               >
                 <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
@@ -167,7 +167,7 @@ export default function GuestManagementPage() {
                     style={
                       activeTab === tab.id
                         ? {
-                            background: `linear-gradient(135deg, ${goldPrimary}20, ${goldLight}20)`,
+                            background: `linear-gradient(135deg, ${primary}20, ${light}20)`,
                           }
                         : {}
                     }
@@ -178,7 +178,7 @@ export default function GuestManagementPage() {
                       <motion.div
                         layoutId="tabIndicator"
                         className="absolute bottom-0 left-0 right-0 h-1"
-                        style={{ background: `linear-gradient(90deg, ${goldLight}, ${goldMedium})` }}
+                        style={{ background: `linear-gradient(90deg, ${light}, ${medium})` }}
                       />
                     )}
                   </button>
@@ -215,8 +215,8 @@ export default function GuestManagementPage() {
             <div
               className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all hover:border-white/30"
               style={{
-                borderColor: `${goldLight}40`,
-                background: `linear-gradient(135deg, ${goldPrimary}10, ${goldLight}5)`,
+                borderColor: `${light}40`,
+                background: `linear-gradient(135deg, ${primary}10, ${light}5)`,
               }}
             >
               <h3 className="font-bold text-gold mb-4 flex items-center gap-2 text-lg">
@@ -257,9 +257,9 @@ export default function GuestManagementPage() {
                       <span
                         className="text-xs px-2 py-1 rounded-lg whitespace-nowrap text-gold"
                         style={{
-                          background: `${goldLight}30`,
-                          color: goldLight,
-                          border: `1px solid ${goldLight}60`,
+                          background: `${light}30`,
+                          color: light,
+                          border: `1px solid ${light}60`,
                         }}
                       >
                         ✓ បាន

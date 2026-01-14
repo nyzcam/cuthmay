@@ -343,10 +343,10 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
               >
                 <stop
                   offset="0%"
-                  stopColor={currentTheme.cssVars.goldLightest}
+                  stopColor={currentTheme.cssVars.lightest}
                 />
-                <stop offset="25%" stopColor={currentTheme.cssVars.goldLight} />
-                <stop offset="50%" stopColor={currentTheme.cssVars.goldDark} />
+                <stop offset="25%" stopColor={currentTheme.cssVars.light} />
+                <stop offset="50%" stopColor={currentTheme.cssVars.dark} />
               </radialGradient>
             </defs>
             <g id="Mask group">

@@ -16,18 +16,18 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const { goldPrimary, goldDark, goldLight, goldLightest, goldMedium } = currentTheme.cssVars;
+  const { primary, dark, light, lightest, medium } = currentTheme.cssVars;
 
   const shimmerStyle = useMemo(
     (): React.CSSProperties => ({
-      backgroundImage: `linear-gradient(90deg, ${goldDark}, ${goldLight}, ${goldLightest}, ${goldMedium}, ${goldDark})`,
+      backgroundImage: `linear-gradient(90deg, ${dark}, ${light}, ${lightest}, ${medium}, ${dark})`,
       backgroundSize: '200% auto',
       WebkitBackgroundClip: 'text',
       backgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       color: 'transparent',
     }),
-    [goldDark, goldLight, goldLightest, goldMedium]
+    [dark, light, lightest, medium]
   );
 
   const fadeInUp: Variants = {
@@ -119,11 +119,11 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
       <div
         className="px-6 py-4 flex items-center gap-3"
         style={{
-          background: `linear-gradient(135deg, ${goldPrimary}20, ${goldLight}20)`,
-          borderBottom: `1px solid ${goldPrimary}40`,
+          background: `linear-gradient(135deg, ${primary}20, ${light}20)`,
+          borderBottom: `1px solid ${primary}40`,
         }}
       >
-        <Upload size={24} style={{ color: goldLight }} />
+        <Upload size={24} style={{ color: light }} />
         <h2 className="text-lg text-gold">នាំចូលភ្ញៀវច្រើន</h2>
       </div>
 
@@ -144,7 +144,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
               : 'border-opacity-40 hover:border-opacity-60 hover:bg-white/5'
           }`}
           style={{
-            borderColor: dragActive ? goldLight : file ? '#10b981' : goldPrimary,
+            borderColor: dragActive ? light : file ? '#10b981' : primary,
           }}
         >
           {file ? (
@@ -162,7 +162,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
           ) : (
             <div className="space-y-3">
               <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 2, repeat: Infinity }}>
-                <Upload size={40} className="mx-auto" style={{ color: goldLight }} />
+                <Upload size={40} className="mx-auto" style={{ color: light }} />
               </motion.div>
               <div>
                 <p className="font-semibold text-gold">
@@ -181,7 +181,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
                 htmlFor="file-input"
                 className="inline-block px-6 py-2 rounded-xl cursor-pointer text-white transition-all relative overflow-hidden group"
                 style={{
-                  background: `linear-gradient(135deg, ${goldLight}, ${goldMedium})`,
+                  background: `linear-gradient(135deg, ${light}, ${medium})`,
                 }}
               >
                 <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
@@ -197,8 +197,8 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
           custom={1}
           className="p-4 rounded-xl flex items-start gap-3"
           style={{
-            background: `${goldLight}15`,
-            border: `1px solid ${goldLight}40`,
+            background: `${light}15`,
+            border: `1px solid ${light}40`,
           }}
         >
           <span className="text-lg mt-0.5">ℹ️</span>
@@ -230,7 +230,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
             disabled={!file || isLoading}
             className="flex-1 relative overflow-hidden rounded-xl px-6 py-3 text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
             style={{
-              background: `linear-gradient(135deg, ${goldLight}, ${goldMedium})`,
+              background: `linear-gradient(135deg, ${light}, ${medium})`,
             }}
           >
             <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left disabled:hidden" />

@@ -1,14 +1,56 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   THEME VARIABLES & DEFAULTS
+   ============================================================================ */
+
 :root {
-  --accent-color: #efbf04;
+  /* Theme System Variables - Will be overridden by JavaScript */
+  --theme-gradient: radial-gradient(ellipse at center, #e6e9ee 0%, #cfd6dc 50%, #9aa5b1 100%);
+  --theme-accent: #9fa6ad;
+  
+  /* Gold Color Palette - Default (Silver theme) */
+  --theme-primary: #9fa6ad;
+  --theme-dark: #808589;
+  --theme-light: #8c9194;
+  --theme-lightest: #a7adb0;
+  --theme-medium: #b1b6b8;
+  
+  /* RGB variants for opacity adjustments */
+  --theme-primary-rgb: 159, 166, 173;
+  --theme-dark-rgb: 128, 133, 137;
+  --theme-light-rgb: 140, 145, 148;
+  --theme-lightest-rgb: 167, 173, 176;
+  --theme-medium-rgb: 177, 182, 184;
+  --theme-accent-rgb: 159, 166, 173;
+  
+  /* Text Colors */
+  --theme-text-primary: #1f2937;
+  --theme-text-secondary: #4b5563;
+  --theme-text-accent: #6b7280;
+  
+  /* Legacy Variables (for compatibility) */
+  --accent-color: var(--theme-accent);
+  --gold-primary: var(--theme-primary);
+  --gold-dark: var(--theme-dark);
+  --gold-light: var(--theme-light);
+  --gold-lightest: var(--theme-lightest);
+  --gold-medium: var(--theme-medium);
+  
+  /* Green Colors (for legacy support) */
   --green-dark: rgb(20, 83, 45);
   --green-medium: rgb(21, 128, 61);
   --green-light: rgb(34, 197, 94);
+  
+  /* Layout & Design Tokens */
   --tile-size: 100px;
   --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --shadow-gold: 0 4px 20px rgba(239, 191, 4, 0.25);
+  --shadow-gold: 0 4px 20px rgba(var(--theme-primary-rgb, 159, 166, 173), 0.25);
 }
+
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
 
 html {
   scrollbar-width: thin;
@@ -28,7 +70,7 @@ html {
 html,
 body {
   font-family: var(--font-moul);
-  color: var(--gold-primary);
+  color: var(--theme-text-primary);
   overflow-x: hidden;
   line-height: 1.6;
   text-rendering: optimizeLegibility;
@@ -41,23 +83,65 @@ body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
   position: relative;
+  background: var(--theme-gradient) fixed;
+  background-size: cover;
+  background-position: center;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
 }
+
+/* ============================================================================
+   SCROLLBAR STYLES
+   ============================================================================ */
 
 body::-webkit-scrollbar {
   width: 0px;
   background: transparent;
 }
 
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(var(--theme-dark-rgb, 128, 133, 137), 0.1);
+  border-radius: 3px;
+  -webkit-border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    var(--theme-primary, rgba(159, 166, 173, 0.6)),
+    var(--theme-light, rgba(140, 145, 148, 0.4))
+  );
+  border-radius: 3px;
+  -webkit-border-radius: 3px;
+  transition: background 0.3s ease;
+  -webkit-transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    var(--theme-primary, rgba(159, 166, 173, 0.8)),
+    var(--theme-light, rgba(140, 145, 148, 0.6))
+  );
+}
+
+/* ============================================================================
+   THEME-AWARE UTILITY CLASSES
+   ============================================================================ */
+
 .text-gold {
   background-image: radial-gradient(
     circle at center,
-    var(--gold-dark),
-    var(--gold-light),
-    var(--gold-lightest),
-    var(--gold-medium),
-    var(--gold-dark)
+    var(--theme-dark),
+    var(--theme-light),
+    var(--theme-lightest),
+    var(--theme-medium),
+    var(--theme-dark)
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -67,7 +151,6 @@ body::-webkit-scrollbar {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   padding-top: 0.3em;
   padding-bottom: 0.3em;
-  background-attachment: scroll;
   /* GPU acceleration */
   will-change: background-position;
   transform: translateZ(0);
@@ -79,11 +162,11 @@ body::-webkit-scrollbar {
 .combined-gold {
   background: linear-gradient(
     90deg,
-    var(--gold-dark),
-    var(--gold-light),
-    var(--gold-lightest),
-    var(--gold-medium),
-    var(--gold-dark)
+    var(--theme-dark),
+    var(--theme-light),
+    var(--theme-lightest),
+    var(--theme-medium),
+    var(--theme-dark)
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -96,51 +179,28 @@ body::-webkit-scrollbar {
   box-decoration-break: clone;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(20, 83, 45, 0.1);
-  border-radius: 3px;
-  -webkit-border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    180deg,
-    var(--gold-primary, rgba(239, 191, 4, 0.6)),
-    var(--gold-light, rgba(255, 215, 0, 0.4))
-  );
-  border-radius: 3px;
-  -webkit-border-radius: 3px;
-  transition: background 0.3s ease;
-  -webkit-transition: background 0.3s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    180deg,
-    var(--gold-primary, rgba(239, 191, 4, 0.8)),
-    var(--gold-light, rgba(255, 215, 0, 0.6))
-  );
-}
+/* ============================================================================
+   ACCESSIBILITY & HIGH CONTRAST MODE
+   ============================================================================ */
 
 @media (prefers-contrast: high) {
   .text-gold,
   .combined-gold {
     background-image: none !important;
-    -webkit-text-fill-color: var(--gold-light) !important;
+    -webkit-text-fill-color: var(--theme-light) !important;
     background-clip: border-box !important;
-    color: var(--gold-light) !important;
+    color: var(--theme-light) !important;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
   }
 }
 
+/* ============================================================================
+   TYPOGRAPHY
+   ============================================================================ */
+
 .font-tacteng {
   font-family: var(--font-tacteng);
-  color: var(--gold-primary);
+  color: var(--theme-text-primary);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -154,6 +214,10 @@ body::-webkit-scrollbar {
   transform: rotateY(180deg);
   -webkit-transform: rotateY(180deg);
 }
+
+/* ============================================================================
+   PATTERN BACKGROUND
+   ============================================================================ */
 
 .pattern-bg {
   --s: var(--tile-size, 100px);
@@ -181,6 +245,10 @@ body::-webkit-scrollbar {
   -webkit-transform: translate(-50%, -50%) rotate(45deg);
   -webkit-mix-blend-mode: overlay;
 }
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
 
 @keyframes khmer-float-1 {
   0%,
@@ -218,19 +286,6 @@ body::-webkit-scrollbar {
   }
 }
 
-@keyframes animate-fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-    -webkit-transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    -webkit-transform: translateY(0);
-  }
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -244,22 +299,58 @@ body::-webkit-scrollbar {
   }
 }
 
+/* Animation Classes */
 .animate-khmer-float-1 {
   animation: khmer-float-1 6s ease-in-out infinite;
   -webkit-animation: khmer-float-1 6s ease-in-out infinite;
 }
+
 .animate-khmer-float-2 {
   animation: khmer-float-2 8s ease-in-out infinite;
   -webkit-animation: khmer-float-2 8s ease-in-out infinite;
 }
+
 .animate-khmer-float-3 {
   animation: khmer-float-3 7s ease-in-out infinite;
   -webkit-animation: khmer-float-3 7s ease-in-out infinite;
 }
+
 .animate-fadeIn {
   animation: fadeIn 1s ease-out;
   -webkit-animation: fadeIn 1s ease-out;
 }
+
+/* ============================================================================
+   COLOR SCHEME SUPPORT (DARK/LIGHT MODES)
+   ============================================================================ */
+
+/* These classes will be added by the ThemeProvider */
+.theme-dark {
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: #e5e7eb;
+  --theme-text-accent: var(--theme-accent);
+  color-scheme: dark;
+}
+
+.theme-light {
+  --theme-text-primary: #1f2937;
+  --theme-text-secondary: #4b5563;
+  --theme-text-accent: var(--theme-accent);
+  color-scheme: light;
+}
+
+/* Adjust pattern opacity based on theme */
+.theme-dark .pattern-bg::before {
+  opacity: 0.12;
+}
+
+.theme-light .pattern-bg::before {
+  opacity: 0.1;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
 
 @media (max-width: 768px) {
   .pattern-bg::before {
@@ -280,6 +371,10 @@ body::-webkit-scrollbar {
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+/* ============================================================================
+   REDUCED MOTION
+   ============================================================================ */
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -306,15 +401,20 @@ body::-webkit-scrollbar {
   }
 }
 
+/* ============================================================================
+   BROWSER FALLBACKS & COMPATIBILITY
+   ============================================================================ */
+
 @supports not (background-clip: text) {
   .text-gold,
   .combined-gold {
     background: none !important;
-    color: var(--gold-light) !important;
+    color: var(--theme-light) !important;
     -webkit-text-fill-color: initial !important;
   }
 }
 
+/* Safari-specific fixes */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
   .text-gold,
   .combined-gold {

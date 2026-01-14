@@ -62,7 +62,7 @@ const dotPulseAnimation: Variants = {
 export default function Footer({ footerData = defaultFooterData }: FooterProps) {
   const { currentTheme } = useTheme();
 
-  const { goldPrimary, goldDark, goldLight, goldLightest, goldMedium } =
+  const { primary, dark, light, lightest, medium } =
     currentTheme.cssVars;
 
   return (
@@ -78,11 +78,11 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
           className="absolute top-0 left-1/4 w-32 h-32 rounded-full blur-3xl"
-          style={{ backgroundColor: `${goldPrimary}05` }}
+          style={{ backgroundColor: `${primary}05` }}
         />
         <div
           className="absolute bottom-0 right-1/4 w-40 h-40 rounded-full blur-3xl"
-          style={{ backgroundColor: `${goldLight}05` }}
+          style={{ backgroundColor: `${light}05` }}
         />
 
         {[
@@ -93,7 +93,7 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
           <motion.div
             key={index}
             className={`absolute ${sparkle.top} ${sparkle.left} w-1 h-1 rounded-full`}
-            style={{ backgroundColor: `${goldPrimary}30` }}
+            style={{ backgroundColor: `${primary}30` }}
             variants={sparkleAnimation}
             animate="animate"
             transition={{ delay: sparkle.delay }}
@@ -110,7 +110,7 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
             <motion.div
               className="w-24 h-px"
               style={{
-                background: `linear-gradient(to right, transparent, ${goldPrimary}60, transparent)`,
+                background: `linear-gradient(to right, transparent, ${primary}60, transparent)`,
               }}
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
@@ -125,22 +125,22 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
               <Heart
                 className="w-6 h-6"
                 style={{
-                  color: goldPrimary,
-                  fill: `${goldPrimary}20`,
+                  color: primary,
+                  fill: `${primary}20`,
                 }}
                 strokeWidth={1.5}
                 aria-hidden="true"
               />
               <div
                 className="absolute -inset-2 rounded-full blur-sm"
-                style={{ backgroundColor: `${goldPrimary}10` }}
+                style={{ backgroundColor: `${primary}10` }}
               />
             </motion.div>
 
             <motion.div
               className="w-24 h-px"
               style={{
-                background: `linear-gradient(to left, transparent, ${goldPrimary}60, transparent)`,
+                background: `linear-gradient(to left, transparent, ${primary}60, transparent)`,
               }}
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
@@ -176,7 +176,7 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
                   index === 1 ? "w-2 h-2" : "w-1.5 h-1.5"
                 } rounded-full`}
                 style={{
-                  backgroundColor: goldPrimary,
+                  backgroundColor: primary,
                   opacity,
                 }}
                 animate={{
@@ -199,13 +199,13 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
             >
               <Sparkles
                 className="w-4 h-4"
-                style={{ color: `${goldPrimary}60` }}
+                style={{ color: `${primary}60` }}
                 strokeWidth={1.5}
               />
               {footerData.creditText}
               <Sparkles
                 className="w-4 h-4"
-                style={{ color: `${goldPrimary}60` }}
+                style={{ color: `${primary}60` }}
                 strokeWidth={1.5}
               />
             </motion.p>
@@ -221,13 +221,13 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
             >
               <span
                 className="relative font-medium text-lg"
-                style={{ color: goldPrimary }}
+                style={{ color: primary }}
               >
                 {footerData.creditorName}
                 <motion.div
                   className="absolute -bottom-1 left-0 h-px"
                   style={{
-                    background: `linear-gradient(to right, ${goldPrimary}, ${goldLight})`,
+                    background: `linear-gradient(to right, ${primary}, ${light})`,
                   }}
                   initial={{ width: 0 }}
                   whileHover={{ width: "100%" }}
@@ -237,7 +237,7 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
 
               <ExternalLink
                 className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300"
-                style={{ color: goldPrimary }}
+                style={{ color: primary }}
                 strokeWidth={2}
                 aria-hidden="true"
               />
@@ -253,7 +253,7 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
               <motion.div
                 key={i}
                 className="w-1 h-1 rounded-full"
-                style={{ backgroundColor: `${goldPrimary}30` }}
+                style={{ backgroundColor: `${primary}30` }}
                 variants={dotPulseAnimation}
                 animate="animate"
                 transition={{

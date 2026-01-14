@@ -22,18 +22,18 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const { goldPrimary, goldDark, goldLight, goldLightest, goldMedium } = currentTheme.cssVars;
+  const { primary, dark, light, lightest, medium } = currentTheme.cssVars;
 
   const shimmerStyle = useMemo(
     (): React.CSSProperties => ({
-      backgroundImage: `linear-gradient(90deg, ${goldDark}, ${goldLight}, ${goldLightest}, ${goldMedium}, ${goldDark})`,
+      backgroundImage: `linear-gradient(90deg, ${dark}, ${light}, ${lightest}, ${medium}, ${dark})`,
       backgroundSize: '200% auto',
       WebkitBackgroundClip: 'text',
       backgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       color: 'transparent',
     }),
-    [goldDark, goldLight, goldLightest, goldMedium]
+    [dark, light, lightest, medium]
   );
 
   const fadeInUp: Variants = {
@@ -131,11 +131,11 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
       <div
         className="px-6 py-4 flex items-center gap-3"
         style={{
-          background: `linear-gradient(135deg, ${goldPrimary}20, ${goldLight}20)`,
-          borderBottom: `1px solid ${goldPrimary}40`,
+          background: `linear-gradient(135deg, ${primary}20, ${light}20)`,
+          borderBottom: `1px solid ${primary}40`,
         }}
       >
-        <UserPlus size={24} style={{ color: goldLight }} />
+        <UserPlus size={24} style={{ color: light }} />
         <h2 className="text-lg text-gray">បន្ថែមភ្ញៀវម្នាក់</h2>
       </div>
 
@@ -247,7 +247,7 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
           disabled={isLoading}
           className="w-full relative overflow-hidden rounded-xl px-6 py-3 font-bold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
           style={{
-            background: `linear-gradient(135deg, ${goldLight}, ${goldMedium})`,
+            background: `linear-gradient(135deg, ${light}, ${medium})`,
           }}
         >
           <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />

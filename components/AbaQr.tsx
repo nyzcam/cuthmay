@@ -31,7 +31,13 @@ export default function AbaQr({
     return () => clearInterval(interval);
   }, [abaQrData.quotes.length]);
 
-  const activeCornerColor = cornerColor || `border-[${currentTheme.accent}]`;
+  // Use inline styles instead of dynamic Tailwind classes for borders
+  const activeCornerColor = cornerColor || currentTheme.accent;
+  
+  // Create a style object for the corner borders
+  const cornerBorderStyle = {
+    borderColor: activeCornerColor,
+  };
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -83,23 +89,34 @@ export default function AbaQr({
                   height={size}
                   className="rounded-lg transition-all duration-300"
                   loading="lazy"
-                
                 />
 
                 <div className="absolute inset-0 rounded-2xl bg-white/3 pointer-events-none" />
               </div>
             </a>
+            
+            {/* Top-left corner */}
             <div
-              className={`absolute -top-4 -left-4 w-10 h-10 border-t-4 border-l-4 ${activeCornerColor} rounded-tl-3xl`}
+              className="absolute -top-4 -left-4 w-10 h-10 border-t-4 border-l-4 rounded-tl-3xl"
+              style={cornerBorderStyle}
             />
+            
+            {/* Top-right corner */}
             <div
-              className={`absolute -top-4 -right-4 w-10 h-10 border-t-4 border-r-4 ${activeCornerColor} rounded-tr-3xl`}
+              className="absolute -top-4 -right-4 w-10 h-10 border-t-4 border-r-4 rounded-tr-3xl"
+              style={cornerBorderStyle}
             />
+            
+            {/* Bottom-left corner */}
             <div
-              className={`absolute -bottom-4 -left-4 w-10 h-10 border-b-4 border-l-4 ${activeCornerColor} rounded-bl-3xl`}
+              className="absolute -bottom-4 -left-4 w-10 h-10 border-b-4 border-l-4 rounded-bl-3xl"
+              style={cornerBorderStyle}
             />
+            
+            {/* Bottom-right corner */}
             <div
-              className={`absolute -bottom-4 -right-4 w-10 h-10 border-b-4 border-r-4 ${activeCornerColor} rounded-br-3xl`}
+              className="absolute -bottom-4 -right-4 w-10 h-10 border-b-4 border-r-4 rounded-br-3xl"
+              style={cornerBorderStyle}
             />
 
             {showAnimation && (
