@@ -64,7 +64,7 @@ export interface ThemePreset {
 // CONSTANTS
 // ============================================================================
 
-export const DEFAULT_THEME: ThemeName = "red";
+export const DEFAULT_THEME: ThemeName = "opal";
 
 export const GOLD_PALETTE: ColorScale = {
   primary: "#f4c430",    // Brighter, more saturated gold
@@ -84,9 +84,9 @@ export const ROSEGOLD_PALETTE: ColorScale = {
 
 export const SILVER_PALETTE: ColorScale = {
   primary: "#c0c0c0",    // True silver
-  dark: "#8c8c8c",       // Darker silver
-  light: "#d3d3d3",      // Light silver
-  lightest: "#f0f0f0",   // Near-white silver
+  dark: "#6b7280",       // Darker silver
+  light: "#a8a8a8",      // Light silver
+  lightest: "#a8a8a8",   // Near-white silver
   medium: "#a8a8a8",     // Medium silver
 };
 
@@ -133,8 +133,8 @@ export const MIDNIGHT_PALETTE: ColorScale = {
 export const LAVENDER_PALETTE: ColorScale = {
   primary: "#d8b4fe",    // More saturated lavender
   dark: "#c084fc",
-  light: "#e9d5ff",
-  lightest: "#f5f3ff",
+  light: "#d8b4fe",
+  lightest: "#d8b4fe",
   medium: "#c084fc",
 };
 
