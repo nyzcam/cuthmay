@@ -10,7 +10,14 @@ export type ThemeName =
   | "jade"
   | "silver"
   | "midnight"
-  | "lavender";
+  | "lavender"
+  | "opal"
+  | "champagne"
+  | "arctic"
+  | "nebula"
+  | "matcha"
+  | "carbon";
+
 
 export type ThemeCategory = "classic" | "premium" | "nature" | "vibrant" | "minimal";
 
@@ -57,80 +64,128 @@ export interface ThemePreset {
 // CONSTANTS
 // ============================================================================
 
-export const DEFAULT_THEME: ThemeName = "jade";
+export const DEFAULT_THEME: ThemeName = "red";
 
-// Color palettes for reuse
 export const GOLD_PALETTE: ColorScale = {
-  primary: "#efbf04",
-  dark: "#dda20c",
-  light: "#ffd700",
-  lightest: "#fffacd",
-  medium: "#ffdf00",
+  primary: "#f4c430",    // Brighter, more saturated gold
+  dark: "#d4a017",       // Deeper, richer gold
+  light: "#ffd700",      // Pure gold highlight
+  lightest: "#fff9e6",   // Warm cream highlight
+  medium: "#f0b90b",     // Vibrant medium gold
 };
 
 export const ROSEGOLD_PALETTE: ColorScale = {
-  primary: "#5d2f40",
-  dark: "#4a2533",
-  light: "#8b4f62",
-  lightest: "#b8849a",
-  medium: "#745142",
+  primary: "#b76e79",    // More saturated rose gold
+  dark: "#8b4f5c",       // Deeper rose
+  light: "#d4a5a5",      // Lighter dusty rose
+  lightest: "#f5e6e8",   // Soft pink highlight
+  medium: "#c98991",     // Medium rose tone
 };
 
 export const SILVER_PALETTE: ColorScale = {
-  primary: "#9fa6ad",
-  dark: "#808589",
-  light: "#8c9194",
-  lightest: "#a7adb0",
-  medium: "#b1b6b8",
+  primary: "#c0c0c0",    // True silver
+  dark: "#8c8c8c",       // Darker silver
+  light: "#d3d3d3",      // Light silver
+  lightest: "#f0f0f0",   // Near-white silver
+  medium: "#a8a8a8",     // Medium silver
 };
 
 export const AURORA_PALETTE: ColorScale = {
   primary: "#fbbf24",
   dark: "#f59e0b",
-  light: "#fcd34d",
-  lightest: "#fef3c7",
-  medium: "#fbbf24",
+  light: "#fde68a",      // Warmer light tone
+  lightest: "#fef9c3",   // Soft yellow highlight
+  medium: "#fcd34d",
 };
 
 export const OCEAN_PALETTE: ColorScale = {
-  primary: "#ffd60a",
-  dark: "#ffc300",
-  light: "#ffed4e",
-  lightest: "#fff8dc",
-  medium: "#ffd60a",
+  primary: "#ffdb58",    // Warmer ocean gold
+  dark: "#f4c430",
+  light: "#ffeb9c",      // Lighter gold
+  lightest: "#fffbea",
+  medium: "#ffe082",
 };
 
 export const SUNSET_PALETTE: ColorScale = {
-  primary: "#ffe5d9",
-  dark: "#ffcdb2",
+  primary: "#ffe5cc",    // Warmer peach
+  dark: "#ffb4a2",       // Coral tone
   light: "#fff0e8",
-  lightest: "#fff5f0",
-  medium: "#ffe5d9",
+  lightest: "#fff8f3",
+  medium: "#ffd4b8",
 };
 
 export const JADE_PALETTE: ColorScale = {
   primary: "#10b981",
   dark: "#059669",
-  light: "#34d399",
+  light: "#6ee7b7",      // More vibrant light jade
   lightest: "#d1fae5",
-  medium: "#10b981",
+  medium: "#34d399",
 };
 
 export const MIDNIGHT_PALETTE: ColorScale = {
-  primary: "#818cf8",
-  dark: "#6366f1",
-  light: "#a5b4fc",
-  lightest: "#e0e7ff",
-  medium: "#818cf8",
+  primary: "#9ca3ff",    // Brighter indigo
+  dark: "#7c3aed",       // Deeper purple
+  light: "#c4b5fd",
+  lightest: "#ede9fe",
+  medium: "#a78bfa",
 };
 
 export const LAVENDER_PALETTE: ColorScale = {
-  primary: "#c084fc",
-  dark: "#a855f7",
-  light: "#d8b4fe",
-  lightest: "#f3e8ff",
+  primary: "#d8b4fe",    // More saturated lavender
+  dark: "#c084fc",
+  light: "#e9d5ff",
+  lightest: "#f5f3ff",
   medium: "#c084fc",
 };
+
+export const OPAL_PALETTE: ColorScale = {
+  primary: "#0ea5e9", 
+  dark: "#0c95d4",
+  light: "#1aaaec",
+  lightest: "#2ab6f7",
+  medium: "#0ea5e9",
+};
+
+export const CHAMPAGNE_PALETTE: ColorScale = {
+  primary: "#b48a32",    // Classic Champagne
+  dark: "#c2973a",       // Bronzed gold for borders/depth
+  light: "#c0963b",      // Soft cream
+  lightest: "#cea54c",   // Pearl highlight
+  medium: "#b48a32",     // Muted metallic tan
+};
+
+export const ARCTIC_PALETTE: ColorScale = {
+  primary: "#cbd5e1",    // Cooler gray-blue
+  dark: "#64748b",
+  light: "#94a3b8",
+  lightest: "#cbd5e1",
+  medium: "#94a3b8",
+};
+
+export const NEBULA_PALETTE: ColorScale = {
+  primary: "#f472b6",
+  dark: "#ec4899",
+  light: "#fda4af",
+  lightest: "#ffe4e6",
+  medium: "#f472b6",
+};
+
+export const MATCHA_PALETTE: ColorScale = {
+  primary: "#a3e635",
+  dark: "#65a30d",
+  light: "#a3e635",
+  lightest: "#a3e635",
+  medium: "#84cc16",
+};
+
+export const CARBON_PALETTE: ColorScale = {
+  primary: "#737373",
+  dark: "#353535",
+  light: "#d4d4d4",
+  lightest: "#f5f5f5",
+  medium: "#a3a3a3",
+};
+
 
 // ============================================================================
 // THEME CONFIGURATION
@@ -397,6 +452,129 @@ export const themeConfig: Record<ThemeName, Theme> = {
       wcagLevel: "AA",
     },
   },
+  opal: {
+    id: "opal",
+    name: "Opal Mist",
+    description: "Soft iridescent blues with airy elegance",
+    gradient:
+      "radial-gradient(ellipse at center, #bae6fd 0%, #6dcdfa 100%)",
+    accent: "#0ea5e9",
+    cssVars: OPAL_PALETTE,
+    textColors: {
+      primary: "#0f172a",
+      secondary: "#334155",
+      accent: "#0ea5e9",
+      muted: "#64748b",
+    },
+    category: "premium",
+    isDark: false,
+    tags: ["soft", "elegant", "airy"],
+    accessibility: { contrastRatio: 6.4, wcagLevel: "AA" },
+  },
+
+  champagne : {
+    id: "champagne",
+    name: "Champagne Glow",
+    description: "Sophisticated cream and metallic gold tones",
+    gradient:
+      "radial-gradient(circle at center, #f3e5ab 0%, #dcc185 100%)",
+    accent: "#b48a32",
+    cssVars: CHAMPAGNE_PALETTE,
+    textColors: {
+      primary: "#2d2417",   // Near-black bronze for maximum contrast
+      secondary: "#54432b", // Deep coffee brown
+      accent: "#916d22",    // Burnished gold
+      muted: "#7a6b52",     // Neutral bronze-gray
+    },
+    category: "premium",
+    isDark: false,
+    tags: ["luxury", "warm", "refined"],
+    accessibility: {
+      contrastRatio: 7.2, // Increased from 5.9 for better legibility
+      wcagLevel: "AAA"
+    },
+  },
+
+  arctic: {
+    id: "arctic",
+    name: "Arctic Frost",
+    description: "Crisp icy whites with cool gray depth",
+    gradient:
+      "radial-gradient(ellipse at center, #f8fafc 0%, #e2e8f0 50%, #94a3b8 100%)",
+    accent: "#64748b",
+    cssVars: ARCTIC_PALETTE,
+    textColors: {
+      primary: "#020617",
+      secondary: "#334155",
+      accent: "#64748b",
+      muted: "#64748b",
+    },
+    category: "minimal",
+    isDark: false,
+    tags: ["clean", "icy", "modern"],
+    accessibility: { contrastRatio: 7.1, wcagLevel: "AAA" },
+  },
+
+  nebula: {
+    id: "nebula",
+    name: "Cosmic Nebula",
+    description: "Deep space magenta with cosmic glow",
+    gradient:
+      "radial-gradient(ellipse at center, #701a75 0%, #4a044e 100%)",
+    accent: "#f472b6",
+    cssVars: NEBULA_PALETTE,
+    textColors: {
+      primary: "#ffffff",
+      secondary: "#fbcfe8",
+      accent: "#f472b6",
+      muted: "#f9a8d4",
+    },
+    category: "vibrant",
+    isDark: true,
+    tags: ["cosmic", "cinematic", "bold"],
+    accessibility: { contrastRatio: 7.9, wcagLevel: "AAA" },
+  },
+
+  matcha: {
+    id: "matcha",
+    name: "Matcha Cream",
+    description: "Soft matcha greens with creamy warmth",
+    gradient:
+      "radial-gradient(ellipse at center, #ddf7a0 0%, #d9f99d 50%, #84cc16 100%)",
+    accent: "#4d7c0f",
+    cssVars: MATCHA_PALETTE,
+    textColors: {
+      primary: "#1a2e05",
+      secondary: "#365314",
+      accent: "#4d7c0f",
+      muted: "#4d7c0f",
+    },
+    category: "nature",
+    isDark: false,
+    tags: ["soft", "natural", "calm"],
+    accessibility: { contrastRatio: 6.6, wcagLevel: "AA" },
+  },
+
+  carbon: {
+    id: "carbon",
+    name: "Carbon Noir",
+    description: "Ultra-dark modern charcoal with steel accents",
+    gradient:
+      "radial-gradient(ellipse at center, #262626 0%, #171717 60%, #000000 100%)",
+    accent: "#a3a3a3",
+    cssVars: CARBON_PALETTE,
+    textColors: {
+      primary: "#ffffff",
+      secondary: "#d4d4d4",
+      accent: "#a3a3a3",
+      muted: "#737373",
+    },
+    category: "minimal",
+    isDark: true,
+    tags: ["modern", "sleek", "industrial"],
+    accessibility: { contrastRatio: 9.2, wcagLevel: "AAA" },
+  },
+
 };
 
 // ============================================================================
@@ -541,9 +719,9 @@ export const getNextThemeInCategory = (
 ): ThemeName | null => {
   const current = getTheme(currentTheme);
   const categoryThemes = getThemesByCategory(current.category);
-  
+
   if (categoryThemes.length <= 1) return null;
-  
+
   const currentIndex = categoryThemes.findIndex((t) => t.id === currentTheme);
   const nextIndex = (currentIndex + 1) % categoryThemes.length;
   return categoryThemes[nextIndex].id;
@@ -591,16 +769,16 @@ export const applyThemeToElement = (
 export const getComplementaryTheme = (currentTheme: ThemeName): Theme => {
   const current = getTheme(currentTheme);
   const complementary = current.isDark ? getLightThemes() : getDarkThemes();
-  
+
   // Try to find same category first
   const sameCategoryComp = complementary.filter(
     (t) => t.category === current.category
   );
-  
+
   if (sameCategoryComp.length > 0) {
     return sameCategoryComp[0];
   }
-  
+
   return complementary[0];
 };
 
@@ -621,6 +799,6 @@ export const validateTheme = (theme: Partial<Theme>): boolean => {
     "category",
     "isDark",
   ];
-  
+
   return required.every((field) => field in theme && theme[field] !== undefined);
 };

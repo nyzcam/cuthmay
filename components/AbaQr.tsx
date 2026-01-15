@@ -145,7 +145,7 @@ export default function AbaQr({
                 className="w-4 h-4"
                 style={{ color: currentTheme.accent }}
               />
-              <span className="font-mono tracking-wide">{abaQrData.merchant}</span>
+              <span className="font-mono tracking-wide text-gold">{abaQrData.merchant}</span>
             </div>
           </div>
         </div>
