@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 import { findGuestBySlug, getGuestDisplayName } from "@/data/guestList";
 
 export const runtime = "edge";
@@ -17,10 +18,11 @@ function normalizeGuestName(slug: string) {
 }
 
 export async function GET(
-  req: Request,
-  { params }: { params: { guestSlug: string } }
+  req: NextRequest,
+  context: { params: Promise<{ guestSlug: string }> }
 ) {
-  const guestName = normalizeGuestName(params.guestSlug);
+  const { guestSlug } = await context.params;
+  const guestName = normalizeGuestName(guestSlug);
 
   const fontData = await fetch(
     new URL("../../../../app/fonts/Moul-Regular.ttf", import.meta.url)
@@ -43,18 +45,13 @@ export async function GET(
           padding: "80px",
         }}
       >
-        <div style={{ fontSize: 70, marginBottom: 20 }}>
-          សូមគោរមអញ្ជើញ
-        </div>
-
-        <div style={{ fontSize: 90, fontWeight: "bold" }}>
+        <div style={{ fontSize: 70 }}>សូមគោរមអញ្ជើញ</div>
+        <div style={{ fontSize: 92, fontWeight: "bold", marginTop: 20 }}>
           {guestName}
         </div>
-
         <div style={{ fontSize: 48, marginTop: 40 }}>
           ចូលរួមពិធីមង្គលការ
         </div>
-
         <div style={{ fontSize: 36, marginTop: 10 }}>
           កុម្ភម្នី & កញ្ញា គន្ធា
         </div>
