@@ -8,14 +8,17 @@ import { defaultHeroData, formatEventDate, type HeroData } from "../data/heroDat
 import ShortName from "./kbach/ShortName";
 import GuestFrame from "./kbach/GuestFrame";
 import { useTheme } from "../providers/ThemeContext";
+import { getTheme, type ThemeName } from "../config/themeConfig";
 
 interface HeroProps {
   guestName?: string;
   heroData?: HeroData;
+  themeOverride?: string;
 }
 
-export default function Hero({ guestName = "ភ្ញៀវកិត្តិយស", heroData = defaultHeroData }: HeroProps) {
-  const { currentTheme } = useTheme();
+export default function Hero({ guestName = "ភ្ញៀវកិត្តិយស", heroData = defaultHeroData, themeOverride }: HeroProps) {
+  const { currentTheme: contextTheme } = useTheme();
+  const currentTheme = themeOverride ? getTheme(themeOverride as ThemeName) : contextTheme;
   const params = useParams();
   
   const guestSlug = params?.guestSlug as string | null;

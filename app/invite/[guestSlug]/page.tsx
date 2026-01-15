@@ -6,7 +6,7 @@ import AbaQr from "@/components/AbaQr";
 import Footer from "@/components/Footer";
 import PhotosGallary from "@/components/PhotosGallary";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay-digi.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://congenial-telegram-wr4wggj64rx7c95pw-3000.app.github.dev";
 const DEFAULT_GUEST_NAME = "Guest";
 const WEDDING_DATE = "ថ្ងៃអាទិត្យ ១៧ មេសា ២០២៦";
 const WEDDING_LOCATION = "នៅភូមិល សង្កាត់ស្ទឹងមានជ័យ ខណ្ឌចំការមន រាជធានីភ្នំពេញ";
@@ -14,6 +14,7 @@ const WEDDING_DESCRIPTION = `${WEDDING_DATE} — ${WEDDING_LOCATION}។ សូ�
 
 type Props = {
   params: Promise<{ guestSlug: string }>;
+  searchParams: Promise<{ theme?: string }>;
 };
 
 function normalizeGuestName(guestSlug: string): string {
@@ -36,12 +37,14 @@ function generatePageTitle(guestName: string): string {
   return `សិរីសួស្ដីអាពាហ៍ពិពាហ៍ - សូមគោរមអញ្ជើញ ${guestName}`;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { guestSlug } = await params;
+  const { theme } = await searchParams;
   const guestName = normalizeGuestName(guestSlug);
   const title = generatePageTitle(guestName);
-  const ogUrl = `${SITE_URL}/api/og/${guestSlug}`;
-  const pageUrl = `${SITE_URL}/invite/${guestSlug}`;
+  const themeParam = theme ? `?theme=${theme}` : '';
+  const ogUrl = `${SITE_URL}/api/og/${guestSlug}${themeParam}`;
+  const pageUrl = `${SITE_URL}/invite/${guestSlug}${theme ? `?theme=${theme}` : ''}`;
 
   return {
     title,
@@ -80,13 +83,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 
-export default async function GuestPage({ params }: Props) {
+export default async function GuestPage({ params, searchParams }: Props) {
   const { guestSlug } = await params;
+  const { theme } = await searchParams;
   const guestName = normalizeGuestName(guestSlug);
 
   return (
     <main className="min-h-screen">
-      <Hero guestName={guestName} />
+      <Hero guestName={guestName} themeOverride={theme} />
       <Detail />
       <PhotosGallary />
       <AbaQr />
