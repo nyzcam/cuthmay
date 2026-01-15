@@ -25,7 +25,7 @@ export async function GET(
   const guestName = normalizeGuestName(guestSlug);
 
   const fontData = await fetch(
-    new URL("../../../../app/fonts/Moul-Regular.ttf", import.meta.url)
+    new URL("../../../../app/fonts/KhmerOSMoul.ttf", import.meta.url)
   ).then(res => res.arrayBuffer());
 
   return new ImageResponse(
