@@ -5,7 +5,6 @@ import Detail from "@/components/Detail";
 import AbaQr from "@/components/AbaQr";
 import Footer from "@/components/Footer";
 import PhotosGallary from "@/components/PhotosGallary";
-import WeddingTimeline from "@/components/WeddingTimeline";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay-digi.vercel.app";
 const DEFAULT_GUEST_NAME = "Guest";
@@ -41,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { guestSlug } = await params;
   const guestName = normalizeGuestName(guestSlug);
   const title = generatePageTitle(guestName);
-  const ogUrl = `${SITE_URL}/preview_image.webp`;
+  const ogUrl = `${SITE_URL}/api/og/${guestSlug}`;
   const pageUrl = `${SITE_URL}/invite/${guestSlug}`;
 
   return {
@@ -89,7 +88,6 @@ export default async function GuestPage({ params }: Props) {
     <main className="min-h-screen">
       <Hero guestName={guestName} />
       <Detail />
-      {/* <WeddingTimeline /> */}
       <PhotosGallary />
       <AbaQr />
       <Footer />
