@@ -64,7 +64,7 @@ export interface ThemePreset {
 // CONSTANTS
 // ============================================================================
 
-export const DEFAULT_THEME: ThemeName = "opal";
+export const DEFAULT_THEME: ThemeName = "carbon";
 
 export const GOLD_PALETTE: ColorScale = {
   primary: "#f4c430",    // Brighter, more saturated gold
