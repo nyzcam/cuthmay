@@ -16,10 +16,11 @@ export type ThemeName =
   | "arctic"
   | "nebula"
   | "matcha"
-  | "carbon";
+  | "carbon"
+  | "neon";
 
 
-export type ThemeCategory = "classic" | "premium" | "nature" | "vibrant" | "minimal";
+export type ThemeCategory = "classic" | "premium" | "nature" | "vibrant" | "minimal" | "cyber";
 
 export interface ColorScale {
   primary: string;
@@ -64,7 +65,7 @@ export interface ThemePreset {
 // CONSTANTS
 // ============================================================================
 
-export const DEFAULT_THEME: ThemeName = "carbon";
+export const DEFAULT_THEME: ThemeName = "neon";
 
 export const GOLD_PALETTE: ColorScale = {
   primary: "#f4c430",    // Brighter, more saturated gold
@@ -184,6 +185,14 @@ export const CARBON_PALETTE: ColorScale = {
   light: "#d4d4d4",
   lightest: "#f5f5f5",
   medium: "#a3a3a3",
+};
+
+export const NEON_PALETTE: ColorScale = {
+  primary: "#00f3ff",    // Cyan neon
+  dark: "#0088cc",       // Deep teal
+  light: "#7000ff",      // Neon purple
+  lightest: "#bc13fe",   // Bright violet
+  medium: "#09d1d4",     // Electric blue
 };
 
 
@@ -574,6 +583,27 @@ export const themeConfig: Record<ThemeName, Theme> = {
     tags: ["modern", "sleek", "industrial"],
     accessibility: { contrastRatio: 9.2, wcagLevel: "AAA" },
   },
+  neon: {
+    id: "neon",
+    name: "Cyber Neon",
+    description: "High-contrast synthwave aesthetic with neon glow",
+    gradient: "radial-gradient(ellipse at center, #1a0b2e 0%, #090909 100%)",
+    accent: "#00f3ff",
+    cssVars: NEON_PALETTE,
+    textColors: {
+      primary: "#ffffff",
+      secondary: "#00f3ff",
+      accent: "#ff00ff",
+      muted: "#7000ff",
+    },
+    category: "cyber", // Using the new category
+    isDark: true,
+    tags: ["cyberpunk", "futuristic", "high-contrast"],
+    accessibility: {
+      contrastRatio: 9.5,
+      wcagLevel: "AAA",
+    },
+  },
 
 };
 
@@ -601,6 +631,11 @@ export const themePresets: ThemePreset[] = [
     name: "Bold & Vibrant",
     themes: ["aurora", "sunset", "peach", "midnight"],
     description: "Eye-catching, energetic themes",
+  },
+  {
+    name: "Futuristic",
+    themes: ["neon", "nebula", "carbon"],
+    description: "High-tech and space-inspired designs",
   },
 ];
 
