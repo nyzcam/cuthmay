@@ -6,7 +6,7 @@ import AbaQr from "@/components/AbaQr";
 import Footer from "@/components/Footer";
 import PhotosGallary from "@/components/PhotosGallary";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay-digi.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay.vercel.app";
 const DEFAULT_GUEST_NAME = "Guest";
 const WEDDING_DATE = "ថ្ងៃអាទិត្យ ១៧ មេសា ២០២៦";
 const WEDDING_LOCATION = "នៅភូមិល សង្កាត់ស្ទឹងមានជ័យ ខណ្ឌចំការមន រាជធានីភ្នំពេញ";
