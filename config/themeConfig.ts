@@ -17,7 +17,8 @@ export type ThemeName =
   | "nebula"
   | "matcha"
   | "carbon"
-  | "neon";
+  | "neon"
+  | "synthwave";
 
 
 export type ThemeCategory = "classic" | "premium" | "nature" | "vibrant" | "minimal" | "cyber";
@@ -193,6 +194,13 @@ export const NEON_PALETTE: ColorScale = {
   light: "#7000ff",      // Neon purple
   lightest: "#bc13fe",   // Bright violet
   medium: "#09d1d4",     // Electric blue
+};
+export const SYNTHWAVE_PALETTE: ColorScale = {
+  primary: "#ff00ff",    // Magenta neon
+  dark: "#7000ff",       // Deep purple
+  light: "#00f3ff",      // Cyan neon
+  lightest: "#ffffff",   // White for highlights
+  medium: "#ff0080",     // Hot pink
 };
 
 
@@ -604,6 +612,27 @@ export const themeConfig: Record<ThemeName, Theme> = {
       wcagLevel: "AAA",
     },
   },
+  synthwave: {
+    id: "synthwave",
+    name: "Synthwave Grid",
+    description: "Vibrant grid-based neon aesthetic with electric colors",
+    gradient: "linear-gradient(135deg, #ff0080 0%, #7000ff 25%, #090909 50%, #1a0b2e 75%, #003366 100%)",
+    accent: "#00f3ff",
+    cssVars: SYNTHWAVE_PALETTE,
+    textColors: {
+      primary: "#ffffff",
+      secondary: "#00f3ff",
+      accent: "#ff00ff",
+      muted: "#9d00ff",
+    },
+    category: "cyber",
+    isDark: true,
+    tags: ["synthwave", "retro-futuristic", "vaporwave", "grid"],
+    accessibility: {
+      contrastRatio: 9.8,
+      wcagLevel: "AAA",
+    },
+  },
 
 };
 
@@ -634,8 +663,13 @@ export const themePresets: ThemePreset[] = [
   },
   {
     name: "Futuristic",
-    themes: ["neon", "nebula", "carbon"],
+    themes: ["neon", "nebula", "carbon", "synthwave"],
     description: "High-tech and space-inspired designs",
+  },
+  {
+    name: "Cyber Collection",
+    themes: ["neon", "synthwave"],
+    description: "Futuristic cyberpunk and neon aesthetics",
   },
 ];
 
