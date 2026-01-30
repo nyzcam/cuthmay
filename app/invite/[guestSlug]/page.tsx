@@ -5,6 +5,7 @@ import Detail from "@/components/Detail";
 import AbaQr from "@/components/AbaQr";
 import Footer from "@/components/Footer";
 import PhotosGallary from "@/components/PhotosGallary";
+import BackgroundMusic from "@/components/BackgroundMusic";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay.vercel.app";
 const DEFAULT_GUEST_NAME = "Guest";
@@ -95,6 +96,7 @@ export default async function GuestPage({ params, searchParams }: Props) {
       <PhotosGallary />
       <AbaQr />
       <Footer />
+      <BackgroundMusic />
     </main>
   );
 }

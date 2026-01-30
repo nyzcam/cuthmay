@@ -7,17 +7,34 @@ export default function BackgroundMusic() {
   const lastSavedTimeRef = useRef<number>(0);
   const STORAGE_KEY = "background-music-position";
 
+  const musicFiles = [
+    '/nokor-reach.mp3',
+    '/1.m4a',
+    '/2.m4a',
+    '/3.m4a',
+    '/4.m4a',
+    '/5.m4a',
+    '/6.m4a',
+    '/7.m4a'
+  ];
+
   useEffect(() => {
-    // Initialize audio only once
-    if (!audioRef.current) {
-      audioRef.current = new Audio("/nokor-reach.mp3");
+    const randomIndex = Math.floor(Math.random() * musicFiles.length);
+    const musicSrc = musicFiles[randomIndex];
+    if (!musicSrc) return; // No music selected
+
+    if (!audioRef.current || audioRef.current.src !== `${window.location.origin}${musicSrc}`) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      audioRef.current = new Audio(musicSrc);
     }
 
     const audio = audioRef.current;
     audio.loop = true;
     audio.volume = 0.3;
 
-    // Restore previous playback position
     const savedTime = localStorage.getItem(STORAGE_KEY);
     if (savedTime) {
       audio.currentTime = parseFloat(savedTime);
@@ -39,8 +56,6 @@ export default function BackgroundMusic() {
 
     playAudio();
 
-    // Use timeupdate event instead of interval - only fires when time actually changes
-    // Throttle saves to only when position changes by >5 seconds to reduce localStorage ops by ~97%
     const handleTimeUpdate = () => {
       const currentTime = audio.currentTime;
       if (Math.abs(currentTime - lastSavedTimeRef.current) > 5) {
@@ -54,7 +69,6 @@ export default function BackgroundMusic() {
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.pause();
-      // Save final position
       localStorage.setItem(STORAGE_KEY, audio.currentTime.toString());
     };
   }, []);
