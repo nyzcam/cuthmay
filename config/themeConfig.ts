@@ -498,16 +498,16 @@ export const themeConfig: Record<ThemeName, Theme> = {
     accent: "#b48a32",
     cssVars: CHAMPAGNE_PALETTE,
     textColors: {
-      primary: "#2d2417",   // Near-black bronze for maximum contrast
-      secondary: "#54432b", // Deep coffee brown
-      accent: "#916d22",    // Burnished gold
-      muted: "#7a6b52",     // Neutral bronze-gray
+      primary: "#2d2417",
+      secondary: "#54432b",
+      accent: "#916d22",
+      muted: "#7a6b52",
     },
     category: "premium",
     isDark: false,
     tags: ["luxury", "warm", "refined"],
     accessibility: {
-      contrastRatio: 7.2, // Increased from 5.9 for better legibility
+      contrastRatio: 7.2,
       wcagLevel: "AAA"
     },
   },
