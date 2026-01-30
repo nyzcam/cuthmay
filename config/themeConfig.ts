@@ -62,55 +62,51 @@ export interface ThemePreset {
   description: string;
 }
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
 export const DEFAULT_THEME: ThemeName = "green";
 
 export const GOLD_PALETTE: ColorScale = {
-  primary: "#f4c430",    // Brighter, more saturated gold
-  dark: "#d4a017",       // Deeper, richer gold
-  light: "#ffd700",      // Pure gold highlight
-  lightest: "#fff9e6",   // Warm cream highlight
-  medium: "#f0b90b",     // Vibrant medium gold
+  primary: "#f4c430",  
+  dark: "#d4a017",
+  light: "#ffd700",
+  lightest: "#fff9e6",
+  medium: "#f0b90b",
 };
 
 export const ROSEGOLD_PALETTE: ColorScale = {
-  primary: "#b76e79",    // More saturated rose gold
-  dark: "#8b4f5c",       // Deeper rose
-  light: "#d4a5a5",      // Lighter dusty rose
-  lightest: "#f5e6e8",   // Soft pink highlight
-  medium: "#c98991",     // Medium rose tone
+  primary: "#b76e79",
+  dark: "#8b4f5c",
+  light: "#d4a5a5",
+  lightest: "#f5e6e8",
+  medium: "#c98991",
 };
 
 export const SILVER_PALETTE: ColorScale = {
-  primary: "#c0c0c0",    // True silver
-  dark: "#6b7280",       // Darker silver
-  light: "#a8a8a8",      // Light silver
-  lightest: "#a8a8a8",   // Near-white silver
-  medium: "#a8a8a8",     // Medium silver
+  primary: "#c0c0c0",
+  dark: "#6b7280",
+  light: "#a8a8a8",
+  lightest: "#a8a8a8",
+  medium: "#a8a8a8",
 };
 
 export const AURORA_PALETTE: ColorScale = {
   primary: "#fbbf24",
   dark: "#f59e0b",
-  light: "#fde68a",      // Warmer light tone
-  lightest: "#fef9c3",   // Soft yellow highlight
+  light: "#fde68a",
+  lightest: "#fef9c3",
   medium: "#fcd34d",
 };
 
 export const OCEAN_PALETTE: ColorScale = {
-  primary: "#ffdb58",    // Warmer ocean gold
+  primary: "#ffdb58",
   dark: "#f4c430",
-  light: "#ffeb9c",      // Lighter gold
+  light: "#ffeb9c",
   lightest: "#fffbea",
   medium: "#ffe082",
 };
 
 export const SUNSET_PALETTE: ColorScale = {
-  primary: "#ffe5cc",    // Warmer peach
-  dark: "#ffb4a2",       // Coral tone
+  primary: "#ffe5cc",
+  dark: "#ffb4a2",
   light: "#fff0e8",
   lightest: "#fff8f3",
   medium: "#ffd4b8",
@@ -119,21 +115,21 @@ export const SUNSET_PALETTE: ColorScale = {
 export const JADE_PALETTE: ColorScale = {
   primary: "#10b981",
   dark: "#059669",
-  light: "#6ee7b7",      // More vibrant light jade
+  light: "#6ee7b7",
   lightest: "#d1fae5",
   medium: "#34d399",
 };
 
 export const MIDNIGHT_PALETTE: ColorScale = {
-  primary: "#9ca3ff",    // Brighter indigo
-  dark: "#7c3aed",       // Deeper purple
+  primary: "#9ca3ff",
+  dark: "#7c3aed",
   light: "#c4b5fd",
   lightest: "#ede9fe",
   medium: "#a78bfa",
 };
 
 export const LAVENDER_PALETTE: ColorScale = {
-  primary: "#d8b4fe",    // More saturated lavender
+  primary: "#d8b4fe",
   dark: "#c084fc",
   light: "#d8b4fe",
   lightest: "#d8b4fe",
@@ -149,15 +145,15 @@ export const OPAL_PALETTE: ColorScale = {
 };
 
 export const CHAMPAGNE_PALETTE: ColorScale = {
-  primary: "#b48a32",    // Classic Champagne
-  dark: "#c2973a",       // Bronzed gold for borders/depth
-  light: "#c0963b",      // Soft cream
-  lightest: "#cea54c",   // Pearl highlight
-  medium: "#b48a32",     // Muted metallic tan
+  primary: "#b48a32",
+  dark: "#c2973a",
+  light: "#c0963b",
+  lightest: "#cea54c",
+  medium: "#b48a32",
 };
 
 export const ARCTIC_PALETTE: ColorScale = {
-  primary: "#cbd5e1",    // Cooler gray-blue
+  primary: "#cbd5e1",
   dark: "#64748b",
   light: "#94a3b8",
   lightest: "#cbd5e1",
@@ -189,24 +185,19 @@ export const CARBON_PALETTE: ColorScale = {
 };
 
 export const NEON_PALETTE: ColorScale = {
-  primary: "#00f3ff",    // Cyan neon
-  dark: "#0088cc",       // Deep teal
-  light: "#7000ff",      // Neon purple
-  lightest: "#bc13fe",   // Bright violet
-  medium: "#09d1d4",     // Electric blue
+  primary: "#00f3ff",
+  dark: "#0088cc", 
+  light: "#7000ff",
+  lightest: "#bc13fe",
+  medium: "#09d1d4",
 };
 export const SYNTHWAVE_PALETTE: ColorScale = {
-  primary: "#ff00ff",    // Magenta neon
-  dark: "#7000ff",       // Deep purple
-  light: "#00f3ff",      // Cyan neon
-  lightest: "#ffffff",   // White for highlights
-  medium: "#ff0080",     // Hot pink
+  primary: "#ff00ff",
+  dark: "#7000ff",
+  light: "#00f3ff",
+  lightest: "#ffffff",
+  medium: "#ff0080",
 };
-
-
-// ============================================================================
-// THEME CONFIGURATION
-// ============================================================================
 
 export const themeConfig: Record<ThemeName, Theme> = {
   red: {
@@ -636,9 +627,6 @@ export const themeConfig: Record<ThemeName, Theme> = {
 
 };
 
-// ============================================================================
-// THEME PRESETS
-// ============================================================================
 
 export const themePresets: ThemePreset[] = [
   {
