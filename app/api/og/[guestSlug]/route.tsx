@@ -1,5 +1,3 @@
-// app/api/og/[guestSlug]/route.ts
-
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { findGuestBySlug, getGuestDisplayName } from "@/data/guestList";
@@ -51,7 +49,7 @@ export async function GET(
 
   const guestName = toLimon(guestNameUnicode);
   const titleTop = toLimon("សិរីសួស្ដីអាពាហ៍ពិពាហ៍");
-  const titleMain = toLimon("សូមគោរបអញ្ជើញ");
+  const titleMain = toLimon("សូមគោរពអញ្ជើញ");
   const date = toLimon("ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៧");
 
   const fontData = await fetch(
