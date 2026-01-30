@@ -51,7 +51,7 @@ export async function GET(
 
   const guestName = toLimon(guestNameUnicode);
   const titleTop = toLimon("សិរីសួស្ដីអាពាហ៍ពិពាហ៍");
-  const titleMain = toLimon("សូមគោរមអញ្ជើញ");
+  const titleMain = toLimon("សូមគោរបអញ្ជើញ");
   const date = toLimon("ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៧");
 
   const fontData = await fetch(
