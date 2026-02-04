@@ -705,14 +705,7 @@ export const getAccessibleThemes = (level: "AA" | "AAA" = "AA"): Theme[] => {
   );
 };
 
-export const getRandomTheme = (excludeCurrent?: ThemeName): Theme => {
-  const themes = excludeCurrent
-    ? getAllThemes().filter((t) => t.id !== excludeCurrent)
-    : getAllThemes();
-  return themes[Math.floor(Math.random() * themes.length)];
-};
 
-// Utility to convert theme to CSS custom properties
 export const themeToCssVars = (theme: Theme): Record<string, string> => {
   const vars: Record<string, string> = {
     "--theme-gradient": theme.gradient,

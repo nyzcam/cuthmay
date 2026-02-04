@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Github, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { useTheme } from '@/providers/ThemeContext';
 
@@ -40,27 +40,7 @@ export default function LoginPage() {
     [dark, light, lightest, medium]
   );
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      window.location.href = `/api/auth/google?code=mock`;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
-      setIsLoading(false);
-    }
-  };
-
-  const handleGithubLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      window.location.href = `/api/auth/github?code=mock`;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
-      setIsLoading(false);
-    }
-  };
+  // Google and GitHub logins removed
 
   const handleDemoLogin = async () => {
     setIsLoading(true);
@@ -114,39 +94,9 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          {/* Login Options */}
+          {/* OAuth logins removed; use demo login below */}
           <motion.div variants={fadeInUp} custom={2} className="space-y-3">
-            <button
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 group relative overflow-hidden rounded-xl px-6 py-3 font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: `linear-gradient(135deg, ${primary}40, ${light}40)`,
-                border: `1px solid ${primary}60`,
-              }}
-            >
-              <div className="absolute inset-0 bg-white/10 transform -skew-x-12 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-              <Mail size={20} style={{ color: light }} className="relative z-10" />
-              <span className="relative z-10">
-                {isLoading ? 'ចូលប្រើប្រាស់...' : 'Google ដើម្បីចូល'}
-              </span>
-            </button>
-
-            <button
-              onClick={handleGithubLogin}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 group relative overflow-hidden rounded-xl px-6 py-3 font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: `linear-gradient(135deg, ${primary}30, ${medium}30)`,
-                border: `1px solid ${primary}50`,
-              }}
-            >
-              <div className="absolute inset-0 bg-white/10 transform -skew-x-12 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-              <Github size={20} style={{ color: light }} className="relative z-10" />
-              <span className="relative z-10">
-                {isLoading ? 'ចូលប្រើប្រាស់...' : 'GitHub ដើម្បីចូល'}
-              </span>
-            </button>
+            <p className="text-white/70 text-sm text-center">OAuth logins have been disabled.</p>
           </motion.div>
 
           {/* Divider */}

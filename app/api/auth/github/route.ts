@@ -9,17 +9,5 @@ export async function GET(request: Request) {
   if (!code) {
     return NextResponse.json({ error: 'No auth code provided' }, { status: 400 });
   }
-
-  // Mock token - in production, exchange code with GitHub
-  const mockToken = Buffer.from(`github:${Date.now()}`).toString('base64');
-
-  const response = NextResponse.redirect(new URL('/admin/guests', request.url));
-  response.cookies.set('auth_token', mockToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60,
-  });
-
-  return response;
+    return NextResponse.json({ error: 'GitHub login disabled' }, { status: 404 });
 }

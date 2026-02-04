@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogOut, Home } from 'lucide-react';
+import { LogOut, Home, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { motion, type Variants } from 'framer-motion';
 import { useTheme } from '@/providers/ThemeContext';
 import { BulkImportForm } from '@/components/BulkImportForm';
@@ -12,12 +12,48 @@ import { Guest } from '@/data/guestList';
 
 export default function GuestManagementPage() {
   const router = useRouter();
-  const { currentTheme } = useTheme();
+  const { currentTheme, currentThemeName, setTheme, getAllAvailableThemes, cycleNextTheme, cyclePreviousTheme, themeLoading } = useTheme();
   const [activeTab, setActiveTab] = useState<'single' | 'bulk'>('single');
   const [addedGuests, setAddedGuests] = useState<Guest[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const { primary, dark, light, lightest, medium } = currentTheme.cssVars;
+
+  // Custom theme dropdown component
+  const ThemeDropdown: React.FC = () => {
+    const themes = getAllAvailableThemes();
+    const [open, setOpen] = useState(false);
+    const [highlighted, setHighlighted] = useState<number>(() => Math.max(0, themes.findIndex(t => t.id === currentThemeName)));
+    const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+      const onDoc = (e: MouseEvent) => {
+        if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+          setOpen(false);
+        }
+      };
+      document.addEventListener('mousedown', onDoc);
+      return () => document.removeEventListener('mousedown', onDoc);
+    }, []);
+
+    useEffect(() => {
+      const idx = Math.max(0, themes.findIndex(t => t.id === currentThemeName));
+      setHighlighted(idx);
+    }, [currentThemeName, themes]);
+
+    return (
+      <div ref={wrapperRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(s => !s)}
+          disabled={themeLoading}
+          className="flex items-center gap-2 px-3 py-1 rounded-md text-sm text-white/90 bg-transparent hover:bg-white/5 transition"
+        >
+          <span className="truncate max-w-[10rem]">{themes.find(t => t.id === currentThemeName)?.name ?? currentThemeName}</span>
+        </button>
+      </div>
+    );
+  };
 
   // Animation variants
   const fadeInUp: Variants = {
@@ -99,6 +135,27 @@ export default function GuestManagementPage() {
                 <Home size={18} />
                 <span className="text-sm">ដើម</span>
               </Link>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 bg-white/5 border border-white/5">
+                <button
+                  onClick={() => cyclePreviousTheme()}
+                  disabled={themeLoading}
+                  aria-label="Previous theme"
+                  className="p-1 rounded hover:bg-white/10 disabled:opacity-50"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <ThemeDropdown />
+
+                <button
+                  onClick={() => cycleNextTheme()}
+                  disabled={themeLoading}
+                  aria-label="Next theme"
+                  className="p-1 rounded hover:bg-white/10 disabled:opacity-50"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}

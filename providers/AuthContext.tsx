@@ -1,53 +1,25 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-export interface AuthUser {
-  id: string;
-  email: string;
-  name: string;
-  avatar?: string;
-  provider: 'google' | 'github' | 'local';
-  accessToken?: string;
-}
+import React, { createContext, useContext } from 'react';
+import type { AuthUser as AuthUserType } from '../types/auth';
+import { useAuthMe } from '../hooks/useAuthMe';
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: AuthUserType | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (provider: 'google' | 'github') => Promise<void>;
   logout: () => void;
-  setUser: (user: AuthUser | null) => void;
+  setUser: (user: AuthUserType | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check if user is logged in on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/me');
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-        }
-      } catch (error) {
-        console.error('Failed to check auth:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
+  const { user, isLoading, refresh, setUser } = useAuthMe();
 
   const login = async (provider: 'google' | 'github') => {
-    // In a real implementation, you would redirect to your auth provider
-    // For demo purposes, we'll use a simple implementation
+    // Keep legacy behavior: redirect to provider endpoint (may be disabled)
     window.location.href = `/api/auth/${provider}`;
   };
 
@@ -55,6 +27,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
+      // refresh local state
+      refresh();
       window.location.href = '/';
     } catch (error) {
       console.error('Logout failed:', error);
