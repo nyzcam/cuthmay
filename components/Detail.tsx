@@ -79,7 +79,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
       y: 0,
       transition: {
         delay: i * 0.25,
-        duration: 2.5,
+        duration: 4.5,
         ease: [0.3, 0.1, 0.3, 1],
       },
     }),
@@ -97,7 +97,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
         opacity: 1,
         y: 0,
         transition: {
-          pathLength: { duration: 4, delay: 3 },
+          pathLength: { duration: 6, delay: 3 },
           opacity: { duration: 0.5, delay: 1, ease: "easeInOut" },
         },
       },
@@ -112,7 +112,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
       scale: 1,
       transition: {
         delay: custom * 1.3,
-        duration: 1,
+        duration: 2,
         ease: "easeOut",
       },
     }),
@@ -126,7 +126,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
       opacity: 1,
       transition: {
         delay: 0,
-        duration: 1,
+        duration: 2,
       },
     },
   };
@@ -134,7 +134,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
     float: {
       y: [0, -10, 0],
       transition: {
-        duration: 3,
+        duration: 5,
         repeat: Infinity,
         ease: "easeInOut",
       },
@@ -193,7 +193,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
         className="flex items-center justify-center gap-2 my-8"
         initial={{ opacity: 0, scale: 0.8 }}
         whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1, type: "spring" }}
+        transition={{ duration: 2, type: "spring" }}
         animate={!prefersReducedMotion ? "float" : ""}
         variants={floatVariants}
       >
@@ -587,7 +587,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
         </motion.div>
         <motion.div
           className="flex justify-center mb-6"
-          transition={{ duration: 2.5, ease: "easeOut" }}
+          transition={{ duration: 4.5, ease: "easeOut" }}
           animate={!prefersReducedMotion ? "float" : ""}
           variants={floatVariants}
           custom={8}

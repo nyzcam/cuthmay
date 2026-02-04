@@ -1,6 +1,13 @@
 import ClientLayout from "./ClientLayout";
 import localFont from 'next/font/local'
 import "@/styles/index.css";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  icons: {
+    icon: '/favicon.ico',
+  },
+};
 
 const moul = localFont({
   src: './fonts/Moul-Regular.ttf',

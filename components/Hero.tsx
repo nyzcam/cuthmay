@@ -31,14 +31,12 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
       if (guest) {
         setDynamicGuestName(getGuestDisplayName(guest));
       } else {
-        // For unknown guests, create a polite generic name
         const decodedName = decodeURIComponent(guestSlug).replace(/-/g, " ");
         setDynamicGuestName(decodedName);
       }
     }
   }, [guestSlug]);
 
-  // Rest of your component remains the same...
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
@@ -57,7 +55,7 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
       y: 0,
       transition: {
         delay: i * 0.25,
-        duration: 2.5,
+        duration: 4.5,
         ease: [0.3, 0.1, 0.3, 1],
       },
     }),
@@ -67,7 +65,7 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
     float: {
       y: [0, -10, 0],
       transition: {
-        duration: 3,
+        duration: 5,
         repeat: Infinity,
         ease: "easeInOut",
       },
@@ -138,7 +136,7 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
           className="relative mt-6 sm:mt-8 md:mt-12 w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg flex justify-center"
           initial={{ opacity: 0, scale: 0.8, rotate: -15 }}
           whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-          transition={{ duration: 2.5, type: "spring" }}
+          transition={{ duration: 4.5, type: "spring" }}
           animate={!prefersReducedMotion ? "float" : ""}
           variants={floatVariants}
         >

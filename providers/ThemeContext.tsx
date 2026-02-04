@@ -52,19 +52,16 @@ const NO_TRANSITION_CSS = `
   }
 `;
 
-// Apply theme styles with smooth transitions
 const applyThemeStyles = (theme: Theme, withTransition: boolean = false) => {
   const root = document.documentElement;
   const body = document.body;
   
-  // Temporarily disable transitions for theme change
   if (!withTransition) {
     const style = document.createElement('style');
     style.id = 'no-transition';
     style.innerHTML = NO_TRANSITION_CSS;
     document.head.appendChild(style);
     
-    // Remove the style after a short delay
     setTimeout(() => {
       const styleElement = document.getElementById('no-transition');
       if (styleElement) {
@@ -73,28 +70,23 @@ const applyThemeStyles = (theme: Theme, withTransition: boolean = false) => {
     }, 50);
   }
   
-  // Apply CSS custom properties from theme
   const cssVars = themeToCssVars(theme);
   Object.entries(cssVars).forEach(([property, value]) => {
     root.style.setProperty(property, value);
   });
   
-  // Apply gradient background
   body.style.backgroundImage = theme.gradient;
   body.style.backgroundAttachment = "fixed";
   body.style.backgroundSize = "cover";
   body.style.backgroundPosition = "center";
   
-  // Add theme class for CSS specificity
   body.classList.remove(...getAllThemes().map(t => `theme-${t.id}`));
   body.classList.add(`theme-${theme.id}`);
   body.classList.toggle('theme-dark', theme.isDark);
   body.classList.toggle('theme-light', !theme.isDark);
   
-  // Update meta theme-color for mobile browsers
   updateMetaThemeColor(theme);
   
-  // Dispatch custom event for theme change
   window.dispatchEvent(
     new CustomEvent('themechange', { 
       detail: { 
@@ -106,7 +98,6 @@ const applyThemeStyles = (theme: Theme, withTransition: boolean = false) => {
   );
 };
 
-// Update meta theme-color for mobile browsers
 const updateMetaThemeColor = (theme: Theme) => {
   let metaThemeColor = document.querySelector('meta[name="theme-color"]');
   
@@ -116,14 +107,12 @@ const updateMetaThemeColor = (theme: Theme) => {
     document.head.appendChild(metaThemeColor);
   }
   
-  // Extract dominant color from gradient for theme-color
   const gradientColors = theme.gradient.match(/#[0-9a-fA-F]{3,6}/g);
   const dominantColor = gradientColors ? gradientColors[0] : theme.accent;
   
   metaThemeColor.setAttribute('content', dominantColor);
 };
 
-// Generate and inject global theme CSS
 const generateGlobalThemeCss = () => {
   const styleId = 'theme-css-variables';
   let styleElement = document.getElementById(styleId) as HTMLStyleElement;
@@ -134,10 +123,9 @@ const generateGlobalThemeCss = () => {
     document.head.appendChild(styleElement);
   }
   
-  // Generate CSS for smooth transitions
   styleElement.textContent = `
     :root {
-      --theme-transition-duration: 0.3s;
+      --theme-transition-duration: 1.8s;
       --theme-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
     }
     
@@ -155,13 +143,9 @@ const generateGlobalThemeCss = () => {
 
 interface ThemeProviderProps {
   children: ReactNode;
-  /** Initial theme to use (overrides localStorage) */
   initialTheme?: ThemeName;
-  /** Whether to persist theme to localStorage */
   persistTheme?: boolean;
-  /** Whether to enable smooth transitions */
   enableTransitions?: boolean;
-  /** Callback when theme changes */
   onThemeChange?: (theme: Theme) => void;
 }
 
@@ -173,7 +157,6 @@ export const ThemeProvider = ({
   onThemeChange 
 }: ThemeProviderProps) => {
   const [currentThemeName, setCurrentThemeName] = useState<ThemeName>(() => {
-    // Priority: initialTheme prop -> localStorage -> DEFAULT_THEME
     if (initialTheme && isValidTheme(initialTheme)) {
       return initialTheme;
     }
@@ -238,7 +221,7 @@ export const ThemeProvider = ({
       setTimeout(() => {
         document.body.classList.remove('theme-transitioning');
         setThemeLoading(false);
-      }, 300); // Match CSS transition duration
+      }, 600); // Match CSS transition duration
     } else {
       setThemeLoading(false);
     }
