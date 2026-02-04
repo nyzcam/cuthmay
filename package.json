@@ -9,10 +9,10 @@
     "lint": "eslint",
     "import:csv": "node scripts/import-csv.js",
     "export:csv": "node scripts/export-from-ts.js",
-    "export:guests": "node scripts/export-from-ts.js --base-url https://cuthmay-digi.vercel.app --output data/guestList_with_urls.csv",
+    "export:guests": "node scripts/export-from-ts.js --base-url https://cuthmay.vercel.app --output data/guestList_with_urls.csv",
     "export:json": "node scripts/export-from-ts.js --format json --output data/guestList.json",
     "validate:guests": "node scripts/export-from-ts.js --validate-only",
-    "process:guests": "node scripts/export-guestlist.js --base-url https://cuthmay-digi.vercel.app"
+    "process:guests": "node scripts/export-guestlist.js --base-url https://cuthmay.vercel.app"
   },
   "dependencies": {
     "@vercel/og": "^0.8.5",

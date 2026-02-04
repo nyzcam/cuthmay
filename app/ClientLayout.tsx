@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/providers/ThemeContext";
 import LayoutWrapperOld from "@/components/LayoutWrapperOld";
 import SplashProvider from "@/providers/SplashProvider";
 import { AuthProvider } from "@/providers/AuthContext";
+import { MusicProvider } from "@/providers/MusicProvider";
 
 export default function ClientLayout({
   children,
@@ -15,12 +16,14 @@ export default function ClientLayout({
 
     <>
       <AuthProvider>
-        <SplashProvider>
-          <ThemeProvider>
-            <LayoutWrapperOld>{children}</LayoutWrapperOld>
-          </ThemeProvider>
+        <MusicProvider>
+          <SplashProvider>
+            <ThemeProvider>
+              <LayoutWrapperOld>{children}</LayoutWrapperOld>
+            </ThemeProvider>
 
-        </SplashProvider>
+          </SplashProvider>
+        </MusicProvider>
       </AuthProvider>
 
     </>

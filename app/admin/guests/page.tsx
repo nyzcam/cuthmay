@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogOut, Home, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { LogOut, Home, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, type Variants } from 'framer-motion';
 import { useTheme } from '@/providers/ThemeContext';
 import { BulkImportForm } from '@/components/BulkImportForm';
@@ -19,7 +19,6 @@ export default function GuestManagementPage() {
 
   const { primary, dark, light, lightest, medium } = currentTheme.cssVars;
 
-  // Custom theme dropdown component
   const ThemeDropdown: React.FC = () => {
     const themes = getAllAvailableThemes();
     const [open, setOpen] = useState(false);
@@ -55,7 +54,6 @@ export default function GuestManagementPage() {
     );
   };
 
-  // Animation variants
   const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: number = 0) => ({
@@ -129,7 +127,7 @@ export default function GuestManagementPage() {
             </div>
             <motion.div variants={fadeInUp} custom={2} className="flex items-center gap-4">
               <Link
-                href="/"
+                href="/invite/seth-kompheakmony"
                 className="flex items-center gap-2 px-6 py-3 rounded-xl text-white/80 hover:text-white transition-all backdrop-blur border border-white/10 hover:border-white/30 hover:bg-white/10"
               >
                 <Home size={18} />
