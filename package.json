@@ -19,7 +19,6 @@
     "framer-motion": "^12.23.24",
     "jsonwebtoken": "^9.0.3",
     "khmer-unicode-converter": "^0.0.8",
-    "loader-utils": "^3.3.1",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.554.0",
     "motion": "^12.23.24",
@@ -31,7 +30,6 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/loader-utils": "^3.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
