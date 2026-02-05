@@ -6,6 +6,7 @@ import TopRight from "./kbach/TopRight";
 import BottomLeft from "./kbach/BottomLeft";
 import BottomRight from "./kbach/BottomRight";
 import { useTheme } from "../providers/ThemeContext";
+import styles from "./LayoutWrapperOld.module.css";
 
 interface LayoutWrapperProps {
   children: ReactNode;
@@ -75,10 +76,10 @@ const LayoutWrapperOld: FC<LayoutWrapperProps> = ({ children }) => {
   );
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center p-2">
+    <div className={styles.container}>
       <div
         key={currentTheme.gradient}
-        className="absolute inset-0"
+        className={styles.overlay}
         style={{
           background: currentTheme.gradient,
         }}
@@ -87,38 +88,38 @@ const LayoutWrapperOld: FC<LayoutWrapperProps> = ({ children }) => {
       <PatternBackground />
 
       <div
-        className="absolute top-[10%] left-[15%] w-24 h-24 rounded-[50%_0_50%_0] transform rotate-45 blur-sm animate-khmer-float-1"
+        className={`${styles.orb} absolute top-[10%] left-[15%] w-24 h-24 rounded-[50%_0_50%_0] transform rotate-45 animate-khmer-float-1`}
         style={{ background: orbGradient1 }}
       />
       <div
-        className="absolute top-[30%] right-[10%] w-20 h-20 rounded-full blur-xs animate-khmer-float-2"
+        className={`${styles.orb} absolute top-[30%] right-[10%] w-20 h-20 rounded-full animate-khmer-float-2`}
         style={{ background: orbGradient2 }}
       />
       <div
-        className="absolute bottom-[20%] left-[25%] w-28 h-28 rounded-[0_50%_0_50%] transform -rotate-30 blur-sm animate-khmer-float-3"
+        className={`${styles.orb} absolute bottom-[20%] left-[25%] w-28 h-28 rounded-[0_50%_0_50%] transform -rotate-30 animate-khmer-float-3`}
         style={{ background: orbGradient3 }}
       />
       <div
-        className="absolute top-[55%] left-[8%] w-16 h-16 rounded-full blur-xs animate-khmer-float-1"
+        className={`${styles.orb} absolute top-[55%] left-[8%] w-16 h-16 rounded-full animate-khmer-float-1`}
         style={{ background: orbGradient4 }}
       />
       <div
-        className="absolute bottom-[10%] right-[18%] w-20 h-32 rounded-[50%_50%_50%_50%/60%_60%_40%_40%] transform rotate-90 blur-sm animate-khmer-float-2"
+        className={`${styles.orb} absolute bottom-[10%] right-[18%] w-20 h-32 rounded-[50%_50%_50%_50%/60%_60%_40%_40%] transform rotate-90 animate-khmer-float-2`}
         style={{ background: orbGradient5 }}
       />
 
       <div
-        className="relative z-20 flex flex-col items-center justify-center w-full max-w-3xl px-2 py-8 backdrop-blur-xs rounded-2xl shadow-2xl border"
+        className={styles.content}
         style={{ borderColor: `${currentTheme.accent}40` }}
       >
         <span
-          className="absolute top-[128px] bottom-[128px] left-4 w-px"
+          className={styles.divider}
           style={{
             background: `linear-gradient(to bottom, transparent, ${currentTheme.accent}, transparent)`,
           }}
         />
         <span
-          className="absolute top-[128px] bottom-[128px] right-4 w-px"
+          className={styles.dividerRight}
           style={{
             background: `linear-gradient(to bottom, transparent, ${currentTheme.accent}, transparent)`,
           }}

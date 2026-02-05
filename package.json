@@ -19,6 +19,7 @@
     "framer-motion": "^12.23.24",
     "jsonwebtoken": "^9.0.3",
     "khmer-unicode-converter": "^0.0.8",
+    "loader-utils": "^3.3.1",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.554.0",
     "motion": "^12.23.24",
