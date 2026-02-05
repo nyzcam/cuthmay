@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { AppPhase } from "@/types/types";
+import { Theme } from "@/config/themeConfig";
 import Lottie from "lottie-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface PreloaderProps {
   phase: AppPhase;
   visible: boolean;
+  theme?: Theme;
 }
 
 interface AnimationData {
@@ -20,8 +22,14 @@ interface AnimationData {
   [key: string]: unknown;
 }
 
-export default function Preloader({ phase, visible }: PreloaderProps) {
+export default function Preloader({ phase, visible, theme }: PreloaderProps) {
   const [animationData, setAnimationData] = useState<AnimationData | null>(null);
+
+  const backgroundGradient = theme?.gradient || 
+    "radial-gradient(ellipse_at_center,#6f0000_0%,#200122_100%)";
+  
+  const accentColor = theme?.accent || "#efbf04";
+  const isDark = theme?.isDark ?? true;
 
   useEffect(() => {
     const assets: string[] = [
@@ -79,7 +87,6 @@ export default function Preloader({ phase, visible }: PreloaderProps) {
     };
 
     (async () => {
-      // Use Promise.allSettled to prevent one failed asset from blocking others
       await Promise.allSettled(assets.map((asset) => handleAsset(asset)));
     })();
 
@@ -97,10 +104,24 @@ export default function Preloader({ phase, visible }: PreloaderProps) {
           animate={{ opacity: phase === AppPhase.COMPLETE ? 0 : 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: "easeInOut" }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,#6f0000_0%,#200122_100%)]"
+          style={{
+            backgroundImage: backgroundGradient,
+            backgroundAttachment: "fixed",
+          }}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center"
         >
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[128px] animate-pulse-slow pointer-events-none" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-500/20 rounded-full blur-[128px] animate-pulse-slow delay-75 pointer-events-none" />
+          <div 
+            style={{
+              backgroundColor: `${accentColor}20`,
+            }}
+            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[128px] animate-pulse-slow pointer-events-none" 
+          />
+          <div 
+            style={{
+              backgroundColor: `${accentColor}15`,
+            }}
+            className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-[128px] animate-pulse-slow delay-75 pointer-events-none" 
+          />
 
           <motion.div
             initial={{ scale: 0.85, opacity: 0 }}

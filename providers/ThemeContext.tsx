@@ -322,7 +322,10 @@ export const ThemeProvider = ({
 
   return (
     <ThemeContext.Provider value={contextValue}>
-      {children}
+      <main className="main" role="main">
+        {children}
+      </main>
+      
     </ThemeContext.Provider>
   );
 };

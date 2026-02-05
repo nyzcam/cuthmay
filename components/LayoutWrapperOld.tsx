@@ -21,7 +21,6 @@ const generateGradientFromColor = (
       const normalized = hex?.trim();
       const match = normalized && normalized.match(/^#?([A-Fa-f0-9]{6})$/);
       if (!match) {
-        // fallback to black if invalid
         return `0, 0, 0`;
       }
       const hexVal = match[1];
@@ -42,7 +41,6 @@ const LayoutWrapperOld: FC<LayoutWrapperProps> = ({ children }) => {
   const { currentTheme } = useTheme();
 
   useEffect(() => {
-    // Save previous body styles so we can restore them on unmount
     const prevBackgroundImage = document.body.style.backgroundImage;
     const prevBackgroundColor = document.body.style.backgroundColor;
 

@@ -53,8 +53,6 @@
    ============================================================================ */
 
 html {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

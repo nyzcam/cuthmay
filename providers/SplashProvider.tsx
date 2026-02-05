@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import Preloader from "@/components/Preloader";
 import { AppPhase } from "@/types/types";
+import { useTheme } from "./ThemeContext";
 
 export default function SplashProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { currentTheme } = useTheme();
   const [phase, setPhase] = useState<AppPhase>(AppPhase.LOADING);
   const [visible, setVisible] = useState(true);
 
@@ -43,7 +45,7 @@ export default function SplashProvider({
 
   return (
     <>
-      <Preloader phase={phase} visible={visible} />
+      <Preloader phase={phase} visible={visible} theme={currentTheme} />
       <div 
         style={{ 
            height: visible ? '100vh' : 'auto', 

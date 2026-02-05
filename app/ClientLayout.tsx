@@ -17,12 +17,15 @@ export default function ClientLayout({
     <>
       <AuthProvider>
         <MusicProvider>
-          <SplashProvider>
+          
             <ThemeProvider>
-              <LayoutWrapperOld>{children}</LayoutWrapperOld>
+              <SplashProvider>
+                <LayoutWrapperOld>    
+                  {children}
+                </LayoutWrapperOld>
+              </SplashProvider>
             </ThemeProvider>
 
-          </SplashProvider>
         </MusicProvider>
       </AuthProvider>
 

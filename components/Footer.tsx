@@ -66,7 +66,7 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
     currentTheme.cssVars;
 
   return (
-    <motion.footer
+    <motion.div
       className="w-full py-12 relative overflow-hidden font-khmer"
       initial="hidden"
       whileInView="visible"
@@ -267,6 +267,6 @@ export default function Footer({ footerData = defaultFooterData }: FooterProps) 
           </motion.div>
         </div>
       </div>
-    </motion.footer>
+    </motion.div>
   );
 }

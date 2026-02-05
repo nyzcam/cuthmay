@@ -89,12 +89,12 @@ export default async function GuestPage({ params, searchParams }: Props) {
   const guestName = normalizeGuestName(guestSlug);
 
   return (
-    <main className="min-h-screen">
+    <div className="min-h-screen">
       <Hero guestName={guestName} themeOverride={theme} />
       <Detail />
       <PhotosGallary />
       <AbaQr />
       <Footer />   
-    </main>
+    </div>
   );
 }
