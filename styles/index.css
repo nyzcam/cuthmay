@@ -52,6 +52,11 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
 
 @supports (-webkit-touch-callout: none) {
   html,
@@ -71,8 +76,6 @@ body {
 }
 
 body {
-  margin: 0;
-  padding: 0;
   min-height: 100vh;
   min-height: -webkit-fill-available;
   position: relative;
@@ -81,6 +84,8 @@ body {
   background-position: center;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
 }
 
 /* ============================================================================
