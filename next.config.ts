@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
 
   /* Static page generation timeout */
   staticPageGenerationTimeout: 60,
-};
+
+  experimental: {
+    cssChunking: true,
+    globalNotFound: true,
+  },
+} satisfies NextConfig
 
 export default nextConfig;
