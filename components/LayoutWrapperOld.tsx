@@ -1,134 +1,185 @@
 "use client";
-import { FC, ReactNode, useEffect, useState, useMemo } from "react";
+
+import { FC, ReactNode, useEffect, useMemo } from "react";
 import PatternBackground from "./PatternBackground";
 import TopLeft from "./kbach/TopLeft";
 import TopRight from "./kbach/TopRight";
 import BottomLeft from "./kbach/BottomLeft";
 import BottomRight from "./kbach/BottomRight";
 import { useTheme } from "../providers/ThemeContext";
+import LiquidGlassFrame from "./LiquidGlassFrame";
+
+
+/* ================================
+   Types
+================================ */
 
 interface LayoutWrapperProps {
   children: ReactNode;
 }
 
-const generateGradientFromColor = (
-  color: string,
-  startOpacity: number,
-  endOpacity: number
-) => {
-  const hexToRgb = (hex: string) => {
-    try {
-      const normalized = hex?.trim();
-      const match = normalized && normalized.match(/^#?([A-Fa-f0-9]{6})$/);
-      if (!match) {
-        return `0, 0, 0`;
-      }
-      const hexVal = match[1];
-      const r = parseInt(hexVal.slice(0, 2), 16);
-      const g = parseInt(hexVal.slice(2, 4), 16);
-      const b = parseInt(hexVal.slice(4, 6), 16);
-      return `${r}, ${g}, ${b}`;
-    } catch (e) {
-      return `0, 0, 0`;
-    }
-  };
+type OpacityRange = readonly [number, number];
 
-  const rgb = hexToRgb(color);
-  return `linear-gradient(to top right, rgba(${rgb}, ${startOpacity}) 0%, rgba(${rgb}, ${endOpacity}) 100%)`;
+type OrbAnimationPreset =
+  | "floatSlow"
+  | "floatMedium"
+  | "floatFast";
+
+type OrbShapePreset =
+  | "circle"
+  | "diagonalBlob"
+  | "inverseBlob"
+  | "pillBlob";
+
+interface OrbPreset {
+  position: string;
+  size: string;
+  shape: OrbShapePreset;
+  rotation?: string;
+  blur: "blur-xs" | "blur-sm";
+  animation: OrbAnimationPreset;
+  opacity: OpacityRange;
+}
+
+/* ================================
+   Helpers
+================================ */
+
+const hexToRgb = (hex: string): string => {
+  const match = hex.trim().match(/^#?([A-Fa-f0-9]{6})$/);
+  if (!match) return "0, 0, 0";
+
+  const v = match[1];
+  return `${parseInt(v.slice(0, 2), 16)}, ${parseInt(v.slice(2, 4), 16)}, ${parseInt(v.slice(4, 6), 16)}`;
 };
+
+const gradientFromAccent = (
+  accent: string,
+  [from, to]: OpacityRange
+): string => {
+  const rgb = hexToRgb(accent);
+  return `linear-gradient(to top right, rgba(${rgb}, ${from}) 0%, rgba(${rgb}, ${to}) 100%)`;
+};
+
+const SHAPE_CLASS: Record<OrbShapePreset, string> = {
+  circle: "rounded-full",
+  diagonalBlob: "rounded-[50%_0_50%_0]",
+  inverseBlob: "rounded-[0_50%_0_50%]",
+  pillBlob: "rounded-[50%_50%_50%_50%/60%_60%_40%_40%]",
+};
+
+const ANIMATION_CLASS: Record<OrbAnimationPreset, string> = {
+  floatSlow: "animate-khmer-float-1",
+  floatMedium: "animate-khmer-float-2",
+  floatFast: "animate-khmer-float-3",
+};
+
+/* ================================
+   Presets
+================================ */
+
+const ORBS: readonly OrbPreset[] = [
+  {
+    position: "top-[10%] left-[15%]",
+    size: "w-24 h-24",
+    shape: "diagonalBlob",
+    rotation: "rotate-45",
+    blur: "blur-sm",
+    animation: "floatSlow",
+    opacity: [0.4, 0.2],
+  },
+  {
+    position: "top-[30%] right-[10%]",
+    size: "w-20 h-20",
+    shape: "circle",
+    blur: "blur-xs",
+    animation: "floatMedium",
+    opacity: [0.35, 0.25],
+  },
+  {
+    position: "bottom-[20%] left-[25%]",
+    size: "w-28 h-28",
+    shape: "inverseBlob",
+    rotation: "-rotate-30",
+    blur: "blur-sm",
+    animation: "floatFast",
+    opacity: [0.3, 0.15],
+  },
+  {
+    position: "top-[55%] left-[8%]",
+    size: "w-16 h-16",
+    shape: "circle",
+    blur: "blur-xs",
+    animation: "floatSlow",
+    opacity: [0.3, 0.2],
+  },
+  {
+    position: "bottom-[10%] right-[18%]",
+    size: "w-20 h-32",
+    shape: "pillBlob",
+    rotation: "rotate-90",
+    blur: "blur-sm",
+    animation: "floatMedium",
+    opacity: [0.25, 0.15],
+  },
+];
+
+/* ================================
+   Component
+================================ */
 
 const LayoutWrapperOld: FC<LayoutWrapperProps> = ({ children }) => {
   const { currentTheme } = useTheme();
 
   useEffect(() => {
-    const prevBackgroundImage = document.body.style.backgroundImage;
-    const prevBackgroundColor = document.body.style.backgroundColor;
-
+    const { backgroundImage, backgroundColor } = document.body.style;
     document.body.style.backgroundImage = "none";
     document.body.style.backgroundColor = "transparent";
-
     return () => {
-      document.body.style.backgroundImage = prevBackgroundImage || "";
-      document.body.style.backgroundColor = prevBackgroundColor || "";
+      document.body.style.backgroundImage = backgroundImage || "";
+      document.body.style.backgroundColor = backgroundColor || "";
     };
   }, []);
 
-  const orbGradient1 = useMemo(
-    () => generateGradientFromColor(currentTheme.accent, 0.4, 0.2),
-    [currentTheme.accent]
-  );
-  const orbGradient2 = useMemo(
-    () => generateGradientFromColor(currentTheme.accent, 0.35, 0.25),
-    [currentTheme.accent]
-  );
-  const orbGradient3 = useMemo(
-    () => generateGradientFromColor(currentTheme.accent, 0.3, 0.15),
-    [currentTheme.accent]
-  );
-  const orbGradient4 = useMemo(
-    () => generateGradientFromColor(currentTheme.accent, 0.3, 0.2),
-    [currentTheme.accent]
-  );
-  const orbGradient5 = useMemo(
-    () => generateGradientFromColor(currentTheme.accent, 0.25, 0.15),
+  const orbStyles = useMemo(
+    () =>
+      ORBS.map((orb) => ({
+        className: [
+          "absolute",
+          orb.position,
+          orb.size,
+          SHAPE_CLASS[orb.shape],
+          orb.rotation,
+          orb.blur,
+          ANIMATION_CLASS[orb.animation],
+        ]
+          .filter(Boolean)
+          .join(" "),
+        background: gradientFromAccent(currentTheme.accent, orb.opacity),
+      })),
     [currentTheme.accent]
   );
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center p-2">
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden p-2">
       <div
         key={currentTheme.gradient}
         className="absolute inset-0"
-        style={{
-          background: currentTheme.gradient,
-        }}
+        style={{ background: currentTheme.gradient }}
       />
 
       <PatternBackground />
 
-      <div
-        className="absolute top-[10%] left-[15%] w-24 h-24 rounded-[50%_0_50%_0] transform rotate-45 blur-sm animate-khmer-float-1"
-        style={{ background: orbGradient1 }}
-      />
-      <div
-        className="absolute top-[30%] right-[10%] w-20 h-20 rounded-full blur-xs animate-khmer-float-2"
-        style={{ background: orbGradient2 }}
-      />
-      <div
-        className="absolute bottom-[20%] left-[25%] w-28 h-28 rounded-[0_50%_0_50%] transform -rotate-30 blur-sm animate-khmer-float-3"
-        style={{ background: orbGradient3 }}
-      />
-      <div
-        className="absolute top-[55%] left-[8%] w-16 h-16 rounded-full blur-xs animate-khmer-float-1"
-        style={{ background: orbGradient4 }}
-      />
-      <div
-        className="absolute bottom-[10%] right-[18%] w-20 h-32 rounded-[50%_50%_50%_50%/60%_60%_40%_40%] transform rotate-90 blur-sm animate-khmer-float-2"
-        style={{ background: orbGradient5 }}
-      />
+      {orbStyles.map((orb, i) => (
+        <div key={i} className={orb.className} style={{ background: orb.background }} />
+      ))}
 
-      <div
-        className="relative z-20 flex flex-col items-center justify-center w-full max-w-3xl px-2 py-8 backdrop-blur-xs rounded-2xl shadow-2xl border"
-        style={{ borderColor: `${currentTheme.accent}40` }}
-      >
-        <span
-          className="absolute top-[128px] bottom-[128px] left-4 w-px"
-          style={{
-            background: `linear-gradient(to bottom, transparent, ${currentTheme.accent}, transparent)`,
-          }}
-        />
-        <span
-          className="absolute top-[128px] bottom-[128px] right-4 w-px"
-          style={{
-            background: `linear-gradient(to bottom, transparent, ${currentTheme.accent}, transparent)`,
-          }}
-        />
-        <TopLeft color={currentTheme.accent} />
-        <TopRight color={currentTheme.accent} />
-        {children}
-        <BottomLeft color={currentTheme.accent} />
-        <BottomRight color={currentTheme.accent} />
+      <div className="flex items-center justify-center w-screen min-h-[400px] rounded-3xl">
+        <LiquidGlassFrame accent={currentTheme.accent}>
+          {children}
+        </LiquidGlassFrame>
       </div>
+
     </div>
   );
 };

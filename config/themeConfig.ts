@@ -268,7 +268,7 @@ export const themeConfig: Record<ThemeName, Theme> = {
     id: "roseGold",
     name: "Rose Gold",
     description: "Elegant rose gold with pink undertones",
-    gradient: "radial-gradient(ellipse at center, #dbe6f6 0%, #c5796d 100%)",
+    gradient: "radial-gradient(ellipse at center, rgb(219, 230, 246) 0%, rgb(197, 121, 109) 100%)",
     accent: "#5d2f40",
     cssVars: ROSEGOLD_PALETTE,
     textColors: {

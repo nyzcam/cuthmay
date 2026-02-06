@@ -37,20 +37,15 @@
   --gold-lightest: var(--theme-lightest);
   --gold-medium: var(--theme-medium);
   
-  /* Green Colors (for legacy support) */
   --green-dark: rgb(20, 83, 45);
   --green-medium: rgb(21, 128, 61);
   --green-light: rgb(34, 197, 94);
   
-  /* Layout & Design Tokens */
   --tile-size: 100px;
   --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --shadow-gold: 0 4px 20px rgba(var(--theme-primary-rgb, 159, 166, 173), 0.25);
 }
 
-/* ============================================================================
-   BASE STYLES
-   ============================================================================ */
 
 html {
   scroll-behavior: smooth;
@@ -128,9 +123,6 @@ body::-webkit-scrollbar {
   );
 }
 
-/* ============================================================================
-   THEME-AWARE UTILITY CLASSES
-   ============================================================================ */
 
 .text-gold {
   background-image: radial-gradient(
@@ -176,10 +168,6 @@ body::-webkit-scrollbar {
   box-decoration-break: clone;
 }
 
-/* ============================================================================
-   ACCESSIBILITY & HIGH CONTRAST MODE
-   ============================================================================ */
-
 @media (prefers-contrast: high) {
   .text-gold,
   .combined-gold {
@@ -190,10 +178,6 @@ body::-webkit-scrollbar {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
   }
 }
-
-/* ============================================================================
-   TYPOGRAPHY
-   ============================================================================ */
 
 .font-tacteng {
   font-family: var(--font-tacteng);
@@ -211,10 +195,6 @@ body::-webkit-scrollbar {
   transform: rotateY(180deg);
   -webkit-transform: rotateY(180deg);
 }
-
-/* ============================================================================
-   PATTERN BACKGROUND
-   ============================================================================ */
 
 .pattern-bg {
   --s: var(--tile-size, 100px);
@@ -243,9 +223,6 @@ body::-webkit-scrollbar {
   -webkit-mix-blend-mode: overlay;
 }
 
-/* ============================================================================
-   ANIMATIONS
-   ============================================================================ */
 
 @keyframes khmer-float-1 {
   0%,
@@ -418,3 +395,38 @@ body::-webkit-scrollbar {
     background-attachment: scroll;
   }
 }
+
+@keyframes glass-shimmer {
+  0%   { opacity: 0; }
+  30%  { opacity: 0.35; }
+  100% { opacity: 0; }
+}
+
+.motion-safe\:animate-glass-shimmer::before {
+  animation: glass-shimmer 600ms ease-out;
+}
+
+.motion-safe\:glass-chromatic::after {
+  background:
+    radial-gradient(
+      140px circle at var(--glass-x, 50%) var(--glass-y, 50%),
+      rgba(255, 0, 0, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      140px circle at calc(var(--glass-x, 50%) + 1%) calc(var(--glass-y, 50%) + 1%),
+      rgba(0, 255, 255, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      160px circle at calc(var(--glass-x, 50%) - 1%) calc(var(--glass-y, 50%) - 1%),
+      rgba(255, 255, 255, 0.18),
+      transparent 65%
+    );
+}
+
+.motion-safe\:glass-noise::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+

@@ -129,12 +129,6 @@ const generateGlobalThemeCss = () => {
       --theme-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    body {
-      transition: 
-        background-image var(--theme-transition-duration) var(--theme-transition-timing),
-        background-color var(--theme-transition-duration) var(--theme-transition-timing);
-    }
-    
     .theme-transitioning * {
       transition: all var(--theme-transition-duration) var(--theme-transition-timing) !important;
     }
