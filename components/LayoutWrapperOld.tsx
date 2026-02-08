@@ -2,10 +2,6 @@
 
 import { FC, ReactNode, useEffect, useMemo } from "react";
 import PatternBackground from "./PatternBackground";
-import TopLeft from "./kbach/TopLeft";
-import TopRight from "./kbach/TopRight";
-import BottomLeft from "./kbach/BottomLeft";
-import BottomRight from "./kbach/BottomRight";
 import { useTheme } from "../providers/ThemeContext";
 import LiquidGlassFrame from "./LiquidGlassFrame";
 
@@ -174,7 +170,7 @@ const LayoutWrapperOld: FC<LayoutWrapperProps> = ({ children }) => {
         <div key={i} className={orb.className} style={{ background: orb.background }} />
       ))}
 
-      <div className="flex items-center justify-center w-screen min-h-[400px] rounded-3xl">
+      <div className="flex items-center justify-center rounded-3xl">
         <LiquidGlassFrame accent={currentTheme.accent}>
           {children}
         </LiquidGlassFrame>

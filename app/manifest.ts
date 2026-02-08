@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: 'Cuthmay',
     description: 'Cuthmay App the digital invitation platform',
     start_url: '/',
-    display: 'standalone',
+    display: 'fullscreen',
     icons: [
       {
         src: '/favicon.ico',
