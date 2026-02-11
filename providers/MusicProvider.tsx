@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  ReactNode,
+} from "react";
 
 interface MusicContextType {
   isPlaying: boolean;
@@ -10,93 +17,79 @@ interface MusicContextType {
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
+const STORAGE_KEY_TIME = "background-music-position";
+
+const MUSIC_FILES = [
+  "/nokor-reach.mp3",
+  "/1.m4a",
+  "/2.m4a",
+  "/3.m4a",
+  "/4.m4a",
+  "/5.m4a",
+  "/6.m4a",
+  "/7.m4a",
+];
+
+function getRandomTrack(): string {
+  const index = Math.floor(Math.random() * MUSIC_FILES.length);
+  return MUSIC_FILES[index];
+}
+
 export function MusicProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<string | null>(null);
 
-  const STORAGE_KEY_TIME = "background-music-position";
-  const STORAGE_KEY_TRACK = "background-music-track";
-
-  const musicFiles = [
-    '/nokor-reach.mp3',
-    '/1.m4a', '/2.m4a', '/3.m4a', '/4.m4a', '/5.m4a', '/6.m4a', '/7.m4a'
-  ];
-
-  const togglePlay = () => {
+  const togglePlay = (): void => {
     if (!audioRef.current) return;
-    if (isPlaying) {
+
+    if (audioRef.current.paused) {
+      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+    } else {
       audioRef.current.pause();
       setIsPlaying(false);
-    } else {
-      audioRef.current.play().catch(e => console.error("Play error:", e));
-      setIsPlaying(true);
     }
   };
 
   useEffect(() => {
-    const savedTrack = localStorage.getItem(STORAGE_KEY_TRACK);
-    let selectedSrc = savedTrack;
+    const selectedSrc = getRandomTrack(); // 🔥 always new track
 
-    if (!selectedSrc || !musicFiles.includes(selectedSrc)) {
-      const randomIndex = Math.floor(Math.random() * musicFiles.length);
-      selectedSrc = musicFiles[randomIndex];
-    }
-    
-    if (!selectedSrc) return;
-
-    if (!audioRef.current) {
-      audioRef.current = new Audio(selectedSrc);
-    } else if (audioRef.current.src !== `${window.location.origin}${selectedSrc}`) {
-      audioRef.current.src = selectedSrc;
-    }
-
-    const audio = audioRef.current;
+    const audio = new Audio(selectedSrc);
     audio.loop = true;
     audio.volume = 0.3;
+
+    audioRef.current = audio;
     setCurrentTrack(selectedSrc);
 
-    const savedTime = localStorage.getItem(STORAGE_KEY_TIME);
-    if (savedTime && savedTrack === selectedSrc) {
-      const parsedTime = parseFloat(savedTime);
-      if (!isNaN(parsedTime)) {
-        audio.currentTime = parsedTime;
-      }
-    }
+    let interactionHandler: (() => void) | null = null;
 
-    const attemptPlay = async () => {
+    const tryAutoplay = async (): Promise<void> => {
       try {
         await audio.play();
         setIsPlaying(true);
-      } catch (err) {
-        console.log("Autoplay blocked, waiting for interaction");
+      } catch {
         setIsPlaying(false);
-        
-        const resumeOnInteraction = () => {
-            audio.play().then(() => setIsPlaying(true)).catch(() => {});
-            document.removeEventListener("click", resumeOnInteraction);
-            document.removeEventListener("keydown", resumeOnInteraction);
+
+        interactionHandler = () => {
+          audio.play().then(() => setIsPlaying(true)).catch(() => {});
+          document.removeEventListener("click", interactionHandler!);
+          document.removeEventListener("keydown", interactionHandler!);
         };
-        
-        document.addEventListener("click", resumeOnInteraction);
-        document.addEventListener("keydown", resumeOnInteraction);
-        
-        return () => {
-            document.removeEventListener("click", resumeOnInteraction);
-            document.removeEventListener("keydown", resumeOnInteraction);
-        };
+
+        document.addEventListener("click", interactionHandler);
+        document.addEventListener("keydown", interactionHandler);
       }
     };
 
-    const cleanupInteractionListener = attemptPlay();
+    tryAutoplay();
 
     let lastSavedTime = 0;
-    const handleTimeUpdate = () => {
-      const currentTime = audio.currentTime;
-      if (Math.abs(currentTime - lastSavedTime) > 5) {
-        localStorage.setItem(STORAGE_KEY_TIME, currentTime.toString());
-        localStorage.setItem(STORAGE_KEY_TRACK, selectedSrc!); // Save track name too
-        lastSavedTime = currentTime;
+
+    const handleTimeUpdate = (): void => {
+      const current = audio.currentTime;
+      if (Math.abs(current - lastSavedTime) > 5) {
+        localStorage.setItem(STORAGE_KEY_TIME, current.toString());
+        lastSavedTime = current;
       }
     };
 
@@ -104,13 +97,14 @@ export function MusicProvider({ children }: { children: ReactNode }) {
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
-      localStorage.setItem(STORAGE_KEY_TIME, audio.currentTime.toString());
-      localStorage.setItem(STORAGE_KEY_TRACK, selectedSrc!);
-      
-      audio.pause();
-      if (cleanupInteractionListener instanceof Promise) {
-        cleanupInteractionListener.then(cleanup => cleanup && cleanup());
+
+      if (interactionHandler) {
+        document.removeEventListener("click", interactionHandler);
+        document.removeEventListener("keydown", interactionHandler);
       }
+
+      localStorage.setItem(STORAGE_KEY_TIME, audio.currentTime.toString());
+      audio.pause();
     };
   }, []);
 
@@ -121,9 +115,9 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useMusic() {
+export function useMusic(): MusicContextType {
   const context = useContext(MusicContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useMusic must be used within a MusicProvider");
   }
   return context;
