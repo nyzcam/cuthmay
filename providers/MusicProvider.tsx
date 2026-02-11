@@ -20,7 +20,6 @@ const MusicContext = createContext<MusicContextType | undefined>(undefined);
 const STORAGE_KEY_TIME = "background-music-position";
 
 const MUSIC_FILES = [
-  "/nokor-reach.mp3",
   "/1.m4a",
   "/2.m4a",
   "/3.m4a",
