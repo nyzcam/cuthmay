@@ -46,10 +46,10 @@ export default function SplashProvider({
   return (
     <>
       <Preloader phase={phase} visible={visible} theme={currentTheme} />
-      <div 
-        style={{ 
-           height: visible ? '100vh' : 'auto', 
-           overflow: visible ? 'hidden' : 'visible' 
+      <div
+        style={{
+          height: visible ? "100svh" : "auto",
+          overflow: visible ? "hidden" : "visible",
         }}
       >
         {children}

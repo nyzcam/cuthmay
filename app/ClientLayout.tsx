@@ -5,7 +5,6 @@ import LayoutWrapperOld from "@/components/LayoutWrapperOld";
 import SplashProvider from "@/providers/SplashProvider";
 import { AuthProvider } from "@/providers/AuthContext";
 import { MusicProvider } from "@/providers/MusicProvider";
-import PatternBackground from "@/components/PatternBackground";
 
 export default function ClientLayout({
   children,
@@ -16,7 +15,6 @@ export default function ClientLayout({
     <>
       <AuthProvider>
         <MusicProvider>
-          {/* <PatternBackground /> */}
           <ThemeProvider>
             <SplashProvider>
               <LayoutWrapperOld>{children}</LayoutWrapperOld>
