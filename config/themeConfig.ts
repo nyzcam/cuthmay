@@ -20,8 +20,13 @@ export type ThemeName =
   | "neon"
   | "synthwave";
 
-
-export type ThemeCategory = "classic" | "premium" | "nature" | "vibrant" | "minimal" | "cyber";
+export type ThemeCategory =
+  | "classic"
+  | "premium"
+  | "nature"
+  | "vibrant"
+  | "minimal"
+  | "cyber";
 
 export interface ColorScale {
   primary: string;
@@ -62,10 +67,10 @@ export interface ThemePreset {
   description: string;
 }
 
-export const DEFAULT_THEME: ThemeName = "roseGold";
+export const DEFAULT_THEME: ThemeName = "champagne";
 
 export const GOLD_PALETTE: ColorScale = {
-  primary: "#f4c430",  
+  primary: "#f4c430",
   dark: "#d4a017",
   light: "#ffd700",
   lightest: "#fff9e6",
@@ -137,7 +142,7 @@ export const LAVENDER_PALETTE: ColorScale = {
 };
 
 export const OPAL_PALETTE: ColorScale = {
-  primary: "#0ea5e9", 
+  primary: "#0ea5e9",
   dark: "#0c95d4",
   light: "#1aaaec",
   lightest: "#2ab6f7",
@@ -145,11 +150,11 @@ export const OPAL_PALETTE: ColorScale = {
 };
 
 export const CHAMPAGNE_PALETTE: ColorScale = {
-  primary: "#b48a32",
-  dark: "#c2973a",
-  light: "#c0963b",
-  lightest: "#cea54c",
-  medium: "#b48a32",
+  primary: "#b48a32", // Metallic gold
+  dark: "#aa8b2b", // Dark gold
+  light: "#f0e68c", // Khaki (champagne highlight)
+  lightest: "#fffacd", // Lemon chiffon
+  medium: "#daa520",
 };
 
 export const ARCTIC_PALETTE: ColorScale = {
@@ -186,7 +191,7 @@ export const CARBON_PALETTE: ColorScale = {
 
 export const NEON_PALETTE: ColorScale = {
   primary: "#00f3ff",
-  dark: "#0088cc", 
+  dark: "#0088cc",
   light: "#7000ff",
   lightest: "#bc13fe",
   medium: "#09d1d4",
@@ -268,7 +273,8 @@ export const themeConfig: Record<ThemeName, Theme> = {
     id: "roseGold",
     name: "Rose Gold",
     description: "Elegant rose gold with pink undertones",
-    gradient: "radial-gradient(ellipse at center, rgb(219, 230, 246) 0%, rgb(197, 121, 109) 100%)",
+    gradient:
+      "radial-gradient(ellipse at center, rgb(219, 230, 246) 0%, rgb(197, 121, 109) 100%)",
     accent: "#5d2f40",
     cssVars: ROSEGOLD_PALETTE,
     textColors: {
@@ -464,8 +470,7 @@ export const themeConfig: Record<ThemeName, Theme> = {
     id: "opal",
     name: "Opal Mist",
     description: "Soft iridescent blues with airy elegance",
-    gradient:
-      "radial-gradient(ellipse at center, #bae6fd 0%, #6dcdfa 100%)",
+    gradient: "radial-gradient(ellipse at center, #bae6fd 0%, #6dcdfa 100%)",
     accent: "#0ea5e9",
     cssVars: OPAL_PALETTE,
     textColors: {
@@ -480,12 +485,11 @@ export const themeConfig: Record<ThemeName, Theme> = {
     accessibility: { contrastRatio: 6.4, wcagLevel: "AA" },
   },
 
-  champagne : {
+  champagne: {
     id: "champagne",
     name: "Champagne Glow",
     description: "Sophisticated cream and metallic gold tones",
-    gradient:
-      "radial-gradient(circle at center, #f3e5ab 0%, #dcc185 100%)",
+    gradient: "radial-gradient(circle at center, #f3e5ab 0%, #dcc185 100%)",
     accent: "#b48a32",
     cssVars: CHAMPAGNE_PALETTE,
     textColors: {
@@ -499,7 +503,7 @@ export const themeConfig: Record<ThemeName, Theme> = {
     tags: ["luxury", "warm", "refined"],
     accessibility: {
       contrastRatio: 7.2,
-      wcagLevel: "AAA"
+      wcagLevel: "AAA",
     },
   },
 
@@ -527,8 +531,7 @@ export const themeConfig: Record<ThemeName, Theme> = {
     id: "nebula",
     name: "Cosmic Nebula",
     description: "Deep space magenta with cosmic glow",
-    gradient:
-      "radial-gradient(ellipse at center, #701a75 0%, #4a044e 100%)",
+    gradient: "radial-gradient(ellipse at center, #701a75 0%, #4a044e 100%)",
     accent: "#f472b6",
     cssVars: NEBULA_PALETTE,
     textColors: {
@@ -607,7 +610,8 @@ export const themeConfig: Record<ThemeName, Theme> = {
     id: "synthwave",
     name: "Synthwave Grid",
     description: "Vibrant grid-based neon aesthetic with electric colors",
-    gradient: "linear-gradient(135deg, #ff0080 0%, #7000ff 25%, #090909 50%, #1a0b2e 75%, #003366 100%)",
+    gradient:
+      "linear-gradient(135deg, #ff0080 0%, #7000ff 25%, #090909 50%, #1a0b2e 75%, #003366 100%)",
     accent: "#00f3ff",
     cssVars: SYNTHWAVE_PALETTE,
     textColors: {
@@ -624,14 +628,21 @@ export const themeConfig: Record<ThemeName, Theme> = {
       wcagLevel: "AAA",
     },
   },
-
 };
-
 
 export const themePresets: ThemePreset[] = [
   {
     name: "Dark Collection",
-    themes: ["red", "green", "blue", "aurora", "ocean", "sunset", "jade", "midnight"],
+    themes: [
+      "red",
+      "green",
+      "blue",
+      "aurora",
+      "ocean",
+      "sunset",
+      "jade",
+      "midnight",
+    ],
     description: "All dark-themed options for nighttime use",
   },
   {
@@ -694,8 +705,8 @@ export const isValidTheme = (themeName: string): themeName is ThemeName => {
 };
 
 export const getThemesByTag = (tag: string): Theme[] => {
-  return getAllThemes().filter(
-    (theme) => theme.tags?.some((t) => t.toLowerCase() === tag.toLowerCase())
+  return getAllThemes().filter((theme) =>
+    theme.tags?.some((t) => t.toLowerCase() === tag.toLowerCase())
   );
 };
 
@@ -704,7 +715,6 @@ export const getAccessibleThemes = (level: "AA" | "AAA" = "AA"): Theme[] => {
     (theme) => theme.accessibility && theme.accessibility.wcagLevel === level
   );
 };
-
 
 export const themeToCssVars = (theme: Theme): Record<string, string> => {
   const vars: Record<string, string> = {
@@ -850,5 +860,7 @@ export const validateTheme = (theme: Partial<Theme>): boolean => {
     "isDark",
   ];
 
-  return required.every((field) => field in theme && theme[field] !== undefined);
+  return required.every(
+    (field) => field in theme && theme[field] !== undefined
+  );
 };

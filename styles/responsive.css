@@ -1,0 +1,73 @@
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .pattern-bg::before {
+    background-size: calc(var(--s) * 0.6) calc(var(--s) * 0.6);
+    -webkit-transform: translate(-50%, -50%) rotate(45deg) translateZ(0);
+    transform: translate(-50%, -50%) rotate(45deg) translateZ(0);
+  }
+
+  .animate-khmer-float-1,
+  .animate-khmer-float-2,
+  .animate-khmer-float-3 {
+    animation-duration: 6s;
+    -webkit-animation-duration: 6s;
+  }
+
+  .text-af,
+  .combined-gold {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ============================================================================
+     REDUCED MOTION
+     ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    -webkit-animation-duration: 0.01ms !important;
+    -webkit-animation-iteration-count: 1 !important;
+    -webkit-transition-duration: 0.01ms !important;
+  }
+
+  .pattern-bg::before {
+    animation: none !important;
+    opacity: 0.3;
+    -webkit-animation: none !important;
+  }
+
+  .combined-gold {
+    animation: none !important;
+    -webkit-animation: none !important;
+  }
+}
+
+/* ============================================================================
+     BROWSER FALLBACKS & COMPATIBILITY
+     ============================================================================ */
+
+@supports not (background-clip: text) {
+  .text-af,
+  .combined-gold {
+    background: none !important;
+    color: var(--theme-light) !important;
+    -webkit-text-fill-color: initial !important;
+  }
+}
+
+/* Safari-specific fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  .text-af,
+  .combined-gold {
+    background-attachment: scroll;
+  }
+}

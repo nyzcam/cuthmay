@@ -196,7 +196,7 @@ export default function InvitationContent({
         </motion.h1>
 
         <motion.h3
-          className="text-xl sm:text-2xl md:text-3xl mb-3 sm:mb-4 text-gold"
+          className="text-xl sm:text-2xl md:text-3xl mb-3 sm:mb-4 text-af"
           variants={fadeUp}
           custom={2}
           aria-label="Respectfully Inviting"
@@ -207,7 +207,7 @@ export default function InvitationContent({
         </motion.h3>
 
         <motion.h4
-          className="text-base sm:text-lg md:text-xl lg:text-2xl mb-3 sm:mb-4 text-gold px-4"
+          className="text-base sm:text-lg md:text-xl lg:text-2xl mb-3 sm:mb-4 text-af px-4"
           variants={fadeUp}
           custom={3}
           aria-label="Honorable Guests"
@@ -241,7 +241,7 @@ export default function InvitationContent({
       </motion.div>
 
       <motion.div
-        className="text-base md:text-lg space-y-3 sm:space-y-4 md:space-y-6 text-gold max-w-3xl px-4"
+        className="text-base md:text-lg space-y-3 sm:space-y-4 md:space-y-6 text-af max-w-3xl px-4"
         variants={fadeUp}
         initial="hidden"
         whileInView="visible"

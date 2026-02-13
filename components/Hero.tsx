@@ -3,8 +3,16 @@
 import { motion, Variants } from "framer-motion";
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { guestList, getGuestDisplayName, findGuestBySlug } from "../data/guestList";
-import { defaultHeroData, formatEventDate, type HeroData } from "../data/heroData";
+import {
+  guestList,
+  getGuestDisplayName,
+  findGuestBySlug,
+} from "../data/guestList";
+import {
+  defaultHeroData,
+  formatEventDate,
+  type HeroData,
+} from "../data/heroData";
 import ShortName from "./kbach/ShortName";
 import GuestFrame from "./kbach/GuestFrame";
 import { useTheme } from "../providers/ThemeContext";
@@ -16,11 +24,17 @@ interface HeroProps {
   themeOverride?: string;
 }
 
-export default function Hero({ guestName = "ភ្ញៀវកិត្តិយស", heroData = defaultHeroData, themeOverride }: HeroProps) {
+export default function Hero({
+  guestName = "ភ្ញៀវកិត្តិយស",
+  heroData = defaultHeroData,
+  themeOverride,
+}: HeroProps) {
   const { currentTheme: contextTheme } = useTheme();
-  const currentTheme = themeOverride ? getTheme(themeOverride as ThemeName) : contextTheme;
+  const currentTheme = themeOverride
+    ? getTheme(themeOverride as ThemeName)
+    : contextTheme;
   const params = useParams();
-  
+
   const guestSlug = params?.guestSlug as string | null;
   const [dynamicGuestName, setDynamicGuestName] = useState("លោក សែត កុម្ភម្នី");
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -212,7 +226,7 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
           </motion.h1>
 
           <motion.h3
-            className="text-xl sm:text-2xl md:text-3xl mb-3 sm:mb-4 text-gold"
+            className="text-xl sm:text-2xl md:text-3xl mb-3 sm:mb-4 text-af"
             variants={fadeUp}
             custom={2}
           >
@@ -220,7 +234,7 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
           </motion.h3>
 
           <motion.h4
-            className="text-base sm:text-lg md:text-xl lg:text-2xl mb-3 sm:mb-4 text-gold px-4"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl mb-3 sm:mb-4 text-af px-4"
             variants={fadeUp}
             custom={3}
           >
@@ -251,15 +265,13 @@ export default function Hero({ guestName = "ភ្ញៀវកិត្តិយ
         </motion.div>
 
         <motion.div
-          className="text-base md:text-lg space-y-3 sm:space-y-4 md:space-y-6 text-gold max-w-3xl px-4"
+          className="text-base md:text-lg space-y-3 sm:space-y-4 md:space-y-6 text-af max-w-3xl px-4"
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
           custom={5}
         >
-          <h6 className="leading-6">
-            {formatEventDate(heroData.eventDate)}
-          </h6>
+          <h6 className="leading-6">{formatEventDate(heroData.eventDate)}</h6>
           <h6>{heroData.location}</h6>
         </motion.div>
       </div>

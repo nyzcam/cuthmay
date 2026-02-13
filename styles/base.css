@@ -1,0 +1,45 @@
+/* ============================================================================
+   BASE & RESET STYLES
+   ============================================================================ */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+}
+
+@supports (-webkit-touch-callout: none) {
+  html,
+  body {
+    height: -webkit-fill-available;
+  }
+}
+
+html,
+body {
+  font-family: var(--font-moul);
+  color: var(--theme-text-primary);
+  overflow-x: hidden;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100svh;
+  position: relative;
+  background: var(--theme-gradient) fixed;
+  background-size: cover;
+  background-position: center;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}

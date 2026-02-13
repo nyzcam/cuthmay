@@ -3,7 +3,11 @@ import React, { useState, useEffect } from "react";
 import { QrCode } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useTheme } from "../providers/ThemeContext";
-import { defaultAbaQrData, getAbaPaymentLink, type AbaQrData } from "../data/abaQrData";
+import {
+  defaultAbaQrData,
+  getAbaPaymentLink,
+  type AbaQrData,
+} from "../data/abaQrData";
 import Image from "next/image";
 
 type AbaQrProps = {
@@ -33,7 +37,7 @@ export default function AbaQr({
 
   // Use inline styles instead of dynamic Tailwind classes for borders
   const activeCornerColor = cornerColor || currentTheme.accent;
-  
+
   // Create a style object for the corner borders
   const cornerBorderStyle = {
     borderColor: activeCornerColor,
@@ -49,7 +53,7 @@ export default function AbaQr({
         transition={{ duration: 1.5, ease: "easeOut" }}
       >
         <div className="flex items-center justify-center">
-          <h4 className="font-khmer text-gold text-xl md:text-2xl">
+          <h4 className="font-khmer text-af text-xl md:text-2xl">
             {abaQrData.title}
           </h4>
         </div>
@@ -82,7 +86,7 @@ export default function AbaQr({
                   height: size + 32,
                 }}
               >
-                <Image 
+                <Image
                   src="/aba-qr.png"
                   alt="ABA QR Code"
                   width={size}
@@ -94,25 +98,25 @@ export default function AbaQr({
                 <div className="absolute inset-0 rounded-2xl bg-white/3 pointer-events-none" />
               </div>
             </a>
-            
+
             {/* Top-left corner */}
             <div
               className="absolute -top-4 -left-4 w-10 h-10 border-t-4 border-l-4 rounded-tl-3xl"
               style={cornerBorderStyle}
             />
-            
+
             {/* Top-right corner */}
             <div
               className="absolute -top-4 -right-4 w-10 h-10 border-t-4 border-r-4 rounded-tr-3xl"
               style={cornerBorderStyle}
             />
-            
+
             {/* Bottom-left corner */}
             <div
               className="absolute -bottom-4 -left-4 w-10 h-10 border-b-4 border-l-4 rounded-bl-3xl"
               style={cornerBorderStyle}
             />
-            
+
             {/* Bottom-right corner */}
             <div
               className="absolute -bottom-4 -right-4 w-10 h-10 border-b-4 border-r-4 rounded-br-3xl"
@@ -145,7 +149,9 @@ export default function AbaQr({
                 className="w-4 h-4"
                 style={{ color: currentTheme.accent }}
               />
-              <span className="font-mono tracking-wide text-gold">{abaQrData.merchant}</span>
+              <span className="font-mono tracking-wide text-af">
+                {abaQrData.merchant}
+              </span>
             </div>
           </div>
         </div>
@@ -180,7 +186,7 @@ export default function AbaQr({
               <AnimatePresence mode="wait">
                 <motion.p
                   key={currentQuoteIndex}
-                  className="font-khmer text-gold italic text-sm md:text-base leading-7 md:leading-8 relative z-10 pt-3 pb-3"
+                  className="font-khmer text-af italic text-sm md:text-base leading-7 md:leading-8 relative z-10 pt-3 pb-3"
                   initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: -20, filter: "blur(4px)" }}

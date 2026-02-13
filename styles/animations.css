@@ -1,0 +1,89 @@
+/* ============================================================================
+   ANIMATIONS & KEYFRAMES
+   ============================================================================ */
+
+@keyframes khmer-float-1 {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(45deg);
+    -webkit-transform: translateY(0px) rotate(45deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(45deg);
+    -webkit-transform: translateY(-20px) rotate(45deg);
+  }
+}
+
+@keyframes khmer-float-2 {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(12deg) scaleX(0.75);
+    -webkit-transform: translateY(0px) rotate(12deg) scaleX(0.75);
+  }
+  50% {
+    transform: translateY(-15px) rotate(12deg) scaleX(0.75);
+    -webkit-transform: translateY(-15px) rotate(12deg) scaleX(0.75);
+  }
+}
+
+@keyframes khmer-float-3 {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(-30deg);
+    -webkit-transform: translateY(0px) rotate(-30deg);
+  }
+  50% {
+    transform: translateY(-25px) rotate(-30deg);
+    -webkit-transform: translateY(-25px) rotate(-30deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    -webkit-transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    -webkit-transform: translateY(0);
+  }
+}
+
+@keyframes glass-shimmer {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Animation Classes */
+.animate-khmer-float-1 {
+  animation: khmer-float-1 6s ease-in-out infinite;
+  -webkit-animation: khmer-float-1 6s ease-in-out infinite;
+}
+
+.animate-khmer-float-2 {
+  animation: khmer-float-2 8s ease-in-out infinite;
+  -webkit-animation: khmer-float-2 8s ease-in-out infinite;
+}
+
+.animate-khmer-float-3 {
+  animation: khmer-float-3 7s ease-in-out infinite;
+  -webkit-animation: khmer-float-3 7s ease-in-out infinite;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 1s ease-out;
+  -webkit-animation: fadeIn 1s ease-out;
+}
+
+.motion-safe\:animate-glass-shimmer::before {
+  animation: glass-shimmer 600ms ease-out;
+}

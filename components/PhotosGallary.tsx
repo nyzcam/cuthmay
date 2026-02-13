@@ -76,7 +76,7 @@ const PhotosGallery: React.FC = () => {
         transition={{ duration: 2 }}
         className="text-center mb-12"
       >
-        <h4 className="font-khmer text-gold text-xl md:text-2xl lg:text-3xl mb-2">
+        <h4 className="font-khmer text-af text-xl md:text-2xl lg:text-3xl mb-2">
           កម្រង
         </h4>
         <div

@@ -151,7 +151,7 @@ const WeddingTimeline: FC<WeddingTimelineProps> = ({
                 className="text-center mb-16 space-y-2"
             >
                 <h4
-                    className="font-khmer text-gold md:text-2xl lg:text-3xl mb-2 inline-block"
+                    className="font-khmer text-af md:text-2xl lg:text-3xl mb-2 inline-block"
                     style={{ color: currentTheme.accent }}
                 >
                     {title}
@@ -229,18 +229,18 @@ const WeddingTimeline: FC<WeddingTimelineProps> = ({
                                                     }}
                                                 >
                                                     <Clock className="w-3.5 h-3.5" />
-                                                    <span className="text-gold">{event.time}</span>
+                                                    <span className="text-af">{event.time}</span>
                                                     
                                                 </div>
                                             </div>
 
                                             <div className="text-left">
                                                 <h3
-                                                    className="text-lg text-gold md:text-xl mb-1"
+                                                    className="text-lg text-af md:text-xl mb-1"
                                                 >
                                                     {event.title}
                                                 </h3>
-                                                <p className="text-sm text-gold leading-relaxed opacity-80">
+                                                <p className="text-sm text-af leading-relaxed opacity-80">
                                                     {event.description}
                                                 </p>
                                             </div>

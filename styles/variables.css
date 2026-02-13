@@ -1,0 +1,78 @@
+/* ============================================================================
+   THEME VARIABLES & DEFAULTS
+   ============================================================================ */
+
+:root {
+  /* Theme System Variables - Will be overridden by JavaScript */
+  --theme-gradient: radial-gradient(
+    ellipse at center,
+    #e6e9ee 0%,
+    #cfd6dc 50%,
+    #9aa5b1 100%
+  );
+  --theme-accent: #9fa6ad;
+
+  /* Gold Color Palette - Default (Silver theme) */
+  --theme-primary: #9fa6ad;
+  --theme-dark: #808589;
+  --theme-light: #8c9194;
+  --theme-lightest: #a7adb0;
+  --theme-medium: #b1b6b8;
+
+  /* RGB variants for opacity adjustments */
+  --theme-primary-rgb: 159, 166, 173;
+  --theme-dark-rgb: 128, 133, 137;
+  --theme-light-rgb: 140, 145, 148;
+  --theme-lightest-rgb: 167, 173, 176;
+  --theme-medium-rgb: 177, 182, 184;
+  --theme-accent-rgb: 159, 166, 173;
+
+  /* Text Colors */
+  --theme-text-primary: #1f2937;
+  --theme-text-secondary: #4b5563;
+  --theme-text-accent: #6b7280;
+
+  /* Legacy Variables (for compatibility) */
+  --accent-color: var(--theme-accent);
+  --gold-primary: var(--theme-primary);
+  --gold-dark: var(--theme-dark);
+  --gold-light: var(--theme-light);
+  --gold-lightest: var(--theme-lightest);
+  --gold-medium: var(--theme-medium);
+
+  --green-dark: rgb(20, 83, 45);
+  --green-medium: rgb(21, 128, 61);
+  --green-light: rgb(34, 197, 94);
+
+  --tile-size: 100px;
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-gold: 0 4px 20px rgba(var(--theme-primary-rgb, 159, 166, 173), 0.25);
+}
+
+/* ============================================================================
+     COLOR SCHEME SUPPORT (DARK/LIGHT MODES)
+     ============================================================================ */
+
+/* These classes will be added by the ThemeProvider */
+.theme-dark {
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: #e5e7eb;
+  --theme-text-accent: var(--theme-accent);
+  color-scheme: dark;
+}
+
+.theme-light {
+  --theme-text-primary: #1f2937;
+  --theme-text-secondary: #4b5563;
+  --theme-text-accent: var(--theme-accent);
+  color-scheme: light;
+}
+
+/* Adjust pattern opacity based on theme */
+.theme-dark .pattern-bg::before {
+  opacity: 0.12;
+}
+
+.theme-light .pattern-bg::before {
+  opacity: 0.1;
+}

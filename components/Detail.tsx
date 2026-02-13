@@ -211,7 +211,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
         whileInView="visible"
       >
         <motion.div
-          className="flex flex-row justify-center items-start gap-8 md:gap-12 text-gold text-lg md:text-xl"
+          className="flex flex-row justify-center items-start gap-8 md:gap-12 text-af text-lg md:text-xl"
           variants={fadeUp}
           custom={1}
         >
@@ -227,7 +227,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
         </motion.div>
 
         <motion.h4
-          className="text-2xl md:text-3xl mb-4 text-gold font-medium"
+          className="text-2xl md:text-3xl mb-4 text-af font-medium"
           variants={fadeUp}
           custom={2}
         >
@@ -244,7 +244,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
         />
 
         <motion.p
-          className="text-center text-gold text-sm md:text-base max-w-2xl mx-auto leading-6"
+          className="text-center text-af text-sm md:text-base max-w-2xl mx-auto leading-6"
           variants={fadeUp}
           custom={4}
         >
@@ -253,7 +253,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
         </motion.p>
 
         <motion.div
-          className="flex flex-row justify-between items-center gap-4 md:gap-8 text-gold max-w-2xl mx-auto px-4"
+          className="flex flex-row justify-between items-center gap-4 md:gap-8 text-af max-w-2xl mx-auto px-4"
           variants={fadeUp}
           custom={5}
         >
@@ -275,7 +275,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
         </motion.div>
 
         <motion.div
-          className="text-center space-y-3 text-gold text-base md:text-lg max-w-2xl mx-auto"
+          className="text-center space-y-3 text-af text-base md:text-lg max-w-2xl mx-auto"
           variants={fadeUp}
           custom={6}
         >
@@ -560,7 +560,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
           custom={7}
         >
           <div
-            className="font-khmer text-center text-gold leading-7 md:leading-8
+            className="font-khmer text-center text-af leading-7 md:leading-8
                          max-w-4xl mx-auto space-y-6 md:space-y-8 px-4"
           >
             {directions.map((direction) => (

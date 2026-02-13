@@ -142,7 +142,7 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         {/* Khmer Name */}
         <motion.div variants={fadeInUp} custom={0}>
-          <label className="block text-sm text-gold mb-2">
+          <label className="block text-sm text-af mb-2">
             ឈ្មោះខ្មែរ *
           </label>
           <input
@@ -158,7 +158,7 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
 
         {/* English Name */}
         <motion.div variants={fadeInUp} custom={1}>
-          <label className="block text-sm text-gold mb-2">
+          <label className="block text-sm text-af mb-2">
             ឈ្មោះអង់គ្លេស
           </label>
           <input
@@ -173,7 +173,7 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
 
         {/* Title */}
         <motion.div variants={fadeInUp} custom={2}>
-          <label className="block text-sm text-gold mb-2">
+          <label className="block text-sm text-af mb-2">
             ចំណងជTitle
           </label>
           <input
@@ -188,7 +188,7 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
 
         {/* Relationship */}
         <motion.div variants={fadeInUp} custom={3}>
-          <label className="block text-sm text-gold mb-2">
+          <label className="block text-sm text-af mb-2">
             ទំនាក់ទំនង
           </label>
           <select
@@ -207,7 +207,7 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
 
         {/* Status */}
         <motion.div variants={fadeInUp} custom={4}>
-          <label className="block text-sm text-gold mb-2">
+          <label className="block text-sm text-af mb-2">
             ស្ថានភាព
           </label>
           <select
