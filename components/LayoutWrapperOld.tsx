@@ -5,7 +5,6 @@ import PatternBackground from "./PatternBackground";
 import { useTheme } from "../providers/ThemeContext";
 import LiquidGlassFrame from "./LiquidGlassFrame";
 
-
 /* ================================
    Types
 ================================ */
@@ -16,16 +15,9 @@ interface LayoutWrapperProps {
 
 type OpacityRange = readonly [number, number];
 
-type OrbAnimationPreset =
-  | "floatSlow"
-  | "floatMedium"
-  | "floatFast";
+type OrbAnimationPreset = "floatSlow" | "floatMedium" | "floatFast";
 
-type OrbShapePreset =
-  | "circle"
-  | "diagonalBlob"
-  | "inverseBlob"
-  | "pillBlob";
+type OrbShapePreset = "circle" | "diagonalBlob" | "inverseBlob" | "pillBlob";
 
 interface OrbPreset {
   position: string;
@@ -46,7 +38,10 @@ const hexToRgb = (hex: string): string => {
   if (!match) return "0, 0, 0";
 
   const v = match[1];
-  return `${parseInt(v.slice(0, 2), 16)}, ${parseInt(v.slice(2, 4), 16)}, ${parseInt(v.slice(4, 6), 16)}`;
+  return `${parseInt(v.slice(0, 2), 16)}, ${parseInt(
+    v.slice(2, 4),
+    16
+  )}, ${parseInt(v.slice(4, 6), 16)}`;
 };
 
 const gradientFromAccent = (
@@ -157,7 +152,7 @@ const LayoutWrapperOld: FC<LayoutWrapperProps> = ({ children }) => {
   );
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden p-2">
+    <div className="relative flex min-h-dvh w-full items-center justify-center overflow-hidden p-2">
       <div
         key={currentTheme.gradient}
         className="absolute inset-0"
@@ -167,7 +162,11 @@ const LayoutWrapperOld: FC<LayoutWrapperProps> = ({ children }) => {
       <PatternBackground />
 
       {orbStyles.map((orb, i) => (
-        <div key={i} className={orb.className} style={{ background: orb.background }} />
+        <div
+          key={i}
+          className={orb.className}
+          style={{ background: orb.background }}
+        />
       ))}
 
       <div className="flex items-center justify-center rounded-3xl">
@@ -175,7 +174,6 @@ const LayoutWrapperOld: FC<LayoutWrapperProps> = ({ children }) => {
           {children}
         </LiquidGlassFrame>
       </div>
-
     </div>
   );
 };

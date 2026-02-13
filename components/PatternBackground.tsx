@@ -2,14 +2,27 @@
 
 import React, { memo } from "react";
 
-const PatternBackground = memo(() => {
-  const style = {
-    "--bg-url": `url(/hol-khmer.svg)`,
-    "--tile-size": "100px",
-  } as React.CSSProperties;
+interface PatternBackgroundProps {
+  patternUrl?: string;
+  tileSize?: string;
+  opacity?: number;
+}
 
-  return <div className="pattern-bg" style={style} />;
-});
+const PatternBackground = memo(
+  ({
+    patternUrl = "/hol-khmer.svg",
+    tileSize = "100px",
+    opacity = 0.1,
+  }: PatternBackgroundProps) => {
+    const style = {
+      "--bg-url": `url(${patternUrl})`,
+      "--tile-size": tileSize,
+      "--opacity": opacity,
+    } as React.CSSProperties;
+
+    return <div className="pattern-bg" style={style} />;
+  }
+);
 
 PatternBackground.displayName = "PatternBackground";
 export default PatternBackground;

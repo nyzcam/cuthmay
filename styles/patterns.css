@@ -25,6 +25,12 @@
   -webkit-mix-blend-mode: overlay;
 }
 
+@media (max-width: 768px) {
+  .pattern-bg {
+    display: none;
+  }
+}
+
 .motion-safe\:glass-chromatic::after {
   background: radial-gradient(
       140px circle at var(--glass-x, 50%) var(--glass-y, 50%),

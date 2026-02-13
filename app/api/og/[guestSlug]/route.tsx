@@ -54,7 +54,7 @@ export async function GET(
 
   const fontData = await fetch(
     new URL("../../../../app/fonts/lmnr3.ttf", import.meta.url)
-  ).then(res => res.arrayBuffer());
+  ).then((res) => res.arrayBuffer());
 
   const borderGradient = `linear-gradient(to bottom, transparent, ${theme.accent}, transparent)`;
 
