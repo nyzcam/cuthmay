@@ -107,8 +107,8 @@ const updateMetaThemeColor = (theme: Theme) => {
     document.head.appendChild(metaThemeColor);
   }
 
-  const gradientColors = theme.gradient.match(/#[0-9a-fA-F]{3,6}/g);
-  const dominantColor = gradientColors ? gradientColors[0] : theme.accent;
+  // const gradientColors = theme.gradient.match(/#[0-9a-fA-F]{3,6}/g);
+  const dominantColor = theme.accent;
 
   metaThemeColor.setAttribute("content", dominantColor);
 };
