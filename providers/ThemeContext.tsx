@@ -75,10 +75,10 @@ const applyThemeStyles = (theme: Theme, withTransition: boolean = false) => {
     root.style.setProperty(property, value);
   });
 
-  body.style.backgroundImage = theme.gradient;
+  // body.style.backgroundImage = theme.gradient;
   // body.style.backgroundAttachment = "fixed";
-  body.style.backgroundSize = "cover";
-  body.style.backgroundPosition = "center";
+  // body.style.backgroundSize = "cover";
+  // body.style.backgroundPosition = "center";
 
   body.classList.remove(...getAllThemes().map((t) => `theme-${t.id}`));
   body.classList.add(`theme-${theme.id}`);
@@ -107,7 +107,6 @@ const updateMetaThemeColor = (theme: Theme) => {
     document.head.appendChild(metaThemeColor);
   }
 
-  // const gradientColors = theme.gradient.match(/#[0-9a-fA-F]{3,6}/g);
   const dominantColor = theme.accent;
 
   metaThemeColor.setAttribute("content", dominantColor);
@@ -268,7 +267,7 @@ export const ThemeProvider = ({
       // Optional: Auto-switch to dark/light theme based on system preference
       // Uncomment to enable auto-switching:
       const preferredTheme = e.matches ? "dark" : "light";
-      // setTheme(preferredTheme as ThemeName);
+      setTheme(preferredTheme as ThemeName);
     };
 
     mediaQuery.addEventListener("change", handleSystemThemeChange);
@@ -352,13 +351,11 @@ export const useTheme = () => {
       // Get theme by name
       getTheme: (themeName: ThemeName) => themeConfig[themeName],
 
-      // Generate CSS for all themes (for SSR/SSG)
       getAllThemeCSS: () =>
         getAllThemes()
           .map((theme) => generateThemeCss(theme))
           .join("\n"),
 
-      // Programmatically change theme with event
       changeThemeWithEvent: (themeName: ThemeName) => {
         if (isValidTheme(themeName)) {
           window.dispatchEvent(
@@ -367,7 +364,6 @@ export const useTheme = () => {
         }
       },
 
-      // Get complementary themes (same category)
       getSimilarThemes: () => {
         const allThemes = getAllThemes();
         return allThemes.filter(
@@ -395,7 +391,6 @@ export const useThemeAwareStyles = () => {
       // Get gradient for inline styles
       gradient: currentTheme.gradient,
 
-      // Get color palette for styling
       colors: currentTheme.cssVars,
 
       // Get text colors
