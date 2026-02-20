@@ -195,7 +195,7 @@ const LayoutWrapper: FC<LayoutWrapperProps> = ({ children }) => {
 
       <LiquidGlassFrame
         accent={currentTheme.accent}
-        className="h-[90dvh] sm:h-[95dvh] w-full max-w-3xl"
+        className="h-dvh w-full max-w-3xl"
       >
         <motion.div
           className="relative h-full w-full overflow-hidden"
