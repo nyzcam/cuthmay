@@ -27,7 +27,7 @@
 
 @media (max-width: 768px) {
   .pattern-bg {
-    opacity: 1;
+    display: none;
   }
 }
 
