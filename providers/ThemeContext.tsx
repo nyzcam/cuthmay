@@ -133,7 +133,7 @@ export const ThemeProvider = ({
 
     meta.setAttribute("name", "theme-color");
     meta.setAttribute("content", currentTheme.accent);
-    // document.head.appendChild(meta);
+    document.head.appendChild(meta);
 
     const timeout = setTimeout(() => {
       body.classList.remove("theme-transitioning");
