@@ -184,10 +184,10 @@ const LayoutWrapper: FC<LayoutWrapperProps> = ({ children }) => {
   return (
     <div className="relative flex h-dvh w-full items-center justify-center overflow-hidden px-2">
       <GlobalStyles />
-      <div
+      {/* <div
         className="absolute inset-0 z-0"
         style={{ background: currentTheme.gradient }}
-      />
+      /> */}
       <PatternBackground />
       {renderedOrbs.map((orb) => (
         <div key={orb.key} className={orb.className} style={orb.style} />
@@ -195,7 +195,7 @@ const LayoutWrapper: FC<LayoutWrapperProps> = ({ children }) => {
 
       <LiquidGlassFrame
         accent={currentTheme.accent}
-        className="h-[98dvh] sm:h-dvh w-full max-w-3xl"
+        className="h-[95dvh] sm:h-dvh w-full max-w-3xl"
       >
         <motion.div
           className="relative h-full w-full overflow-hidden"

@@ -2,6 +2,7 @@
   --s: var(--tile-size, 100px);
   position: absolute;
   inset: 0;
+  opacity: 0.3;
   overflow: hidden;
   pointer-events: none;
   -webkit-backface-visibility: hidden;
@@ -18,7 +19,7 @@
   background-image: var(--bg-url);
   background-repeat: repeat;
   background-size: var(--s) var(--s);
-  opacity: 0.18;
+  opacity: 0.1;
   mix-blend-mode: overlay;
   transform: translate(-50%, -50%) rotate(45deg);
   -webkit-transform: translate(-50%, -50%) rotate(45deg);
@@ -27,7 +28,7 @@
 
 @media (max-width: 768px) {
   .pattern-bg {
-    opacity: 1;
+    opacity: 0.3;
   }
 }
 

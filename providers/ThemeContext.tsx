@@ -102,10 +102,6 @@ export const ThemeProvider = ({
 
   const isDarkTheme = currentTheme.isDark;
 
-  /**
-   * Apply theme to DOM
-   * Why: DOM mutations must stay inside effects.
-   */
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -174,7 +170,7 @@ export const ThemeProvider = ({
 
   return (
     <ThemeContext.Provider value={value}>
-      <main className="min-h-dvh overflow-hidden">{children}</main>
+      <main className="min-h-dvh relative">{children}</main>
     </ThemeContext.Provider>
   );
 };
