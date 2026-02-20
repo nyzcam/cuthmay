@@ -119,8 +119,8 @@ export const ThemeProvider = ({
       root.style.setProperty(key, value);
     });
 
-    body.style.backgroundImage = currentTheme.gradient;
-    body.style.backgroundAttachment = "fixed";
+    // body.style.backgroundImage = currentTheme.gradient;
+    // body.style.backgroundAttachment = "fixed";
 
     body.classList.remove(...getAllThemes().map((t) => `theme-${t.id}`));
     body.classList.add(`theme-${currentTheme.id}`);
@@ -130,14 +130,14 @@ export const ThemeProvider = ({
     let meta = document.querySelector(
       'meta[name="theme-color"]'
     ) as HTMLMetaElement | null;
-    
+
     if (!meta) {
       meta = document.createElement("meta");
       meta.name = "theme-color";
       document.head.appendChild(meta);
     }
-    
-    meta.content = currentTheme.accent;
+
+    meta.content = currentTheme.cssVars.dark;
 
     const timeout = setTimeout(() => {
       body.classList.remove("theme-transitioning");

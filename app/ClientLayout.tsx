@@ -17,7 +17,7 @@ export default function ClientLayout({
   return (
     <>
       <AuthProvider>
-        <PatternBackground />
+        {/* <PatternBackground /> */}
         <MusicProvider>
           <ThemeProvider>
             <SplashProvider>
