@@ -27,14 +27,14 @@ body {
   font-family: var(--font-moul), system-ui, -apple-system, sans-serif;
   color: var(--theme-text-primary);
   line-height: 1.6;
-  position: relative;
+  /* position: relative; */
   min-height: 100svh;
   min-height: 100vh;
   /* overflow-x: hidden;   for old layout */
 
   /* for new layout */
-  overflow: hidden;
-  background: var(--theme-gradient) fixed;
+  /* overflow: hidden; */
+  /* background: var(--theme-gradient) fixed; */
 
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
@@ -43,8 +43,8 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: 100%;
 
-  padding-top: env(safe-area-inset-top);
+  /* padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+  padding-right: env(safe-area-inset-right); */
 }
