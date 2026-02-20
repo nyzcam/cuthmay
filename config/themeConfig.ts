@@ -67,7 +67,7 @@ export interface ThemePreset {
   description: string;
 }
 
-export const DEFAULT_THEME: ThemeName = "roseGold";
+export const DEFAULT_THEME: ThemeName = "midnight";
 
 export const GOLD_PALETTE: ColorScale = {
   primary: "#f4c430",

@@ -2,6 +2,8 @@
 import React from "react";
 import { ThemeProvider } from "@/providers/ThemeContext";
 import LayoutWrapperOld from "@/components/LayoutWrapperOld";
+import LayoutWrapper from "@/components/LayoutWrapper";
+
 import SplashProvider from "@/providers/SplashProvider";
 import { AuthProvider } from "@/providers/AuthContext";
 import { MusicProvider } from "@/providers/MusicProvider";
@@ -17,7 +19,7 @@ export default function ClientLayout({
         <MusicProvider>
           <ThemeProvider>
             <SplashProvider>
-              <LayoutWrapperOld>{children}</LayoutWrapperOld>
+              <LayoutWrapper>{children}</LayoutWrapper>
             </SplashProvider>
           </ThemeProvider>
         </MusicProvider>

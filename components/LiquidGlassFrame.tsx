@@ -51,13 +51,13 @@ const LiquidGlassFrame = <E extends ElementType = typeof DEFAULT_ELEMENT>({
       }}
     >
       <span
-        className="absolute top-[128px] bottom-[128px] left-4 w-px"
+        className="absolute top-[150px] bottom-[150px] left-4 w-px"
         style={{
           background: `linear-gradient(to bottom, transparent, ${accent}, transparent)`,
         }}
       />
       <span
-        className="absolute top-[128px] bottom-[128px] right-4 w-px"
+        className="absolute top-[150px] bottom-[150px] right-4 w-px"
         style={{
           background: `linear-gradient(to bottom, transparent, ${accent}, transparent)`,
         }}
