@@ -127,13 +127,17 @@ export const ThemeProvider = ({
     body.classList.toggle("theme-dark", currentTheme.isDark);
     body.classList.toggle("theme-light", !currentTheme.isDark);
 
-    const meta =
-      document.querySelector('meta[name="theme-color"]') ||
-      document.createElement("meta");
-
-    meta.setAttribute("name", "theme-color");
-    meta.setAttribute("content", currentTheme.accent);
-    document.head.appendChild(meta);
+    let meta = document.querySelector(
+      'meta[name="theme-color"]'
+    ) as HTMLMetaElement | null;
+    
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+    }
+    
+    meta.content = currentTheme.accent;
 
     const timeout = setTimeout(() => {
       body.classList.remove("theme-transitioning");
