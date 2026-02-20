@@ -3,6 +3,7 @@ import React from "react";
 import { ThemeProvider } from "@/providers/ThemeContext";
 import LayoutWrapperOld from "@/components/LayoutWrapperOld";
 import LayoutWrapper from "@/components/LayoutWrapper";
+import PatternBackground from "@/components/PatternBackground";
 
 import SplashProvider from "@/providers/SplashProvider";
 import { AuthProvider } from "@/providers/AuthContext";
@@ -16,6 +17,7 @@ export default function ClientLayout({
   return (
     <>
       <AuthProvider>
+        <PatternBackground />
         <MusicProvider>
           <ThemeProvider>
             <SplashProvider>

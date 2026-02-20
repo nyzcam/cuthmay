@@ -9,15 +9,9 @@ interface PatternBackgroundProps {
 }
 
 const PatternBackground = memo(
-  ({
-    patternUrl = "/hol-khmer.svg",
-    tileSize = "100px",
-    opacity = 0.1,
-  }: PatternBackgroundProps) => {
+  ({ tileSize = "100px" }: PatternBackgroundProps) => {
     const style = {
-      "--bg-url": `url(${patternUrl})`,
       "--tile-size": tileSize,
-      "--opacity": opacity,
     } as React.CSSProperties;
 
     return <div className="pattern-bg" style={style} />;

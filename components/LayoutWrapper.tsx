@@ -188,7 +188,7 @@ const LayoutWrapper: FC<LayoutWrapperProps> = ({ children }) => {
         className="absolute inset-0 z-0"
         style={{ background: currentTheme.gradient }}
       /> */}
-      <PatternBackground />
+      {/* <PatternBackground /> */}
       {renderedOrbs.map((orb) => (
         <div key={orb.key} className={orb.className} style={orb.style} />
       ))}
