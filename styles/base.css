@@ -30,7 +30,10 @@ body {
   position: relative;
   min-height: 100svh;
   min-height: 100vh;
-  overflow-x: hidden;
+  /* overflow-x: hidden;   for old layout */
+
+  /* for new layout */
+  overflow: hidden;
   background: var(--theme-gradient) fixed;
 
   -webkit-transform: translateZ(0);
