@@ -8,11 +8,15 @@ export function useAuthMe() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchMe = useCallback(async () => {
+  const fetchMe = useCallback(async (signal?: AbortSignal) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'include', headers: { Accept: 'application/json' } });
+      const res = await fetch('/api/auth/me', {
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+        signal,
+      });
       if (!res.ok) {
         setUser(null);
         setError(`Status ${res.status}`);
@@ -22,6 +26,7 @@ export function useAuthMe() {
       setUser(data as AuthUserType);
       return data as AuthUserType;
     } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return null;
       setError(err instanceof Error ? err.message : String(err));
       setUser(null);
       return null;
@@ -31,7 +36,9 @@ export function useAuthMe() {
   }, []);
 
   useEffect(() => {
-    fetchMe();
+    const controller = new AbortController();
+    fetchMe(controller.signal);
+    return () => controller.abort();
   }, [fetchMe]);
 
   return { user, isLoading, error, refresh: fetchMe, setUser } as const;

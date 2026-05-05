@@ -21,6 +21,8 @@ import {
   themeToCssVars,
 } from "../config/themeConfig";
 
+const ALL_THEME_CLASSES = getAllThemes().map((t) => `theme-${t.id}`);
+
 interface ThemeContextType {
   currentThemeName: ThemeName;
   currentTheme: Theme;
@@ -122,7 +124,7 @@ export const ThemeProvider = ({
     // body.style.backgroundImage = currentTheme.gradient;
     // body.style.backgroundAttachment = "fixed";
 
-    body.classList.remove(...getAllThemes().map((t) => `theme-${t.id}`));
+    body.classList.remove(...ALL_THEME_CLASSES);
     body.classList.add(`theme-${currentTheme.id}`);
     body.classList.toggle("theme-dark", currentTheme.isDark);
     body.classList.toggle("theme-light", !currentTheme.isDark);

@@ -1,26 +1,27 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, Home, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, type Variants } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { useTheme } from "@/providers/ThemeContext";
 import { BulkImportForm } from "@/components/BulkImportForm";
 import { SingleGuestForm } from "@/components/SingleGuestForm";
 import { Guest } from "@/data/guestList";
+
+const MAX_RECENT_GUESTS = 100;
 
 export default function GuestManagementPage() {
   const router = useRouter();
   const {
     currentTheme,
     currentThemeName,
-    setTheme,
-    getAllAvailableThemes,
     cycleNextTheme,
     cyclePreviousTheme,
     themeLoading,
   } = useTheme();
+  const shouldReduceMotion = useReducedMotion();
   const [activeTab, setActiveTab] = useState<"single" | "bulk">("single");
   const [addedGuests, setAddedGuests] = useState<Guest[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -28,49 +29,15 @@ export default function GuestManagementPage() {
   const { primary, dark, light, lightest, medium } = currentTheme.cssVars;
 
   const ThemeDropdown: React.FC = () => {
-    const themes = getAllAvailableThemes();
-    const [open, setOpen] = useState(false);
-    const [highlighted, setHighlighted] = useState<number>(() =>
-      Math.max(
-        0,
-        themes.findIndex((t) => t.id === currentThemeName)
-      )
-    );
-    const wrapperRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-      const onDoc = (e: MouseEvent) => {
-        if (
-          wrapperRef.current &&
-          !wrapperRef.current.contains(e.target as Node)
-        ) {
-          setOpen(false);
-        }
-      };
-      document.addEventListener("mousedown", onDoc);
-      return () => document.removeEventListener("mousedown", onDoc);
-    }, []);
-
-    useEffect(() => {
-      const idx = Math.max(
-        0,
-        themes.findIndex((t) => t.id === currentThemeName)
-      );
-      setHighlighted(idx);
-    }, [currentThemeName, themes]);
-
     return (
-      <div ref={wrapperRef} className="relative">
+      <div className="relative">
         <button
           type="button"
-          onClick={() => setOpen((s) => !s)}
+          aria-label="Current theme"
           disabled={themeLoading}
           className="flex items-center gap-2 px-3 py-1 rounded-md text-sm text-white/90 bg-transparent hover:bg-white/5 transition"
         >
-          <span className="truncate max-w-[10rem]">
-            {themes.find((t) => t.id === currentThemeName)?.name ??
-              currentThemeName}
-          </span>
+          <span className="truncate max-w-[10rem]">{currentThemeName}</span>
         </button>
       </div>
     );
@@ -89,25 +56,18 @@ export default function GuestManagementPage() {
     }),
   };
 
-  const shimmerStyle = useMemo(
-    (): React.CSSProperties => ({
-      backgroundImage: `linear-gradient(90deg, ${dark}, ${light}, ${lightest}, ${medium}, ${dark})`,
-      backgroundSize: "200% auto",
-      WebkitBackgroundClip: "text",
-      backgroundClip: "text",
-      WebkitTextFillColor: "transparent",
-      color: "transparent",
-    }),
-    [dark, light, lightest, medium]
-  );
+  const handleGuestAdded = useCallback((guest: Guest) => {
+    setAddedGuests((prev) => {
+      const next = [...prev, guest];
+      return next.length > MAX_RECENT_GUESTS
+        ? next.slice(next.length - MAX_RECENT_GUESTS)
+        : next;
+    });
+  }, []);
 
-  const handleGuestAdded = (guest: Guest) => {
-    setAddedGuests((prev) => [...prev, guest]);
-  };
-
-  const handleImportComplete = (count: number) => {
+  const handleImportComplete = useCallback((count: number) => {
     console.log(`Imported ${count} guests`);
-  };
+  }, []);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -120,11 +80,14 @@ export default function GuestManagementPage() {
     }
   };
 
-  const stats = [
-    { label: "ភ្ញៀវសរុប", count: addedGuests.length.toString(), icon: "👥" },
-    { label: "បានអះអាង", count: "0", icon: "✓" },
-    { label: "រង់ចាំ", count: addedGuests.length.toString(), icon: "⏳" },
-  ];
+  const stats = useMemo(
+    () => [
+      { label: "ភ្ញៀវសរុប", count: addedGuests.length.toString(), icon: "👥" },
+      { label: "បានអះអាង", count: "0", icon: "✓" },
+      { label: "រង់ចាំ", count: addedGuests.length.toString(), icon: "⏳" },
+    ],
+    [addedGuests.length]
+  );
 
   return (
     <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center p-12 font-khmer">
@@ -134,7 +97,7 @@ export default function GuestManagementPage() {
         <motion.div
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.6 }}
           className="backdrop-blur-md bg-black/20 border border-white/20 rounded-3xl p-8 mb-8"
         >
           <div className="flex items-center justify-between">
@@ -210,12 +173,14 @@ export default function GuestManagementPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          transition={
+            shouldReduceMotion ? { duration: 0 } : { delay: 0.2 }
+          }
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
         >
           {stats.map((stat, i) => (
             <motion.div
-              key={i}
+              key={stat.label}
               variants={fadeInUp}
               custom={i}
               className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300 group hover:border-white/30"
@@ -247,7 +212,7 @@ export default function GuestManagementPage() {
           >
             {/* Tabs Card */}
             <div className="backdrop-blur-md bg-black/20 border border-white/10 rounded-2xl overflow-hidden">
-              <div className="flex border-b border-white/10">
+              <div className="flex border-b border-white/10" role="tablist" aria-label="Guest management sections">
                 {[
                   { id: "single", label: "បន្ថែមភ្ញៀវ", icon: "➕" },
                   { id: "bulk", label: "នាំចូលច្រើន", icon: "📤" },
@@ -255,6 +220,10 @@ export default function GuestManagementPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as "single" | "bulk")}
+                    role="tab"
+                    aria-selected={activeTab === tab.id}
+                    aria-controls={`panel-${tab.id}`}
+                    id={`tab-${tab.id}`}
                     className={`flex-1 px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2 relative ${
                       activeTab === tab.id
                         ? "text-white"
@@ -285,12 +254,18 @@ export default function GuestManagementPage() {
             </div>
 
             {/* Forms */}
-            {activeTab === "single" && (
-              <SingleGuestForm onGuestAdded={handleGuestAdded} />
-            )}
-            {activeTab === "bulk" && (
-              <BulkImportForm onImportComplete={handleImportComplete} />
-            )}
+            <div
+              role="tabpanel"
+              id={`panel-${activeTab}`}
+              aria-labelledby={`tab-${activeTab}`}
+            >
+              {activeTab === "single" && (
+                <SingleGuestForm onGuestAdded={handleGuestAdded} />
+              )}
+              {activeTab === "bulk" && (
+                <BulkImportForm onImportComplete={handleImportComplete} />
+              )}
+            </div>
           </motion.div>
 
           {/* Right: Sidebar Cards */}
@@ -343,7 +318,7 @@ export default function GuestManagementPage() {
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {addedGuests.map((guest, idx) => (
                     <motion.div
-                      key={idx}
+                      key={`${guest.khmerName}-${guest.englishName ?? "na"}-${idx}`}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       className="flex items-center gap-2 p-3 rounded-lg hover:bg-white/10 transition-all border border-transparent hover:border-white/10"

@@ -17,8 +17,6 @@ interface MusicContextType {
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
-const STORAGE_KEY_TIME = "background-music-position";
-
 const MUSIC_FILES = [
   "/1.m4a",
   "/2.m4a",
@@ -82,28 +80,14 @@ export function MusicProvider({ children }: { children: ReactNode }) {
 
     tryAutoplay();
 
-    let lastSavedTime = 0;
-
-    const handleTimeUpdate = (): void => {
-      const current = audio.currentTime;
-      if (Math.abs(current - lastSavedTime) > 5) {
-        localStorage.setItem(STORAGE_KEY_TIME, current.toString());
-        lastSavedTime = current;
-      }
-    };
-
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-
     return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-
       if (interactionHandler) {
         document.removeEventListener("click", interactionHandler);
         document.removeEventListener("keydown", interactionHandler);
       }
 
-      localStorage.setItem(STORAGE_KEY_TIME, audio.currentTime.toString());
       audio.pause();
+      audioRef.current = null;
     };
   }, []);
 

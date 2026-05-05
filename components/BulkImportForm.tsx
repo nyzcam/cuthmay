@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import { Upload, X } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { useTheme } from "@/providers/ThemeContext";
@@ -8,6 +8,8 @@ import { useTheme } from "@/providers/ThemeContext";
 interface BulkImportProps {
   onImportComplete: (count: number) => void;
 }
+
+const MAX_CSV_SIZE_BYTES = 2 * 1024 * 1024;
 
 export function BulkImportForm({ onImportComplete }: BulkImportProps) {
   const { currentTheme } = useTheme();
@@ -19,19 +21,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
   } | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const { primary, dark, light, lightest, medium } = currentTheme.cssVars;
-
-  const shimmerStyle = useMemo(
-    (): React.CSSProperties => ({
-      backgroundImage: `linear-gradient(90deg, ${dark}, ${light}, ${lightest}, ${medium}, ${dark})`,
-      backgroundSize: "200% auto",
-      WebkitBackgroundClip: "text",
-      backgroundClip: "text",
-      WebkitTextFillColor: "transparent",
-      color: "transparent",
-    }),
-    [dark, light, lightest, medium]
-  );
+  const { primary, light, medium } = currentTheme.cssVars;
 
   const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 10 },
@@ -45,7 +35,19 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
     }),
   };
 
-  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+  const validateCsvFile = useCallback((candidate: File): string | null => {
+    if (!candidate.name.toLowerCase().endsWith(".csv")) {
+      return "សូមផ្ទុកឯកសារ CSV";
+    }
+
+    if (candidate.size > MAX_CSV_SIZE_BYTES) {
+      return "ឯកសារធំពេក (អតិបរមា 2MB)";
+    }
+
+    return null;
+  }, []);
+
+  const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
@@ -53,30 +55,39 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
     } else if (e.type === "dragleave") {
       setDragActive(false);
     }
-  };
+  }, []);
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile.name.endsWith(".csv")) {
+      const validationError = validateCsvFile(droppedFile);
+      if (!validationError) {
         setFile(droppedFile);
         setMessage(null);
       } else {
-        setMessage({ type: "error", text: "សូមផ្ទុកឯកសារ CSV" });
+        setMessage({ type: "error", text: validationError });
       }
     }
-  };
+  }, [validateCsvFile]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
-      setFile(e.target.files[0]);
-      setMessage(null);
+      const nextFile = e.target.files[0];
+      const validationError = validateCsvFile(nextFile);
+      if (!validationError) {
+        setFile(nextFile);
+        setMessage(null);
+      } else {
+        setFile(null);
+        setMessage({ type: "error", text: validationError });
+      }
+      e.target.value = "";
     }
-  };
+  }, [validateCsvFile]);
 
   const handleImport = async () => {
     if (!file) {
@@ -98,7 +109,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
 
       if (response.ok) {
         setMessage({ type: "success", text: data.message });
-        onImportComplete(data.guests?.length || 0);
+        onImportComplete(data.addedCount ?? data.guests?.length ?? 0);
         setFile(null);
       } else {
         setMessage({ type: "error", text: data.error || "នាំចូលបរាជ័យ" });

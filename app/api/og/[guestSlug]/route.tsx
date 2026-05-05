@@ -8,6 +8,17 @@ export const runtime = "edge";
 
 const DEFAULT_GUEST_NAME = "ភ្ញៀវកិត្តិយស";
 
+let _fontData: ArrayBuffer | null = null;
+
+async function getFontData(): Promise<ArrayBuffer> {
+  if (!_fontData) {
+    _fontData = await fetch(
+      new URL("../../../../app/fonts/lmnr3.ttf", import.meta.url)
+    ).then((res) => res.arrayBuffer());
+  }
+  return _fontData;
+}
+
 function normalizeGuestName(slug: string) {
   const guest = findGuestBySlug(slug);
   if (guest) return getGuestDisplayName(guest);
@@ -52,9 +63,7 @@ export async function GET(
   const titleMain = toLimon("សូមគោរពអញ្ជើញ");
   const date = toLimon("ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៧");
 
-  const fontData = await fetch(
-    new URL("../../../../app/fonts/lmnr3.ttf", import.meta.url)
-  ).then((res) => res.arrayBuffer());
+  const fontData = await getFontData();
 
   const borderGradient = `linear-gradient(to bottom, transparent, ${theme.accent}, transparent)`;
 
@@ -191,6 +200,9 @@ export async function GET(
           style: "normal",
         },
       ],
+      headers: {
+        "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=3600",
+      },
     }
   );
 }

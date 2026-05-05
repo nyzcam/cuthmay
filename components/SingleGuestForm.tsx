@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { UserPlus } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { useTheme } from '@/providers/ThemeContext';
@@ -22,19 +22,7 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const { primary, dark, light, lightest, medium } = currentTheme.cssVars;
-
-  const shimmerStyle = useMemo(
-    (): React.CSSProperties => ({
-      backgroundImage: `linear-gradient(90deg, ${dark}, ${light}, ${lightest}, ${medium}, ${dark})`,
-      backgroundSize: '200% auto',
-      WebkitBackgroundClip: 'text',
-      backgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      color: 'transparent',
-    }),
-    [dark, light, lightest, medium]
-  );
+  const { primary, light, medium } = currentTheme.cssVars;
 
   const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 10 },
@@ -48,12 +36,12 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
     }),
   };
 
-  const handleChange = (
+  const handleChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,8 +139,9 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             value={formData.khmerName}
             onChange={handleChange}
             placeholder="ឈ្មោះ​ខ្មែរ"
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-gray/20 placeholder-gray/50"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white placeholder-white/50"
             required
+            autoComplete="off"
           />
         </motion.div>
 
@@ -167,7 +156,8 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             value={formData.englishName}
             onChange={handleChange}
             placeholder="English Name"
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-gray/20 placeholder-gray/50"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white placeholder-white/50"
+            autoComplete="off"
           />
         </motion.div>
 
@@ -182,7 +172,8 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             value={formData.title}
             onChange={handleChange}
             placeholder="លោក, អ្នកនាង"
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-gray/20 placeholder-gray/50"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white placeholder-white/50"
+            autoComplete="off"
           />
         </motion.div>
 
@@ -195,7 +186,7 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             name="relationship"
             value={formData.relationship}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-gray/20"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white"
           >
             <option value="family" className="bg-slate-800">គ្រួសារ</option>
             <option value="friend" className="bg-slate-800">មិត្តភ័ក្តិ</option>
@@ -214,7 +205,7 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-gray/20"
+            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:border-transparent outline-none transition text-white"
           >
             <option value="pending" className="bg-slate-800">រង់ចាំ</option>
             <option value="sent" className="bg-slate-800">បានផ្ញើ</option>

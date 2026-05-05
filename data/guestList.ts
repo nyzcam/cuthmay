@@ -8,6 +8,12 @@ export interface Guest {
 
 export const guestList: Record<string, Guest> = {
 
+  "khmer": {
+    khmerName: "ខ្មែរ",
+    englishName: "khmer",
+    relationship: "guest",
+  },
+
   "phal-minea": {
     khmerName: "ផល មីនា",
     englishName: "Phal Minea",

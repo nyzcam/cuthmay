@@ -1,30 +1,71 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
 import type { ValidationResult, AuthUser, JwtPayload } from '../../../../types/auth';
 
-async function validateToken(token: string): Promise<ValidationResult> {
-  const provider = token.includes(':') ? token.split(':')[0] : 'local';
+const JWT_SECRET = process.env.JWT_SECRET;
 
-  if (token.split('.').length === 3) {
+function createUserFromPayload(payload: JwtPayload, fallbackProvider = 'local'): AuthUser {
+  return {
+    id: payload.sub || 'user-123',
+    email: payload.email || `${fallbackProvider}@example.com`,
+    name: payload.name || 'Demo User',
+  };
+}
+
+function parseJwtPayload(token: string): JwtPayload | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    return JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8')) as JwtPayload;
+  } catch {
+    return null;
+  }
+}
+
+async function validateToken(token: string): Promise<ValidationResult> {
+  if (!token) {
+    return { valid: false, provider: 'local', verified: false, reason: 'missing-token' };
+  }
+
+  const provider = token.includes(':') ? token.split(':')[0] : 'local';
+  const tokenParts = token.split('.');
+
+  if (tokenParts.length === 3) {
+    const decodedPayload = parseJwtPayload(token);
     try {
-      const jwt = await import('jsonwebtoken');
-      const secret = process.env.JWT_SECRET;
-      if (!secret) {
-        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf8')) as JwtPayload;
-        const user: AuthUser = { id: payload.sub || 'user-123', email: payload.email ? payload.email : `${payload.email || 'user'}@example.com`, name: payload.name || 'Demo User' };
-        return { valid: true, provider: 'jwt', verified: false, user, reason: 'no-secret' };
+      if (!JWT_SECRET) {
+        if (!decodedPayload) {
+          return { valid: false, provider: 'jwt', verified: false, reason: 'invalid-jwt' };
+        }
+        return {
+          valid: true,
+          provider: 'jwt',
+          verified: false,
+          user: createUserFromPayload(decodedPayload, 'jwt'),
+          reason: 'no-secret',
+        };
       }
-      const payload = jwt.verify(token, secret) as JwtPayload;
-      const user: AuthUser = { id: payload.sub || 'user-123', email: payload.email || 'user@example.com', name: payload.name || 'Demo User' };
-      return { valid: true, provider: 'jwt', verified: true, user };
-    } catch (e) {
-      try {
-        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf8')) as JwtPayload;
-        const user: AuthUser = { id: payload.sub || 'user-123', email: payload.email || 'user@example.com', name: payload.name || 'Demo User' };
-        return { valid: true, provider: 'jwt', verified: false, user, reason: 'verify-failed' };
-      } catch (err) {
+
+      const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+      return {
+        valid: true,
+        provider: 'jwt',
+        verified: true,
+        user: createUserFromPayload(payload, 'jwt'),
+      };
+    } catch {
+      if (!decodedPayload) {
         return { valid: false, provider: 'jwt', verified: false, reason: 'invalid-jwt' };
       }
+
+      return {
+        valid: true,
+        provider: 'jwt',
+        verified: false,
+        user: createUserFromPayload(decodedPayload, 'jwt'),
+        reason: 'verify-failed',
+      };
     }
   }
 
@@ -57,6 +98,10 @@ export async function GET(request: Request) {
 
     const result = await validateToken(authToken);
 
+    if (!result.valid || !result.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     return NextResponse.json({
       id: result.user?.id || 'user-123',
       email: result.user?.email || 'user@example.com',
@@ -64,6 +109,10 @@ export async function GET(request: Request) {
       provider: result.provider,
       authenticated: true,
       verified: result.verified ?? false,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+      },
     });
   } catch (error) {
     console.error('Auth check error:', error);

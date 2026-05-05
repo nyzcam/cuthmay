@@ -157,8 +157,14 @@ const LayoutWrapper: FC<LayoutWrapperProps> = ({ children }) => {
   const maskImage = useScrollOverflowMask(scrollYProgress);
 
   useEffect(() => {
+    const prevBgImage = document.body.style.backgroundImage;
+    const prevBgColor = document.body.style.backgroundColor;
     document.body.style.backgroundImage = "none";
     document.body.style.backgroundColor = "transparent";
+    return () => {
+      document.body.style.backgroundImage = prevBgImage;
+      document.body.style.backgroundColor = prevBgColor;
+    };
   }, []);
 
   const renderedOrbs = useMemo(() => {
