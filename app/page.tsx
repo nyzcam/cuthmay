@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
-import WeddingTimeline from "../components/WeddingTimeline";
+import EventTimeline from "@/components/EventTimeline";
 
 export const metadata: Metadata = {
   title: "សិរីសួស្ដីអាពាហ៍ពិពាហ៍",
@@ -18,6 +18,7 @@ export default function HomePage() {
     <>
       <InvitationContent />
       <Detail />
+      <EventTimeline />
       <PhotosGallary />
       <AbaQr />
       <Footer />

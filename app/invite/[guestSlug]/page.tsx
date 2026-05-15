@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getGuestDisplayName, findGuestBySlug } from "@/data/guestList";
 import Hero from "@/components/Hero";
 import Detail from "@/components/Detail";
+import EventTimeline from "@/components/EventTimeline";
 import AbaQr from "@/components/AbaQr";
 import Footer from "@/components/Footer";
 import PhotosGallary from "@/components/PhotosGallary";
@@ -92,6 +93,7 @@ export default async function GuestPage({ params, searchParams }: Props) {
     <div className="min-h-screen">
       <Hero guestName={guestName} themeOverride={theme} />
       <Detail />
+      <EventTimeline />
       <PhotosGallary />
       <AbaQr />
       <Footer />   
