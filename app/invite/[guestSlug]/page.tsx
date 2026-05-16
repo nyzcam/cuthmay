@@ -9,9 +9,9 @@ import PhotosGallary from "@/components/PhotosGallary";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay.vercel.app";
 const DEFAULT_GUEST_NAME = "Guest";
-const WEDDING_DATE = "ថ្ងៃអាទិត្យ ១៧ មេសា ២០២៦";
-const WEDDING_LOCATION = "នៅភូមិល សង្កាត់ស្ទឹងមានជ័យ ខណ្ឌចំការមន រាជធានីភ្នំពេញ";
-const WEDDING_DESCRIPTION = `${WEDDING_DATE} — ${WEDDING_LOCATION}។ សូមចូលរួមអបអរសាទរពិធីមង្គលការរវាង កុម្ភម្នី & កញ្ញា គន្ធា។`;
+const WEDDING_DATE = "ថ្ងៃអាទិត្យ ១៧ មករា ២០២៧";
+const WEDDING_LOCATION = "នៅភូមិអន្លង់គគី ឃុំកណ្ដោល ស្រុកទឹកឈូ ខេត្តកំពត";
+const WEDDING_DESCRIPTION = `${WEDDING_DATE} — ${WEDDING_LOCATION}។ សូមចូលរួមអបអរសាទរពិធីមង្គលការរវាង កុម្ភម្នី & វឌ្ឍណា`;
 
 type Props = {
   params: Promise<{ guestSlug: string }>;
