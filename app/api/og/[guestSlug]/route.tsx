@@ -88,7 +88,7 @@ export async function GET(
   const guestName = toLimon(guestNameUnicode);
   const titleTop = toLimon("សិរីសួស្ដីអាពាហ៍ពិពាហ៍");
   const titleMain = toLimon("សូមគោរពអញ្ជើញ");
-  const date = toLimon("ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មេសា ឆ្នាំ ២០២៧");
+  const date = toLimon("ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មករា ឆ្នាំ ២០២៧");
 
   const fontData = await getFontData();
   const visualPreset = getOgVisualPreset(themeName);
