@@ -67,7 +67,7 @@ export interface ThemePreset {
   description: string;
 }
 
-export const DEFAULT_THEME: ThemeName = "red";
+export const DEFAULT_THEME: ThemeName = "green";
 
 export const GOLD_PALETTE: ColorScale = {
   primary: "#f4c430",
@@ -229,9 +229,9 @@ export const themeConfig: Record<ThemeName, Theme> = {
   green: {
     id: "green",
     name: "Emerald Forest",
-    description: "Rich green gradient with golden highlights",
+    description: "Deeper emerald gradient with golden highlights",
     gradient:
-      "radial-gradient(ellipse at center, #15803d 0%, #166534 50%, #052e16 100%)",
+      "radial-gradient(ellipse at center, #0f6b35 0%, #14532d 45%, #052e16 75%, #03190c 100%)",
     accent: "#efbf04",
     cssVars: GOLD_PALETTE,
     textColors: {

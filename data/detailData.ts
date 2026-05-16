@@ -35,16 +35,16 @@ export interface DetailData {
 
 export const defaultDetailData: DetailData = {
   parents: [
-    { father: "លោក យ៉ង់ វីរៈ", mother: "លោកស្រី ប្រាក់ សូមាន" },
-    { father: "លោក ខួន ពិឡុត", mother: "លោកស្រី គាំ​រេខា" },
+    { father: "លោក ម៉ៅ​ គួន", mother: "លោកស្រី ពូន ហុង" },
+    { father: "លោក ស្រី ចាន់ដេត", mother: "លោកស្រី យ៉ង សោភ័ណ្ឌ" },
   ],
   couple: {
-    groom: "យ៉េង​ វីរៈសុមេធិ",
-    bride: "ខួន ពិនុច",
+    groom: "សែត កុម្ភម្នី",
+    bride: "ដេត វឌ្ឍនា",
   },
   dateInfo: {
-    lunar: "ថ្ងៃសុក្រ ៧ កើត ខែបុស្ស ឆ្នាំម្សាញ់ សប្តស័ក ពុទ្ធសករាជ ២៥៦៩",
-    solar: "ថ្ងៃទី២៦ ខែធ្នូ ឆ្នាំ២០២៥",
+    lunar: "ថ្ងៃអាទិត្យ ១០កើត ខែបុស្ស ឆ្នាំមមី អដ្ឋស័ក ពុទ្ធសករាជ ២៥៧០",
+    solar: "ថ្ងៃទី១៧ ខែមករា ឆ្នាំ២០២៧",
   },
   directions: [
     {

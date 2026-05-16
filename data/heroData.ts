@@ -28,8 +28,8 @@ export const defaultHeroData: HeroData = {
   eventDate: {
     day: "១៧",
     dayOfWeek: "អាទិត្យ",
-    month: "មេសា",
-    year: "២០២៦",
+    month: "មករា",
+    year: "២០២៧",
     time: "៦ៈ០០ ល្ងាច",
   },
   location: "នៅគេហដ្ឋានខាងស្រី",
@@ -46,8 +46,8 @@ export const alternativeHeroData: HeroData = {
   eventDate: {
     day: "១៧",
     dayOfWeek: "អាទិត្យ",
-    month: "មេសា",
-    year: "២០២៦",
+    month: "មករា",
+    year: "២០២៧",
     time: "៦ៈ០០ ល្ងាច",
   },
   location: "នៅគេហដ្ឋានខាងស្រី",

@@ -43,21 +43,71 @@ const containerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.14,
-      delayChildren: 0.1,
+      staggerChildren: 0.28,
+      delayChildren: 0.25,
     },
   },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 24, scale: 0.98 },
+  hidden: { opacity: 0, y: 48, scale: 0.92 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.55,
-      ease: [0.22, 1, 0.36, 1],
+      duration: 1.5,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
+const cardInViewVariants: Variants = {
+  hidden: { opacity: 0, y: 24, scale: 0.97 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 1.15,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
+const detailLikeContentVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: 0.08 + i * 0.14,
+      duration: 1.25,
+      ease: [0.3, 0.1, 0.3, 1],
+    },
+  }),
+};
+
+const iconPulseVariants: Variants = {
+  rest: { scale: 1 },
+  pulse: {
+    scale: [1, 1.14, 1],
+    transition: {
+      duration: 3.2,
+      repeat: Infinity,
+      ease: "easeInOut",
+    },
+  },
+};
+
+const iconGlowVariants: Variants = {
+  rest: { opacity: 0.4 },
+  pulse: {
+    opacity: [0.4, 0.85, 0.4],
+    transition: {
+      duration: 3.2,
+      repeat: Infinity,
+      ease: "easeInOut",
     },
   },
 };
@@ -78,23 +128,24 @@ export default function EventTimeline({
     <section className="relative w-full px-4 py-14 sm:px-6 md:py-16 font-khmer">
       <div className="mx-auto w-full max-w-5xl">
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
-          whileInView={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-10%" }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-10 text-center"
-        >
-          <h2 className="text-af text-2xl md:text-3xl">{title}</h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-af opacity-80 md:text-base">
-            {subtitle}
-          </p>
-          <div
-            className="mx-auto mt-4 h-px w-28"
-            style={{
-              background: `linear-gradient(to right, transparent, ${currentTheme.accent}, transparent)`,
-            }}
-          />
-        </motion.div>
+                className="text-center mb-12"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+              >
+                <div className="flex items-center justify-center">
+                  <h4 className="font-khmer text-af text-xl md:text-2xl">
+                    {title}
+                  </h4>
+                </div>
+                <div
+                  className="w-40 h-px mx-auto"
+                  style={{
+                    background: `linear-gradient(to right, transparent, ${currentTheme.accent}, transparent)`,
+                  }}
+                />
+              </motion.div>
 
         <motion.div
           className="relative"
@@ -113,7 +164,7 @@ export default function EventTimeline({
               initial={shouldReduceMotion ? false : { scaleY: 0 }}
               whileInView={shouldReduceMotion ? {} : { scaleY: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 1.2, ease: "easeInOut" }}
+              transition={{ duration: 2.8, ease: [0.16, 1, 0.3, 1] }}
             />
           </div>
 
@@ -131,7 +182,10 @@ export default function EventTimeline({
                   }`}
                 >
                   <div className="absolute left-6 top-6 z-10 -translate-x-1/2 md:left-1/2">
-                    <div
+                    <motion.div
+                      variants={shouldReduceMotion ? undefined : iconPulseVariants}
+                      initial="rest"
+                      animate="pulse"
                       className="relative flex h-11 w-11 items-center justify-center rounded-full border border-white/30 backdrop-blur-md"
                       style={{
                         background: `linear-gradient(135deg, ${currentTheme.cssVars.dark}55, ${currentTheme.cssVars.light}22)`,
@@ -139,39 +193,111 @@ export default function EventTimeline({
                       }}
                     >
                       {icon}
-                      <span
+                      <motion.span
+                        variants={shouldReduceMotion ? undefined : iconGlowVariants}
+                        initial="rest"
+                        animate="pulse"
                         className="absolute inset-0 rounded-full"
                         style={{
-                          boxShadow: `0 0 0 1px ${currentTheme.accent}50, 0 0 30px 0 ${currentTheme.accent}30`,
+                          boxShadow: `0 0 0 1px ${currentTheme.accent}50, 0 0 36px 4px ${currentTheme.accent}45`,
                         }}
                       />
-                    </div>
+                    </motion.div>
                   </div>
 
                   <div className="ml-14 w-full md:ml-0 md:w-[46%]">
-                    <div
-                      className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 hover:bg-white/15 hover:border-white/30 md:p-5"
-                      style={{
-                        boxShadow: `0 8px 24px -18px ${currentTheme.accent}55`,
-                      }}
-                    >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs text-af"
-                          style={{
-                            borderColor: `${currentTheme.accent}50`,
-                            backgroundColor: `${currentTheme.accent}18`,
-                          }}
+                    <div className="relative group/card">
+                      <motion.div
+                        variants={shouldReduceMotion ? undefined : cardInViewVariants}
+                        initial={shouldReduceMotion ? undefined : "hidden"}
+                        whileInView={shouldReduceMotion ? undefined : "visible"}
+                        viewport={{ once: true, amount: 0.35 }}
+                        className="relative rounded-2xl border p-3 backdrop-blur-sm md:p-4"
+                        style={{
+                          borderColor: `${currentTheme.accent}55`,
+                          boxShadow: `0 8px 32px -18px ${currentTheme.accent}55`,
+                          transition: "box-shadow 0.8s ease, border-color 0.8s ease",
+                        }}
+                        whileHover={shouldReduceMotion ? {} : {
+                          scale: 1.015,
+                          boxShadow: `0 16px 48px -12px ${currentTheme.accent}70`,
+                          borderColor: `${currentTheme.accent}88`,
+                          transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+                        }}
+                      >
+                        <div className="absolute inset-0 rounded-2xl bg-white/3 pointer-events-none" />
+                        <motion.div
+                          className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
+                          initial={false}
                         >
-                          <Clock3 className="h-3.5 w-3.5" />
-                          {event.time}
-                        </span>
-                      </div>
+                          <motion.div
+                            className="absolute inset-y-0 w-1/3 skew-x-[-20deg]"
+                            style={{
+                              background: `linear-gradient(90deg, transparent, ${currentTheme.accent}18, transparent)`,
+                            }}
+                            initial={{ x: "-100%" }}
+                            whileInView={{ x: "400%" }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 2.2, ease: "easeInOut", delay: 0.6 + index * 0.18 }}
+                          />
+                        </motion.div>
+                        {/* Top accent strip */}
+                        <div
+                          className="absolute top-0 left-5 right-5 h-px"
+                          style={{
+                            background: `linear-gradient(to right, transparent, ${currentTheme.accent}70, transparent)`,
+                          }}
+                        />
 
-                      <h3 className="mt-3 text-af text-lg md:text-xl">{event.title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-af opacity-85 md:text-base">
-                        {event.description}
-                      </p>
+                        {/* Time + session row */}
+                        <motion.div
+                          className="flex items-center justify-center gap-2 flex-wrap"
+                          variants={shouldReduceMotion ? undefined : detailLikeContentVariants}
+                          custom={0}
+                        >
+                          <motion.span
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs"
+                            style={{
+                              background: `${currentTheme.accent}18`,
+                              color: currentTheme.accent,
+                              border: `1px solid ${currentTheme.accent}35`,
+                            }}
+                            variants={shouldReduceMotion ? undefined : detailLikeContentVariants}
+                            custom={0.2}
+                          >
+                            <Clock3 className="h-3 w-3 shrink-0" />
+                            {event.time}
+                          </motion.span>
+                        </motion.div>
+
+                        {/* Decorative divider */}
+                        <motion.div
+                          className="mt-3.5 h-px w-16 mx-auto"
+                          style={{
+                            background: `linear-gradient(to right, ${currentTheme.accent}70, transparent)`,
+                          }}
+                          variants={shouldReduceMotion ? undefined : detailLikeContentVariants}
+                          custom={1}
+                        />
+
+                        {/* Title */}
+                        <motion.h3
+                          className="mt-2.5 text-af text-lg md:text-xl leading-snug text-center"
+                          variants={shouldReduceMotion ? undefined : detailLikeContentVariants}
+                          custom={2}
+                        >
+                          {event.title}
+                        </motion.h3>
+
+                        {/* Description */}
+                        <motion.p
+                          className="mt-2 text-sm leading-7 text-af md:text-[0.925rem] text-center opacity-90"
+                          variants={shouldReduceMotion ? undefined : detailLikeContentVariants}
+                          custom={3}
+                        >
+                          {event.description}
+                        </motion.p>
+                      </motion.div>
                     </div>
                   </div>
                 </motion.article>
