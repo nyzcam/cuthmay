@@ -7,6 +7,7 @@ import { patternUrl } from "@/data/patternData";
 
 export const runtime = "edge";
 
+const DEFAULT_GUEST_NAME = "ភ្ញៀវកិត្តិយស";
 const MAX_SLUG_LENGTH = 100;
 const VALID_THEMES = new Set<ThemeName>([
   "red",
@@ -39,7 +40,7 @@ async function getFontData(): Promise<ArrayBuffer> {
       new URL("../../../../app/fonts/lmnr3.ttf", import.meta.url)
     ).then((res) => res.arrayBuffer());
   }
-  return _fontData;
+  return _fontData as ArrayBuffer;
 }
 
 function normalizeGuestName(slug: string) {
