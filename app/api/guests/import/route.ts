@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { Guest } from '@/data/guestList';
-import { writeFile, readFile } from 'fs/promises';
-import { join } from 'path';
+import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const MAX_CSV_SIZE_BYTES = 2 * 1024 * 1024;
 const MAX_CSV_ROWS = 2000;
 const MAX_JSON_GUESTS = 500;
+const GUESTS_TABLE = process.env.SUPABASE_GUESTS_TABLE ?? 'guests';
 
 interface ImportRequest {
   guests: Guest[];
@@ -51,38 +51,30 @@ function ensureSlug(guest: Guest, index: number): string {
   return `guest-${Date.now()}-${index}`;
 }
 
-function escapeTsString(value: string): string {
-  return value
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\r?\n/g, ' ')
-    .trim();
-}
-
 function isAuthenticatedRequest(request: Request): boolean {
   const authHeader = request.headers.get('authorization');
   const cookie = request.headers.get('cookie');
   return Boolean(authHeader || cookie?.includes('auth_token='));
 }
 
-// Helper function to persist guests to guestList.ts
-async function persistGuestsToFile(newGuests: Array<{ slug: string; guest: Guest }>) {
+async function persistGuestsToDatabase(newGuests: Array<{ slug: string; guest: Guest }>) {
   try {
     if (newGuests.length === 0) {
       return { addedCount: 0, skippedCount: 0 };
     }
 
-    const guestListPath = join(process.cwd(), 'data', 'guestList.ts');
+    const supabaseAdmin = getSupabaseAdminClient();
+    const incomingSlugs = [...new Set(newGuests.map(({ slug }) => slug))];
+    const { data: existingGuests, error: existingError } = await supabaseAdmin
+      .from(GUESTS_TABLE)
+      .select('slug')
+      .in('slug', incomingSlugs);
 
-    // Read the existing file
-    let fileContent = await readFile(guestListPath, 'utf-8');
-
-    const existingSlugs = new Set<string>();
-    const slugRegex = /"([^"]+)":\s*\{/g;
-    let match: RegExpExecArray | null = null;
-    while ((match = slugRegex.exec(fileContent)) !== null) {
-      existingSlugs.add(match[1]);
+    if (existingError) {
+      throw new Error(existingError.message);
     }
+
+    const existingSlugs = new Set((existingGuests ?? []).map((guest) => guest.slug as string));
 
     const uniqueNewGuests = new Map<string, Guest>();
     for (const { slug, guest } of newGuests) {
@@ -95,42 +87,30 @@ async function persistGuestsToFile(newGuests: Array<{ slug: string; guest: Guest
       return { addedCount: 0, skippedCount: newGuests.length };
     }
 
-    // Generate new guest entries
-    const newEntries = Array.from(uniqueNewGuests.entries())
-      .map(([slug, guest]) => {
-        const entry = `  "${escapeTsString(slug)}": {
-    khmerName: "${escapeTsString(guest.khmerName)}",${
-      guest.englishName ? `\n    englishName: "${escapeTsString(guest.englishName)}",` : ''
-    }${
-      guest.title ? `\n    title: "${escapeTsString(guest.title)}",` : ''
-    }${
-      guest.relationship ? `\n    relationship: "${escapeTsString(guest.relationship)}",` : ''
+    const rows = Array.from(uniqueNewGuests.entries()).map(([slug, guest]) => ({
+      slug,
+      khmer_name: guest.khmerName,
+      english_name: guest.englishName ?? null,
+      title: guest.title ?? null,
+      relationship: guest.relationship ?? 'guest',
+      status: guest.status ?? 'pending',
+      source: 'admin',
+    }));
+
+    const { error: insertError } = await supabaseAdmin
+      .from(GUESTS_TABLE)
+      .insert(rows);
+
+    if (insertError) {
+      throw new Error(insertError.message);
     }
-  },`;
-        return entry;
-      })
-      .join('\n');
-
-    // Find the position to insert new guests (after the opening of guestList)
-    const insertPosition = fileContent.indexOf('export const guestList: Record<string, Guest> = {') + 
-                          'export const guestList: Record<string, Guest> = {'.length;
-
-    if (insertPosition <= 0) {
-      throw new Error('Failed to locate guestList declaration in data/guestList.ts');
-    }
-    
-    // Insert new guests
-    fileContent = fileContent.slice(0, insertPosition) + '\n\n' + newEntries + fileContent.slice(insertPosition);
-
-    // Write back to file
-    await writeFile(guestListPath, fileContent, 'utf-8');
 
     return {
       addedCount: uniqueNewGuests.size,
       skippedCount: newGuests.length - uniqueNewGuests.size,
     };
   } catch (error) {
-    console.error('Error persisting guests to file:', error);
+    console.error('Error persisting guests to database:', error);
     return { addedCount: 0, skippedCount: newGuests.length };
   }
 }
@@ -172,6 +152,7 @@ function parseGuestsFromCsv(csvText: string) {
         if (key === 'title') guestObj.title = value;
         if (key === 'relationship') guestObj.relationship = value;
         if (key === 'status') guestObj.status = value as Guest['status'];
+        if (key === 'comment') guestObj.comment = value;
       }
 
       const validation = validateGuest(guestObj);
@@ -253,7 +234,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { addedCount, skippedCount } = await persistGuestsToFile(validGuests);
+    const { addedCount, skippedCount } = await persistGuestsToDatabase(validGuests);
 
     const response: ImportResponse = {
       success: errors.length === 0,
@@ -335,7 +316,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { addedCount, skippedCount } = await persistGuestsToFile(guests);
+    const { addedCount, skippedCount } = await persistGuestsToDatabase(guests);
 
     return NextResponse.json({
       success: errors.length === 0,

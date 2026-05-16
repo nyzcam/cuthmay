@@ -1,56 +1,213 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import Link from "next/link";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Home, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { useTheme } from "@/providers/ThemeContext";
+import {
+  Users,
+  UserPlus,
+  UploadCloud,
+  LayoutDashboard,
+  MessageSquareText,
+  TrendingUp,
+  CalendarDays,
+  Star,
+  Clock,
+  Filter,
+} from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion, type Variants } from "framer-motion";
 import { BulkImportForm } from "@/components/BulkImportForm";
 import { SingleGuestForm } from "@/components/SingleGuestForm";
+import AdminShell, { ADMIN_COLORS } from "@/components/admin/AdminShell";
 import { Guest } from "@/data/guestList";
+import { GuestCommentRecord } from "@/types/types";
+import { GuestListTable } from "@/components/admin/GuestListTable";
+import { GuestSearchBar } from "@/components/admin/GuestSearchBar";
+import { PaginationControls } from "@/components/admin/PaginationControls";
+import { CommentsPanel } from "@/components/admin/CommentsPanel";
 
-const MAX_RECENT_GUESTS = 100;
+const MAX_RECENT_GUESTS = 200;
+const GUESTS_PER_PAGE = 10;
+
+type NavSection = "overview" | "guests" | "comments" | "add" | "import";
+type GuestRecord = Guest & { slug: string };
+type CommentStatus = GuestCommentRecord["status"];
+
+const RELATIONSHIP_LABELS: Record<string, string> = {
+  "immediate-family": "គ្រួសារបន្ទាន់",
+  family: "គ្រួសារ",
+  vip: "VIP",
+  friend: "មិត្តភ័ក្ដ",
+  colleague: "មិត្តរួមការងារ",
+  guest: "ភ្ញៀវ",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "រង់ចាំ",
+  sent: "បានផ្ញើ",
+  confirmed: "បានបញ្ជាក់",
+  declined: "បានបដិសេធ",
+};
+
+const COMMENT_STATUS_LABELS: Record<CommentStatus, string> = {
+  new: "ថ្មី",
+  reviewed: "បានមើល",
+  archived: "បានទុក",
+};
+
+function formatTimestamp(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toISOString().slice(0, 16).replace("T", " ");
+}
 
 export default function GuestManagementPage() {
   const router = useRouter();
-  const {
-    currentTheme,
-    currentThemeName,
-    cycleNextTheme,
-    cyclePreviousTheme,
-    themeLoading,
-  } = useTheme();
   const shouldReduceMotion = useReducedMotion();
-  const [activeTab, setActiveTab] = useState<"single" | "bulk">("single");
+  const [activeNav, setActiveNav] = useState<NavSection>("overview");
+  const [dbGuests, setDbGuests] = useState<GuestRecord[]>([]);
+  const [comments, setComments] = useState<GuestCommentRecord[]>([]);
   const [addedGuests, setAddedGuests] = useState<Guest[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLoadingGuests, setIsLoadingGuests] = useState(true);
+  const [isLoadingComments, setIsLoadingComments] = useState(true);
+  const [updatingCommentId, setUpdatingCommentId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterRelationship, setFilterRelationship] = useState("all");
+  const [commentStatusFilter, setCommentStatusFilter] = useState<"all" | CommentStatus>("all");
+  const [guestPage, setGuestPage] = useState(1);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
-  const { primary, dark, light, lightest, medium } = currentTheme.cssVars;
+  const loadGuests = useCallback(async () => {
+    setIsLoadingGuests(true);
+    setLoadError(null);
+    try {
+      const response = await fetch("/api/guests", {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const data = await response.json();
 
-  const ThemeDropdown: React.FC = () => {
-    return (
-      <div className="relative">
-        <button
-          type="button"
-          aria-label="Current theme"
-          disabled={themeLoading}
-          className="flex items-center gap-2 px-3 py-1 rounded-md text-sm text-white/90 bg-transparent hover:bg-white/5 transition"
-        >
-          <span className="truncate max-w-[10rem]">{currentThemeName}</span>
-        </button>
-      </div>
-    );
-  };
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load guests");
+      }
+
+      setDbGuests(Array.isArray(data.guests) ? data.guests : []);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to load guests");
+      setDbGuests([]);
+    } finally {
+      setIsLoadingGuests(false);
+    }
+  }, []);
+
+  const loadComments = useCallback(async () => {
+    setIsLoadingComments(true);
+    try {
+      const response = await fetch("/api/guests/comment", {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load comments");
+      }
+
+      setComments(Array.isArray(data.comments) ? data.comments : []);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to load comments");
+      setComments([]);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadGuests();
+    loadComments();
+  }, [loadGuests, loadComments]);
+
+  useEffect(() => {
+    setGuestPage(1);
+  }, [searchQuery, filterRelationship]);
+
+  // All guests from database + session-added guests
+  const allGuests = useMemo(() => {
+    const dynamicEntries = addedGuests.map((g, i) => ({
+      slug: `new-${i}`,
+      ...g,
+    }));
+    return [...dbGuests, ...dynamicEntries];
+  }, [dbGuests, addedGuests]);
+
+  const filteredGuests = useMemo(() => {
+    return allGuests.filter((g) => {
+      const matchSearch =
+        searchQuery === "" ||
+        g.khmerName.includes(searchQuery) ||
+        (g.englishName ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        g.slug.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchFilter =
+        filterRelationship === "all" || g.relationship === filterRelationship;
+      return matchSearch && matchFilter;
+    });
+  }, [allGuests, searchQuery, filterRelationship]);
+
+  const totalGuestPages = Math.max(1, Math.ceil(filteredGuests.length / GUESTS_PER_PAGE));
+
+  const paginatedGuests = useMemo(() => {
+    const startIndex = (guestPage - 1) * GUESTS_PER_PAGE;
+    return filteredGuests.slice(startIndex, startIndex + GUESTS_PER_PAGE);
+  }, [filteredGuests, guestPage]);
+
+  useEffect(() => {
+    if (guestPage > totalGuestPages) {
+      setGuestPage(totalGuestPages);
+    }
+  }, [guestPage, totalGuestPages]);
+
+  const stats = useMemo(() => {
+    const total = allGuests.length;
+    const vip = allGuests.filter((g) => g.relationship === "vip").length;
+    const family = allGuests.filter(
+      (g) => g.relationship === "family" || g.relationship === "immediate-family"
+    ).length;
+    const session = addedGuests.length;
+    const totalComments = comments.length;
+    const byRelationship = Object.entries(RELATIONSHIP_LABELS).map(([key, label]) => ({
+      key,
+      label,
+      count: allGuests.filter((g) => g.relationship === key).length,
+    }));
+    return { total, vip, family, session, totalComments, byRelationship };
+  }, [allGuests, addedGuests.length, comments.length]);
+
+  const recentComments = useMemo(() => comments.slice(0, 6), [comments]);
+  const filteredComments = useMemo(() => {
+    return comments.filter((comment) => {
+      const matchesStatus = commentStatusFilter === "all" || comment.status === commentStatusFilter;
+      const matchesSearch =
+        searchQuery === "" ||
+        comment.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        comment.guestSlug.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        comment.comment.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [comments, commentStatusFilter, searchQuery]);
 
   const fadeInUp: Variants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 16 },
     visible: (i: number = 0) => ({
       opacity: 1,
       y: 0,
       transition: {
-        delay: i * 0.1,
-        duration: 0.6,
+        delay: shouldReduceMotion ? 0 : i * 0.07,
+        duration: 0.45,
         ease: [0.25, 0.1, 0.25, 1],
       },
     }),
@@ -63,292 +220,447 @@ export default function GuestManagementPage() {
         ? next.slice(next.length - MAX_RECENT_GUESTS)
         : next;
     });
-  }, []);
+    void loadGuests();
+  }, [loadGuests]);
 
-  const handleImportComplete = useCallback((count: number) => {
-    console.log(`Imported ${count} guests`);
-  }, []);
+  const handleImportComplete = useCallback((_count: number) => {
+    void loadGuests();
+  }, [loadGuests]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       router.push("/");
-    } catch (error) {
-      console.error("Logout failed:", error);
+    } catch {
       setIsLoggingOut(false);
     }
   };
 
-  const stats = useMemo(
-    () => [
-      { label: "ភ្ញៀវសរុប", count: addedGuests.length.toString(), icon: "👥" },
-      { label: "បានអះអាង", count: "0", icon: "✓" },
-      { label: "រង់ចាំ", count: addedGuests.length.toString(), icon: "⏳" },
-    ],
-    [addedGuests.length]
-  );
+  const handleCopyLink = useCallback(async (slug: string) => {
+    const url = `${window.location.origin}/invite/${slug}`;
+    await navigator.clipboard.writeText(url);
+    setCopiedSlug(slug);
+    setTimeout(() => setCopiedSlug(null), 2000);
+  }, []);
+
+  const handleCommentStatusUpdate = useCallback(async (id: string, status: CommentStatus) => {
+    setUpdatingCommentId(id);
+    setLoadError(null);
+
+    try {
+      const response = await fetch("/api/guests/comment", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id, status }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update comment");
+      }
+
+      setComments((prev) =>
+        prev.map((comment) =>
+          comment.id === id ? { ...comment, status: data.comment.status } : comment
+        )
+      );
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to update comment");
+    } finally {
+      setUpdatingCommentId(null);
+    }
+  }, []);
+
+  const navItems: { id: NavSection; label: string; icon: React.ReactNode; badge?: number }[] = [
+    { id: "overview", label: "ទិដ្ឋភាពរួម", icon: <LayoutDashboard size={18} /> },
+    { id: "guests", label: "បញ្ជីភ្ញៀវ", icon: <Users size={18} />, badge: stats.total },
+    { id: "comments", label: "មតិយោបល់", icon: <MessageSquareText size={18} />, badge: stats.totalComments },
+    { id: "add", label: "បន្ថែមភ្ញៀវ", icon: <UserPlus size={18} /> },
+    { id: "import", label: "នាំចូលច្រើន", icon: <UploadCloud size={18} /> },
+  ];
+
+  const statCards = [
+    { label: "ភ្ញៀវសរុប", value: stats.total, icon: <Users size={22} />, color: ADMIN_COLORS.accent },
+    { label: "VIP", value: stats.vip, icon: <Star size={22} />, color: "#f59e0b" },
+    { label: "គ្រួសារ", value: stats.family, icon: <CalendarDays size={22} />, color: "#34d399" },
+    { label: "មតិយោបល់", value: stats.totalComments, icon: <MessageSquareText size={22} />, color: "#a78bfa" },
+  ];
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center p-12 font-khmer">
-      {/* Main Content Container */}
-      <div className="relative z-10 w-full max-w-6xl">
-        {/* Header Card */}
-        <motion.div
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.6 }}
-          className="backdrop-blur-md bg-black/20 border border-white/20 rounded-3xl p-8 mb-8"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <motion.h1
-                variants={fadeInUp}
-                custom={0}
-                className="text-2xl text-white/80"
+    <AdminShell
+      activeNav={activeNav}
+      navItems={navItems}
+      onSelectNav={setActiveNav}
+      onLogout={handleLogout}
+      isLoggingOut={isLoggingOut}
+    >
+      <AnimatePresence mode="wait">
+            {/* ─── OVERVIEW ─── */}
+            {activeNav === "overview" && (
+              <motion.div
+                key="overview"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-8"
               >
-                ការគ្រប់គ្រងបញ្ជីភ្ញៀវ
-              </motion.h1>
-              <motion.p
-                variants={fadeInUp}
-                custom={1}
-                className="text-white/60 text-sm mt-2 tracking-widest"
-              >
-                ផ្ទាំងគ្រប់គ្រង
-              </motion.p>
-            </div>
-            <motion.div
-              variants={fadeInUp}
-              custom={2}
-              className="flex items-center gap-4"
-            >
-              <Link
-                href="/invite/seth-kompheakmony"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl text-white/80 hover:text-white transition-all backdrop-blur border border-white/10 hover:border-white/30 hover:bg-white/10"
-              >
-                <Home size={18} />
-                <span className="text-sm">ដើម</span>
-              </Link>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-white/80 bg-white/5 border border-white/5">
-                <button
-                  onClick={() => cyclePreviousTheme()}
-                  disabled={themeLoading}
-                  aria-label="Previous theme"
-                  className="p-1 rounded hover:bg-white/10 disabled:opacity-50"
-                >
-                  <ChevronLeft size={16} />
-                </button>
+                {loadError && (
+                  <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    {loadError}
+                  </div>
+                )}
 
-                <ThemeDropdown />
-
-                <button
-                  onClick={() => cycleNextTheme()}
-                  disabled={themeLoading}
-                  aria-label="Next theme"
-                  className="p-1 rounded hover:bg-white/10 disabled:opacity-50"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-              <button
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur border relative overflow-hidden text-white/80 hover:text-whit group"
-                style={{
-                  background: `linear-gradient(135deg, ${light}40, ${medium}40)`,
-                  borderColor: `${light}60`,
-                }}
-              >
-                <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-                <LogOut size={18} className="relative z-10" />
-                <span className="relative z-10">
-                  {isLoggingOut ? "ចេញ..." : "ចេញ"}
-                </span>
-              </button>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Stats Grid */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={
-            shouldReduceMotion ? { duration: 0 } : { delay: 0.2 }
-          }
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
-        >
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              variants={fadeInUp}
-              custom={i}
-              className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300 group hover:border-white/30"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-af text-sm tracking-widest">
-                    {stat.label}
-                  </p>
-                  <p className="text-4xl font-bold mt-2 text-af">
-                    {stat.count}
-                  </p>
-                </div>
-                <div className="text-3xl opacity-50 group-hover:opacity-100 transition-opacity">
-                  {stat.icon}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left: Tabs and Forms */}
-          <motion.div
-            variants={fadeInUp}
-            custom={3}
-            className="lg:col-span-2 space-y-8"
-          >
-            {/* Tabs Card */}
-            <div className="backdrop-blur-md bg-black/20 border border-white/10 rounded-2xl overflow-hidden">
-              <div className="flex border-b border-white/10" role="tablist" aria-label="Guest management sections">
-                {[
-                  { id: "single", label: "បន្ថែមភ្ញៀវ", icon: "➕" },
-                  { id: "bulk", label: "នាំចូលច្រើន", icon: "📤" },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as "single" | "bulk")}
-                    role="tab"
-                    aria-selected={activeTab === tab.id}
-                    aria-controls={`panel-${tab.id}`}
-                    id={`tab-${tab.id}`}
-                    className={`flex-1 px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2 relative ${
-                      activeTab === tab.id
-                        ? "text-white"
-                        : "text-white hover:text-white/80"
-                    }`}
-                    style={
-                      activeTab === tab.id
-                        ? {
-                            background: `linear-gradient(135deg, ${primary}20, ${light}20)`,
-                          }
-                        : {}
-                    }
-                  >
-                    <span>{tab.icon}</span>
-                    <span>{tab.label}</span>
-                    {activeTab === tab.id && (
-                      <motion.div
-                        layoutId="tabIndicator"
-                        className="absolute bottom-0 left-0 right-0 h-1"
-                        style={{
-                          background: `linear-gradient(90deg, ${light}, ${medium})`,
-                        }}
-                      />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Forms */}
-            <div
-              role="tabpanel"
-              id={`panel-${activeTab}`}
-              aria-labelledby={`tab-${activeTab}`}
-            >
-              {activeTab === "single" && (
-                <SingleGuestForm onGuestAdded={handleGuestAdded} />
-              )}
-              {activeTab === "bulk" && (
-                <BulkImportForm onImportComplete={handleImportComplete} />
-              )}
-            </div>
-          </motion.div>
-
-          {/* Right: Sidebar Cards */}
-          <motion.div variants={fadeInUp} custom={4} className="space-y-6">
-            {/* Quick Guide */}
-            <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all hover:border-white/30">
-              <h3 className="font-bold text-af mb-4 flex items-center gap-2 text-lg">
-                <span className="text-xl">📋</span>
-                <span>មគ្គុទ្ឋ</span>
-              </h3>
-              <div className="space-y-4 text-sm text-af">
-                <div>
-                  <p className="text-af mb-1">បន្ថែមភ្ញៀវម្នាក់</p>
-                  <p className="text-xs">សម្ពូណ៌ចម្លងហើយបន្ថែមភ្ញៀវម្នាក់ៗ</p>
-                </div>
-                <div className="border-t border-white/10 pt-4">
-                  <p className="text-af mb-1">នាំចូលច្រើន</p>
-                  <p className="text-xs">ផ្ទុកឯកសារ CSV ដែលមានភ្ញៀវច្រើន</p>
-                </div>
-              </div>
-            </div>
-
-            {/* CSV Template */}
-            <div
-              className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all hover:border-white/30"
-              style={{
-                borderColor: `${light}40`,
-                background: `linear-gradient(135deg, ${primary}10, ${light}5)`,
-              }}
-            >
-              <h3 className="font-bold text-af mb-4 flex items-center gap-2 text-lg">
-                <span className="text-xl">📥</span>
-                <span>ប្រភេទ CSV</span>
-              </h3>
-              <code className="text-xs bg-black/40 p-3 rounded-xl block overflow-x-auto text-af border border-white/10">
-                {`khmerName,englishName
-ចាន់ ធីដា,Chan Thida`}
-              </code>
-              <p className="text-xs text-af mt-3">
-                ដាក់ឯកសារ CSV ដែលមានឈ្មោះធីដានិងព័ត៌មានលម្អិតរបស់ភ្ញៀវ
-              </p>
-            </div>
-
-            {/* Recently Added */}
-            {addedGuests.length > 0 && (
-              <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all hover:border-white/30">
-                <h3 className="font-bold text-af mb-4 text-lg">
-                  បានបន្ថែមថ្មីៗ ({addedGuests.length})
-                </h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {addedGuests.map((guest, idx) => (
+                {/* Stat Cards */}
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                  {statCards.map((card, i) => (
                     <motion.div
-                      key={`${guest.khmerName}-${guest.englishName ?? "na"}-${idx}`}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-2 p-3 rounded-lg hover:bg-white/10 transition-all border border-transparent hover:border-white/10"
+                      key={card.label}
+                      variants={fadeInUp}
+                      initial="hidden"
+                      animate="visible"
+                      custom={i}
+                      className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-all group"
                     >
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-af truncate">
-                          {guest.khmerName}
-                        </p>
-                        <p className="text-xs text-af truncate">
-                          {guest.englishName}
-                        </p>
+                      <div className="flex items-start justify-between mb-3">
+                        <span
+                          className="p-2 rounded-xl"
+                          style={{ background: `${card.color}20`, color: card.color }}
+                        >
+                          {card.icon}
+                        </span>
+                        <span
+                          className="text-xs px-2 py-1 rounded-lg"
+                          style={{ background: `${card.color}15`, color: `${card.color}cc` }}
+                        >
+                          +0%
+                        </span>
                       </div>
-                      <span
-                        className="text-xs px-2 py-1 rounded-lg whitespace-nowrap text-af"
-                        style={{
-                          background: `${light}30`,
-                          color: light,
-                          border: `1px solid ${light}60`,
-                        }}
-                      >
-                        ✓ បាន
-                      </span>
+                      <p className="text-3xl font-bold text-white mt-1">{card.value}</p>
+                      <p className="text-white/50 text-sm mt-1">{card.label}</p>
                     </motion.div>
                   ))}
                 </div>
-              </div>
+
+                {/* Breakdown + Recent */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Relationship Breakdown */}
+                  <motion.div
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                    custom={4}
+                    className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-6"
+                  >
+                    <h2 className="text-white/80 font-bold mb-4 flex items-center gap-2">
+                      <Filter size={16} />
+                      ប្រភេទភ្ញៀវ
+                    </h2>
+                    <div className="space-y-3">
+                      {stats.byRelationship.filter((r) => r.count > 0).map((rel) => {
+                        const pct = stats.total > 0 ? (rel.count / stats.total) * 100 : 0;
+                        return (
+                          <div key={rel.key}>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-white/60 text-sm">{rel.label}</span>
+                              <span className="text-white/80 text-sm font-mono">{rel.count}</span>
+                            </div>
+                            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ delay: 0.2, duration: 0.6 }}
+                                className="h-full rounded-full"
+                                style={{
+                                  background: `linear-gradient(90deg, ${ADMIN_COLORS.accentSoft}, ${ADMIN_COLORS.accent})`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+
+                  {/* Quick Actions */}
+                  <motion.div
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                    custom={5}
+                    className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-6"
+                  >
+                    <h2 className="text-white/80 font-bold mb-4 flex items-center gap-2">
+                      <TrendingUp size={16} />
+                      សកម្មភាពរហ័ស
+                    </h2>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { label: "បន្ថែមភ្ញៀវ", nav: "add" as NavSection, icon: <UserPlus size={20} />, color: ADMIN_COLORS.accent },
+                        { label: "នាំចូល CSV", nav: "import" as NavSection, icon: <UploadCloud size={20} />, color: "#a78bfa" },
+                        { label: "បញ្ជីភ្ញៀវ", nav: "guests" as NavSection, icon: <Users size={20} />, color: "#34d399" },
+                        { label: "មតិយោបល់", nav: "comments" as NavSection, icon: <MessageSquareText size={20} />, color: "#f59e0b" },
+                      ].map((action) => (
+                        <button
+                          key={action.label}
+                          onClick={() => setActiveNav(action.nav)}
+                          className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all group"
+                        >
+                          <span
+                            className="p-2 rounded-xl transition-transform group-hover:scale-110"
+                            style={{ background: `${action.color}20`, color: action.color }}
+                          >
+                            {action.icon}
+                          </span>
+                          <span className="text-white/60 text-xs text-center">{action.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Recently added in session */}
+                {addedGuests.length > 0 && (
+                  <motion.div
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                    custom={6}
+                    className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-6"
+                  >
+                    <h2 className="text-white/80 font-bold mb-4 flex items-center gap-2">
+                      <Clock size={16} />
+                      បានបន្ថែមថ្ងៃនេះ ({addedGuests.length})
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {addedGuests.slice(-6).map((guest, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10"
+                        >
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                            style={{
+                              background: `linear-gradient(135deg, ${ADMIN_COLORS.accentSoft}66, ${ADMIN_COLORS.accent}55)`,
+                            }}
+                          >
+                            {guest.khmerName.charAt(0)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-white/80 text-sm truncate">{guest.khmerName}</p>
+                            <p className="text-white/40 text-xs truncate">{guest.englishName}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                <motion.div
+                  variants={fadeInUp}
+                  initial="hidden"
+                  animate="visible"
+                  custom={7}
+                  className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-6"
+                >
+                  <h2 className="text-white/80 font-bold mb-4 flex items-center gap-2">
+                    <MessageSquareText size={16} />
+                    មតិយោបល់ថ្មីៗ
+                  </h2>
+                  {isLoadingComments ? (
+                    <p className="text-sm text-white/40">កំពុងទាញយកមតិយោបល់...</p>
+                  ) : recentComments.length === 0 ? (
+                    <p className="text-sm text-white/40">មិនទាន់មានមតិយោបល់</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {recentComments.map((comment) => (
+                        <div
+                          key={comment.id}
+                          className="rounded-xl border border-white/10 bg-white/5 p-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm text-white/80 font-medium">{comment.guestName}</p>
+                              <p className="text-xs text-white/35">/{comment.guestSlug}</p>
+                            </div>
+                            <span className="text-xs text-white/30 whitespace-nowrap">
+                              {formatTimestamp(comment.createdAt)}
+                            </span>
+                          </div>
+                          <div className="mt-3 flex items-center gap-2">
+                            <span
+                              className="text-[11px] px-2 py-1 rounded-lg"
+                              style={{
+                                background: `${ADMIN_COLORS.accent}15`,
+                                color: `${ADMIN_COLORS.accent}cc`,
+                              }}
+                            >
+                              {COMMENT_STATUS_LABELS[comment.status]}
+                            </span>
+                          </div>
+                          <p className="mt-3 text-sm text-white/65 line-clamp-3">{comment.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              </motion.div>
             )}
-          </motion.div>
-        </div>
-      </div>
-    </div>
+
+            {/* ─── GUEST LIST ─── */}
+            {activeNav === "guests" && (
+              <motion.div
+                key="guests"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-4"
+              >
+                {loadError && (
+                  <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    {loadError}
+                  </div>
+                )}
+
+                <div className="space-y-3 overflow-auto">
+                  
+                  <GuestSearchBar
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    filterRelationship={filterRelationship}
+                    onFilterChange={setFilterRelationship}
+                    relationshipLabels={RELATIONSHIP_LABELS}
+                  />
+
+                  {isLoadingGuests && (
+                    <div className="text-sm text-white/40">កំពុងទាញយកទិន្នន័យភ្ញៀវ...</div>
+                  )}
+
+                  {!isLoadingGuests && (
+                    <>
+                      <div className="min-w-0">
+                        <GuestListTable
+                          guests={paginatedGuests}
+                          copiedSlug={copiedSlug}
+                          onCopyLink={handleCopyLink}
+                          relationsShipLabels={RELATIONSHIP_LABELS}
+                          statusLabels={STATUS_LABELS}
+                          pageStartIndex={(guestPage - 1) * GUESTS_PER_PAGE}
+                        />
+                      </div>
+
+                      {filteredGuests.length > 0 && (
+                        <PaginationControls
+                          currentPage={guestPage}
+                          totalPages={totalGuestPages}
+                          onPreviousPage={() => setGuestPage((prev) => Math.max(1, prev - 1))}
+                          onNextPage={() => setGuestPage((prev) => Math.min(totalGuestPages, prev + 1))}
+                          startIndex={(guestPage - 1) * GUESTS_PER_PAGE}
+                          endIndex={(guestPage - 1) * GUESTS_PER_PAGE + paginatedGuests.length}
+                          total={filteredGuests.length}
+                          perPage={GUESTS_PER_PAGE}
+                        />
+                      )}
+
+                      {filteredGuests.length === 0 && (
+                        <div className="py-16 text-center text-white/30">
+                          <Users size={32} className="mx-auto mb-3 opacity-30" />
+                          <p>រកមិនឃើញភ្ញៀវ</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {activeNav === "comments" && (
+              <motion.div
+                key="comments"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                {loadError && (
+                  <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    {loadError}
+                  </div>
+                )}
+
+                <CommentsPanel
+                  comments={comments}
+                  isLoading={isLoadingComments}
+                  statusFilter={commentStatusFilter}
+                  onStatusFilterChange={(status) => setCommentStatusFilter(status as "all" | CommentStatus)}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onStatusUpdate={handleCommentStatusUpdate}
+                  updatingCommentId={updatingCommentId}
+                />
+              </motion.div>
+            )}
+
+            {/* ─── ADD GUEST ─── */}
+            {activeNav === "add" && (
+              <motion.div
+                key="add"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <SingleGuestForm onGuestAdded={handleGuestAdded} />
+              </motion.div>
+            )}
+
+            {/* ─── BULK IMPORT ─── */}
+            {activeNav === "import" && (
+              <motion.div
+                key="import"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                <BulkImportForm onImportComplete={handleImportComplete} />
+
+                {/* CSV Format Reference */}
+                <div
+                  className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-6"
+                  style={{ borderColor: `${ADMIN_COLORS.accent}25` }}
+                >
+                  <h3 className="text-white/70 font-bold mb-3 flex items-center gap-2">
+                    <span>📋</span> ទម្រង់ CSV
+                  </h3>
+                  <code className="text-xs bg-black/40 p-4 rounded-xl block overflow-x-auto text-green-300/80 border border-white/10 leading-relaxed">
+                    {`khmerName,englishName,title,relationship,status\nចាន់ ធីដា,Chan Thida,អ្នកនាង,friend,pending\nហៀង សុផុន,Heang Sophorn,ឯកឧត្តម,vip,pending`}
+                  </code>
+                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {[
+                      { field: "khmerName", note: "ចាំបាច់", color: "#f87171" },
+                      { field: "englishName", note: "ស្រេចចិត្ត", color: "#34d399" },
+                      { field: "title", note: "ស្រេចចិត្ត", color: "#34d399" },
+                      { field: "relationship", note: "ស្រេចចិត្ត", color: "#34d399" },
+                      { field: "status", note: "ស្រេចចិត្ត", color: "#34d399" },
+                    ].map((f) => (
+                      <div key={f.field} className="flex items-center gap-2 text-xs">
+                        <span className="font-mono text-white/60">{f.field}</span>
+                        <span style={{ color: f.color }} className="opacity-70">{f.note}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+      </AnimatePresence>
+    </AdminShell>
   );
 }

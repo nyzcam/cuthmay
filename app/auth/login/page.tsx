@@ -3,13 +3,15 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import { motion, Variants } from 'framer-motion';
 import { useTheme } from '@/providers/ThemeContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { currentTheme } = useTheme();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,21 +42,30 @@ export default function LoginPage() {
     [dark, light, lightest, medium]
   );
 
-  // Google and GitHub logins removed
-
-  const handleDemoLogin = async () => {
+  const handleLogin = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/auth/demo', { method: 'POST' });
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
+      });
+
       if (response.ok) {
         router.push('/admin/guests');
       } else {
-        setError('Demo login failed');
+        const data = await response.json().catch(() => null);
+        setError(data?.error || 'Login failed');
         setIsLoading(false);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Demo login failed');
+      setError(err instanceof Error ? err.message : 'Login failed');
       setIsLoading(false);
     }
   };
@@ -94,9 +105,29 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          {/* OAuth logins removed; use demo login below */}
           <motion.div variants={fadeInUp} custom={2} className="space-y-3">
-            <p className="text-white/70 text-sm text-center">OAuth logins have been disabled.</p>
+            <div className="relative">
+              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+              <input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full rounded-xl border border-white/20 bg-black/20 pl-10 pr-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-white/40"
+              />
+            </div>
+            <div className="relative">
+              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full font-mono rounded-xl border border-white/20 bg-black/20 pl-10 pr-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-white/40"
+              />
+            </div>
           </motion.div>
 
           {/* Divider */}
@@ -111,13 +142,13 @@ export default function LoginPage() {
             </div>
           </motion.div>
 
-          {/* Demo Login */}
+          {/* Login */}
           <motion.div variants={fadeInUp} custom={4} className="space-y-3">
             <p className="text-white/70 text-xs text-center tracking-wider">
-              ការសាកល្បង
+              ចូលប្រើប្រព័ន្ធគ្រប់គ្រង
             </p>
             <button
-              onClick={handleDemoLogin}
+              onClick={handleLogin}
               disabled={isLoading}
               className="w-full relative overflow-hidden rounded-xl px-6 py-3 font-bold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
               style={{
@@ -126,7 +157,7 @@ export default function LoginPage() {
             >
               <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
               <span className="relative z-10">
-                {isLoading ? 'ចូលប្រើប្រាស់...' : 'ដំណើរការជាអ្នកប្រើប្រាស់ឌីមូ'}
+                {isLoading ? 'ចូលប្រើប្រាស់...' : 'ចូលប្រព័ន្ធ'}
               </span>
             </button>
           </motion.div>

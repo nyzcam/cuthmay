@@ -4,6 +4,7 @@ export interface Guest {
   title?: string;
   relationship?: string;
   status?: 'pending' | 'sent' | 'confirmed' | 'declined';
+  comment?: string;
 }
 
 export const guestList: Record<string, Guest> = {

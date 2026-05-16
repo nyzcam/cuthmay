@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { usePathname } from "next/navigation";
 import { ThemeProvider } from "@/providers/ThemeContext";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import PatternBackground from "@/components/PatternBackground";
@@ -13,10 +14,22 @@ export default function ClientLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith("/admin");
+
+  if (isAdminRoute) {
+    return (
+      <AuthProvider>
+        <ThemeProvider>
+          <div className="min-h-screen w-full">{children}</div>
+        </ThemeProvider>
+      </AuthProvider>
+    );
+  }
+
   return (
     <>
       <AuthProvider>
-        {/* <PatternBackground /> */}
         <MusicProvider>
           <ThemeProvider>
             <SplashProvider>

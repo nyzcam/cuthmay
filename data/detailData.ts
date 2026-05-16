@@ -36,11 +36,11 @@ export interface DetailData {
 export const defaultDetailData: DetailData = {
   parents: [
     { father: "លោក ម៉ៅ​ គួន", mother: "លោកស្រី ពូន ហុង" },
-    { father: "លោក ស្រី ចាន់ដេត", mother: "លោកស្រី យ៉ង សោភ័ណ្ឌ" },
+    { father: "លោក ស្រី ចាន់ដេត", mother: "លោកស្រី យ៉ង់ សោភ័ណ្ឌ" },
   ],
   couple: {
     groom: "សែត កុម្ភម្នី",
-    bride: "ដេត វឌ្ឍនា",
+    bride: "ដេត វឌ្ឍណា",
   },
   dateInfo: {
     lunar: "ថ្ងៃអាទិត្យ ១០កើត ខែបុស្ស ឆ្នាំមមី អដ្ឋស័ក ពុទ្ធសករាជ ២៥៧០",

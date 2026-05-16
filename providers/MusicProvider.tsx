@@ -11,88 +11,69 @@ import React, {
 
 interface MusicContextType {
   isPlaying: boolean;
-  currentTrack: string | null;
   togglePlay: () => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
-const MUSIC_FILES = [
-  "/1.m4a",
-  "/2.m4a",
-  "/3.m4a",
-  "/4.m4a",
-  "/5.m4a",
-  "/6.m4a",
-  "/7.m4a",
-];
-
-function getRandomTrack(): string {
-  const index = Math.floor(Math.random() * MUSIC_FILES.length);
-  return MUSIC_FILES[index];
-}
+const BGM_PATH = "/3.m4a";
 
 export function MusicProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState<string | null>(null);
-
-  const togglePlay = (): void => {
-    if (!audioRef.current) return;
-
-    if (audioRef.current.paused) {
-      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
-    } else {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
-  };
 
   useEffect(() => {
-    const selectedSrc = getRandomTrack(); // 🔥 always new track
-
-    const audio = new Audio(selectedSrc);
+    const audio = new Audio(BGM_PATH);
     audio.loop = true;
     audio.volume = 0.3;
-
     audioRef.current = audio;
-    setCurrentTrack(selectedSrc);
 
-    let interactionHandler: (() => void) | null = null;
-
-    const tryAutoplay = async (): Promise<void> => {
+    const playAudio = async () => {
       try {
         await audio.play();
         setIsPlaying(true);
       } catch {
+        // Autoplay blocked, wait for user interaction
         setIsPlaying(false);
-
-        interactionHandler = () => {
-          audio.play().then(() => setIsPlaying(true)).catch(() => {});
-          document.removeEventListener("click", interactionHandler!);
-          document.removeEventListener("keydown", interactionHandler!);
-        };
-
-        document.addEventListener("click", interactionHandler);
-        document.addEventListener("keydown", interactionHandler);
       }
     };
 
-    tryAutoplay();
+    const onUserInteraction = () => {
+      if (audio.paused) {
+        playAudio();
+      }
+    };
+
+    // Attempt initial autoplay
+    playAudio();
+
+    // Attach listeners for interaction fallback; 'once: true' ensures they fire only once per event type
+    document.addEventListener("click", onUserInteraction, { once: true });
+    document.addEventListener("keydown", onUserInteraction, { once: true });
 
     return () => {
-      if (interactionHandler) {
-        document.removeEventListener("click", interactionHandler);
-        document.removeEventListener("keydown", interactionHandler);
-      }
-
       audio.pause();
+      audio.src = ""; // Free memory
       audioRef.current = null;
+      document.removeEventListener("click", onUserInteraction);
+      document.removeEventListener("keydown", onUserInteraction);
     };
   }, []);
 
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (audio.paused) {
+      audio.play().then(() => setIsPlaying(true)).catch(() => {});
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+    }
+  };
+
   return (
-    <MusicContext.Provider value={{ isPlaying, currentTrack, togglePlay }}>
+    <MusicContext.Provider value={{ isPlaying, togglePlay }}>
       {children}
     </MusicContext.Provider>
   );
@@ -105,3 +86,4 @@ export function useMusic(): MusicContextType {
   }
   return context;
 }
+

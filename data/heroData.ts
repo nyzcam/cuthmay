@@ -30,7 +30,7 @@ export const defaultHeroData: HeroData = {
     dayOfWeek: "អាទិត្យ",
     month: "មករា",
     year: "២០២៧",
-    time: "៦ៈ០០ ល្ងាច",
+    time: "៦:០០ ល្ងាច",
   },
   location: "នៅគេហដ្ឋានខាងស្រី",
 };
@@ -48,7 +48,7 @@ export const alternativeHeroData: HeroData = {
     dayOfWeek: "អាទិត្យ",
     month: "មករា",
     year: "២០២៧",
-    time: "៦ៈ០០ ល្ងាច",
+    time: "៦:០០ ល្ងាច",
   },
   location: "នៅគេហដ្ឋានខាងស្រី",
 };
