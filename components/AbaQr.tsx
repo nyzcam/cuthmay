@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { QrCode } from "lucide-react";
+import { MessageCircle, QrCode } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useTheme } from "../providers/ThemeContext";
 import {
@@ -9,6 +9,7 @@ import {
   type AbaQrData,
 } from "../data/abaQrData";
 import Image from "next/image";
+import GuestCommentPopup from "./GuestCommentPopup";
 
 type AbaQrProps = {
   merchant?: string;
@@ -16,6 +17,8 @@ type AbaQrProps = {
   showAnimation?: boolean;
   cornerColor?: string;
   abaQrData?: AbaQrData;
+  guestSlug?: string;
+  guestName?: string;
 };
 
 export default function AbaQr({
@@ -24,9 +27,12 @@ export default function AbaQr({
   showAnimation = true,
   cornerColor,
   abaQrData = defaultAbaQrData,
+  guestSlug,
+  guestName,
 }: AbaQrProps) {
   const { currentTheme } = useTheme();
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [commentOpen, setCommentOpen] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -66,14 +72,14 @@ export default function AbaQr({
       </motion.div>
 
       <motion.div
-        className="flex flex-col lg:flex-row items-center justify-between gap-12 p-8"
+        className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 p-8"
         initial={{ opacity: 0, y: 60, scale: 0.9 }}
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 1.5, ease: "easeOut" }}
       >
         <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="relative group">
+          <div className="relative group mx-6 my-6">
             <a
               href={getAbaPaymentLink()}
               target="_blank"
@@ -153,6 +159,7 @@ export default function AbaQr({
                 {abaQrData.merchant}
               </span>
             </div>
+            
           </div>
         </div>
 
@@ -197,30 +204,57 @@ export default function AbaQr({
               </AnimatePresence>
             </div>
 
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <div className="flex gap-1">
-                {abaQrData.quotes.map((_, index) => (
-                  <motion.button
-                    key={index}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === currentQuoteIndex ? "w-6" : ""
-                    }`}
-                    style={{
-                      background:
-                        index === currentQuoteIndex
-                          ? currentTheme.accent
-                          : `${currentTheme.accent}40`,
-                    }}
-                    onClick={() => setCurrentQuoteIndex(index)}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                  />
-                ))}
-              </div>
-            </div>
+
           </motion.div>
+
+          {guestSlug && guestName && (
+            <motion.button
+              type="button"
+              onClick={() => setCommentOpen(true)}
+              className={`group relative mt-6 cursor-pointer py-3 px-6 rounded-2xl
+                font-khmer text-base tracking-wide shadow-md
+                border transition-all duration-300
+                hover:shadow-xl hover:scale-105 active:scale-95
+                focus:outline-none focus:ring-2 focus:ring-opacity-50`}
+              style={
+                {
+                  borderColor: currentTheme.accent,
+                  boxShadow: `0 0 5px ${currentTheme.accent}50`,
+                  color: currentTheme.accent,
+                  "--tw-ring-color": currentTheme.accent,
+                } as React.CSSProperties
+              }
+            >
+              <span
+                className="absolute inset-0 rounded-2xl p-[2px] blur-md transition-opacity"
+                style={{
+                  background: `linear-gradient(to right, ${currentTheme.accent}20, ${currentTheme.accent}60, ${currentTheme.accent}20)`,
+                  opacity: "0.1",
+                }}
+              />
+              <div className="relative flex items-center justify-center space-x-2">
+                <MessageCircle size={18} style={{ color: currentTheme.accent }} />
+                <span
+                  className="bg-clip-text text-transparent font-medium"
+                  style={{
+                    backgroundImage: `linear-gradient(to right, ${currentTheme.accent}, var(--gold-light), ${currentTheme.accent})`,
+                  }}
+                >
+                  មតិយោបល់
+                </span>
+              </div>
+            </motion.button>
+          )}
         </div>
       </motion.div>
+      {guestSlug && guestName && (
+        <GuestCommentPopup
+          guestSlug={guestSlug}
+          guestName={guestName}
+          open={commentOpen}
+          onClose={() => setCommentOpen(false)}
+        />
+      )}
     </div>
   );
 }

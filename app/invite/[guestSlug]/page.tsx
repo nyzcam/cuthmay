@@ -6,7 +6,6 @@ import EventTimeline from "@/components/EventTimeline";
 import AbaQr from "@/components/AbaQr";
 import Footer from "@/components/Footer";
 import PhotosGallary from "@/components/PhotosGallary";
-import GuestCommentPopup from "@/components/GuestCommentPopup";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cuthmay.vercel.app";
 const DEFAULT_GUEST_NAME = "Guest";
@@ -96,9 +95,8 @@ export default async function GuestPage({ params, searchParams }: Props) {
       <Detail />
       <EventTimeline />
       <PhotosGallary />
-      <AbaQr />
+      <AbaQr guestSlug={guestSlug} guestName={guestName} />
       <Footer />
-      <GuestCommentPopup guestSlug={guestSlug} guestName={guestName} />
     </div>
   );
 }
