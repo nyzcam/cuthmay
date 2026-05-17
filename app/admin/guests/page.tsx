@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Users,
@@ -66,6 +66,7 @@ function formatTimestamp(value: string): string {
 export default function GuestManagementPage() {
   const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
+  const activeContentRef = useRef<HTMLDivElement | null>(null);
   const [activeNav, setActiveNav] = useState<NavSection>("overview");
   const [dbGuests, setDbGuests] = useState<GuestRecord[]>([]);
   const [comments, setComments] = useState<GuestCommentRecord[]>([]);
@@ -135,13 +136,20 @@ export default function GuestManagementPage() {
     setGuestPage(1);
   }, [searchQuery, filterRelationship]);
 
+  useEffect(() => {
+    activeContentRef.current?.scrollTo({
+      top: 0,
+      behavior: shouldReduceMotion ? "auto" : "smooth",
+    });
+  }, [activeNav, shouldReduceMotion]);
+
   // All guests from database + session-added guests
   const allGuests = useMemo(() => {
     const dynamicEntries = addedGuests.map((g, i) => ({
       slug: `new-${i}`,
       ...g,
     }));
-    return [...dbGuests, ...dynamicEntries];
+    return [...dynamicEntries.reverse(), ...dbGuests];
   }, [dbGuests, addedGuests]);
 
   const filteredGuests = useMemo(() => {
@@ -298,6 +306,7 @@ export default function GuestManagementPage() {
       onLogout={handleLogout}
       isLoggingOut={isLoggingOut}
     >
+      <div ref={activeContentRef} className="hide-scrollbar h-full min-h-0 overflow-y-auto pr-1">
       <AnimatePresence mode="wait">
             {/* ─── OVERVIEW ─── */}
             {activeNav === "overview" && (
@@ -548,8 +557,6 @@ export default function GuestManagementPage() {
                           guests={paginatedGuests}
                           copiedSlug={copiedSlug}
                           onCopyLink={handleCopyLink}
-                          relationsShipLabels={RELATIONSHIP_LABELS}
-                          statusLabels={STATUS_LABELS}
                           pageStartIndex={(guestPage - 1) * GUESTS_PER_PAGE}
                         />
                       </div>
@@ -661,6 +668,7 @@ export default function GuestManagementPage() {
               </motion.div>
             )}
       </AnimatePresence>
+      </div>
     </AdminShell>
   );
 }

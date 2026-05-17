@@ -2,12 +2,6 @@
 
 import { motion, Variants } from "framer-motion";
 import React, { useEffect, useState, useMemo } from "react";
-import { useParams } from "next/navigation";
-import {
-  guestList,
-  getGuestDisplayName,
-  findGuestBySlug,
-} from "../data/guestList";
 import {
   defaultHeroData,
   formatEventDate,
@@ -33,23 +27,8 @@ export default function Hero({
   const currentTheme = themeOverride
     ? getTheme(themeOverride as ThemeName)
     : contextTheme;
-  const params = useParams();
-
-  const guestSlug = params?.guestSlug as string | null;
-  const [dynamicGuestName, setDynamicGuestName] = useState("លោក សែត កុម្ភម្នី");
+  const resolvedGuestName = guestName || "ភ្ញៀវកិត្តិយស";
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (guestSlug) {
-      const guest = findGuestBySlug(guestSlug);
-      if (guest) {
-        setDynamicGuestName(getGuestDisplayName(guest));
-      } else {
-        const decodedName = decodeURIComponent(guestSlug).replace(/-/g, " ");
-        setDynamicGuestName(decodedName);
-      }
-    }
-  }, [guestSlug]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -259,7 +238,7 @@ export default function Hero({
               }}
               delay={0.3}
             >
-              {dynamicGuestName}
+              {resolvedGuestName}
             </ShimmerMotion>
           </div>
         </motion.div>

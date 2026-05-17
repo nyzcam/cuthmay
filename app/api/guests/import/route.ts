@@ -7,6 +7,12 @@ const MAX_CSV_ROWS = 2000;
 const MAX_JSON_GUESTS = 500;
 const GUESTS_TABLE = process.env.SUPABASE_GUESTS_TABLE ?? 'guests';
 
+interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
 interface ImportRequest {
   guests: Guest[];
   type: 'bulk' | 'single';
@@ -57,7 +63,57 @@ function isAuthenticatedRequest(request: Request): boolean {
   return Boolean(authHeader || cookie?.includes('auth_token='));
 }
 
-async function persistGuestsToDatabase(newGuests: Array<{ slug: string; guest: Guest }>) {
+function readCookie(cookieHeader: string | null, cookieName: string): string {
+  if (!cookieHeader) {
+    return '';
+  }
+
+  const token = cookieHeader
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${cookieName}=`));
+
+  if (!token) {
+    return '';
+  }
+
+  return decodeURIComponent(token.slice(cookieName.length + 1));
+}
+
+async function getAuthenticatedAdmin(request: Request): Promise<AdminUser | null> {
+  const cookieHeader = request.headers.get('cookie');
+  const authToken = readCookie(cookieHeader, 'auth_token');
+
+  if (!authToken) {
+    return null;
+  }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  const userResult = await supabaseAdmin.auth.getUser(authToken);
+
+  if (userResult.error || !userResult.data.user) {
+    return null;
+  }
+
+  const metadata = userResult.data.user.user_metadata ?? {};
+  const email = userResult.data.user.email ?? '';
+  const name =
+    (typeof metadata.name === 'string' && metadata.name) ||
+    (typeof metadata.full_name === 'string' && metadata.full_name) ||
+    email ||
+    'Admin';
+
+  return {
+    id: userResult.data.user.id,
+    email,
+    name,
+  };
+}
+
+async function persistGuestsToDatabase(
+  newGuests: Array<{ slug: string; guest: Guest }>,
+  adminUser: AdminUser
+) {
   try {
     if (newGuests.length === 0) {
       return { addedCount: 0, skippedCount: 0 };
@@ -95,6 +151,9 @@ async function persistGuestsToDatabase(newGuests: Array<{ slug: string; guest: G
       relationship: guest.relationship ?? 'guest',
       status: guest.status ?? 'pending',
       source: 'admin',
+      created_by_user_id: adminUser.id,
+      created_by_email: adminUser.email || null,
+      created_by_name: adminUser.name || null,
     }));
 
     const { error: insertError } = await supabaseAdmin
@@ -187,6 +246,15 @@ export async function POST(request: Request) {
       );
     }
 
+    const adminUser = await getAuthenticatedAdmin(request);
+
+    if (!adminUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized: invalid session' },
+        { status: 401 }
+      );
+    }
+
     const body: ImportRequest = await request.json();
 
     if (!body.guests || !Array.isArray(body.guests)) {
@@ -234,7 +302,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { addedCount, skippedCount } = await persistGuestsToDatabase(validGuests);
+    const { addedCount, skippedCount } = await persistGuestsToDatabase(validGuests, adminUser);
 
     const response: ImportResponse = {
       success: errors.length === 0,
@@ -272,6 +340,15 @@ export async function PUT(request: Request) {
     if (!isAuthenticatedRequest(request)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const adminUser = await getAuthenticatedAdmin(request);
+
+    if (!adminUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized: invalid session' },
         { status: 401 }
       );
     }
@@ -316,7 +393,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { addedCount, skippedCount } = await persistGuestsToDatabase(guests);
+    const { addedCount, skippedCount } = await persistGuestsToDatabase(guests, adminUser);
 
     return NextResponse.json({
       success: errors.length === 0,

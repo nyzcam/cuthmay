@@ -8,8 +8,10 @@ export async function GET() {
     const supabaseAdmin = getSupabaseAdminClient();
     const { data, error } = await supabaseAdmin
       .from(GUESTS_TABLE)
-      .select("slug, khmer_name, english_name, title, relationship, status")
-      .order("created_at", { ascending: true });
+      .select(
+        "slug, khmer_name, english_name, title, relationship, status, created_by_user_id, created_by_email, created_by_name"
+      )
+      .order("created_at", { ascending: false });
 
     if (error) {
       throw new Error(error.message);
@@ -23,6 +25,9 @@ export async function GET() {
         title: guest.title ?? undefined,
         relationship: guest.relationship ?? undefined,
         status: guest.status ?? undefined,
+        createdByUserId: guest.created_by_user_id ?? undefined,
+        createdByEmail: guest.created_by_email ?? undefined,
+        createdByName: guest.created_by_name ?? undefined,
       })),
     }, {
       headers: {

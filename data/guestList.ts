@@ -5,6 +5,9 @@ export interface Guest {
   relationship?: string;
   status?: 'pending' | 'sent' | 'confirmed' | 'declined';
   comment?: string;
+  createdByUserId?: string;
+  createdByEmail?: string;
+  createdByName?: string;
 }
 
 export const guestList: Record<string, Guest> = {

@@ -8,8 +8,6 @@ interface GuestListTableProps {
   guests: (Guest & { slug: string })[];
   copiedSlug: string | null;
   onCopyLink: (slug: string) => void;
-  relationsShipLabels: Record<string, string>;
-  statusLabels: Record<string, string>;
   pageStartIndex: number;
 }
 
@@ -38,7 +36,7 @@ export function GuestListTable({
   return (
     <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl">
       <div className="overflow-x-auto rounded-2xl">
-        <table className="w-full min-w-[720px] table-fixed text-sm">
+        <table className="w-full min-w-[860px] table-fixed text-sm">
           <thead className="bg-black/10">
             <tr className="border-b border-white/10 text-white/40 text-xs uppercase tracking-wider">
               <th className="w-16 px-5 py-3 text-left">#</th>
@@ -46,6 +44,7 @@ export function GuestListTable({
               <th className="w-48 px-5 py-3 text-left hidden sm:table-cell">English</th>
               <th className="w-36 px-5 py-3 text-left hidden md:table-cell">ប្រភេទ</th>
               <th className="w-28 px-5 py-3 text-left hidden lg:table-cell">ស្ថានភាព</th>
+              <th className="w-36 px-5 py-3 text-left hidden xl:table-cell">បង្កើតដោយ</th>
               <th className="w-28 px-5 py-3 text-right">ប្រតិបត្តិការ</th>
             </tr>
           </thead>
@@ -95,6 +94,16 @@ export function GuestListTable({
                   <span className="text-xs text-white/30">
                     {STATUS_LABELS[guest.status ?? "pending"] ?? "រង់ចាំ"}
                   </span>
+                </td>
+                <td className="px-5 py-3 text-white/50 hidden xl:table-cell">
+                  <div className="min-w-0">
+                    <p className="truncate text-xs text-white/70">
+                      {guest.createdByName ?? guest.createdByEmail ?? "ប្រព័ន្ធ"}
+                    </p>
+                    {guest.createdByEmail && guest.createdByName && (
+                      <p className="truncate text-[11px] text-white/35">{guest.createdByEmail}</p>
+                    )}
+                  </div>
                 </td>
                 <td className="px-5 py-3">
                   <div className="flex items-center justify-end gap-2">
