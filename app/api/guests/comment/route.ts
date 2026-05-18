@@ -7,7 +7,7 @@ const MAX_COMMENT_LENGTH = 130;
 const COMMENTS_TABLE = process.env.SUPABASE_GUEST_COMMENTS_TABLE ?? "guest_comments";
 const GUESTS_TABLE = process.env.SUPABASE_GUESTS_TABLE ?? "guests";
 const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX_REQUESTS = 3;
+const RATE_LIMIT_MAX_REQUESTS = 1;
 const ALLOWED_COMMENT_STATUSES = new Set<GuestCommentRecord["status"]>([
   "new",
   "reviewed",
@@ -228,7 +228,6 @@ export async function GET(request: Request) {
 
     if (isPublic) {
       query = query
-        .eq("status", "reviewed")
         .eq("source", "invite")
         .limit(limit);
     }
