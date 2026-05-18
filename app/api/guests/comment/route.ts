@@ -3,21 +3,49 @@ import type { GuestCommentInput, GuestCommentRecord } from "@/types/types";
 import { getAuthenticatedRequestUser } from "@/lib/auth/session";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
-const MAX_COMMENT_LENGTH = 1200;
+const MAX_COMMENT_LENGTH = 130;
 const COMMENTS_TABLE = process.env.SUPABASE_GUEST_COMMENTS_TABLE ?? "guest_comments";
 const GUESTS_TABLE = process.env.SUPABASE_GUESTS_TABLE ?? "guests";
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 3;
 const ALLOWED_COMMENT_STATUSES = new Set<GuestCommentRecord["status"]>([
   "new",
   "reviewed",
   "archived",
 ]);
+const commentSubmissionBucket = new Map<string, number[]>();
+
+function getClientIp(request: Request) {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0]?.trim() ?? "unknown";
+  }
+  return request.headers.get("x-real-ip")?.trim() ?? "unknown";
+}
+
+function isRateLimited(key: string, nowMs: number) {
+  const existing = commentSubmissionBucket.get(key) ?? [];
+  const recent = existing.filter((ts) => nowMs - ts < RATE_LIMIT_WINDOW_MS);
+
+  if (recent.length >= RATE_LIMIT_MAX_REQUESTS) {
+    commentSubmissionBucket.set(key, recent);
+    return true;
+  }
+
+  recent.push(nowMs);
+  commentSubmissionBucket.set(key, recent);
+  return false;
+}
+
+function normalizeComment(raw: string) {
+  return raw
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+    .trim();
+}
 
 function validateInput(body: Partial<GuestCommentInput>) {
   if (!body.guestSlug || typeof body.guestSlug !== "string") {
     return "Missing guest slug";
-  }
-  if (!body.guestName || typeof body.guestName !== "string") {
-    return "Missing guest name";
   }
   if (!body.pagePath || typeof body.pagePath !== "string") {
     return "Missing page path";
@@ -26,11 +54,11 @@ function validateInput(body: Partial<GuestCommentInput>) {
     return "Comment is required";
   }
 
-  const trimmed = body.comment.trim();
-  if (!trimmed) {
+  const normalized = normalizeComment(body.comment);
+  if (!normalized) {
     return "Comment cannot be empty";
   }
-  if (trimmed.length > MAX_COMMENT_LENGTH) {
+  if (normalized.length > MAX_COMMENT_LENGTH) {
     return `Comment too long (max ${MAX_COMMENT_LENGTH} characters)`;
   }
 
@@ -39,6 +67,14 @@ function validateInput(body: Partial<GuestCommentInput>) {
 
 export async function POST(request: Request) {
   try {
+    const contentType = request.headers.get("content-type") ?? "";
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json(
+        { success: false, error: "Invalid content type" },
+        { status: 400 }
+      );
+    }
+
     const body = (await request.json()) as Partial<GuestCommentInput>;
     const validationError = validateInput(body);
 
@@ -49,12 +85,40 @@ export async function POST(request: Request) {
     const guestSlug = body.guestSlug!.trim();
     const expectedPath = `/invite/${guestSlug}`;
     const pagePath = body.pagePath!.trim();
+    const normalizedComment = normalizeComment(body.comment!);
     const referer = request.headers.get("referer");
+    const origin = request.headers.get("origin");
+    const host = request.headers.get("host");
+    const clientIp = getClientIp(request);
     const supabaseAdmin = getSupabaseAdminClient();
+
+    if (isRateLimited(clientIp, Date.now())) {
+      return NextResponse.json(
+        { success: false, error: "Too many requests. Please try again shortly." },
+        { status: 429 }
+      );
+    }
+
+    if (origin && host) {
+      try {
+        const originHost = new URL(origin).host;
+        if (originHost !== host) {
+          return NextResponse.json(
+            { success: false, error: "Invalid request origin" },
+            { status: 400 }
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { success: false, error: "Invalid origin header" },
+          { status: 400 }
+        );
+      }
+    }
 
     const { data: knownGuest, error: guestLookupError } = await supabaseAdmin
       .from(GUESTS_TABLE)
-      .select("slug")
+      .select("slug, khmer_name, english_name")
       .eq("slug", guestSlug)
       .maybeSingle();
 
@@ -93,11 +157,13 @@ export async function POST(request: Request) {
       }
     }
 
+    const normalizedGuestName = knownGuest.khmer_name?.trim() || knownGuest.english_name?.trim() || guestSlug;
+
     const record: Omit<GuestCommentRecord, "id" | "createdAt"> = {
       guestSlug,
-      guestName: body.guestName!.trim(),
+      guestName: normalizedGuestName,
       pagePath,
-      comment: body.comment!.trim(),
+      comment: normalizedComment,
       source: "invite",
       status: "new",
     };
@@ -140,16 +206,34 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const user = await getAuthenticatedRequestUser(request);
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const url = new URL(request.url);
+    const isPublic = url.searchParams.get("public") === "1";
+    const limitParam = Number(url.searchParams.get("limit") ?? "8");
+    const limit = Number.isFinite(limitParam)
+      ? Math.max(1, Math.min(20, Math.trunc(limitParam)))
+      : 8;
+
+    if (!isPublic) {
+      const user = await getAuthenticatedRequestUser(request);
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
 
     const supabaseAdmin = getSupabaseAdminClient();
-    const { data, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from(COMMENTS_TABLE)
       .select("id, guest_slug, guest_name, page_path, comment, source, status, created_at")
       .order("created_at", { ascending: false });
+
+    if (isPublic) {
+      query = query
+        .eq("status", "reviewed")
+        .eq("source", "invite")
+        .limit(limit);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw new Error(error.message);
@@ -170,7 +254,7 @@ export async function GET(request: Request) {
       { comments },
       {
         headers: {
-          "Cache-Control": "no-store",
+          "Cache-Control": isPublic ? "public, max-age=30, s-maxage=30" : "no-store",
         },
       }
     );

@@ -13,7 +13,7 @@ interface GuestCommentPopupProps {
   onClose: () => void;
 }
 
-const MAX_COMMENT_LENGTH = 1200;
+const MAX_COMMENT_LENGTH = 130;
 
 export default function GuestCommentPopup({
   guestSlug,
@@ -92,7 +92,7 @@ export default function GuestCommentPopup({
 
           {/* Modal */}
           <motion.div
-            className="fixed z-50 left-1/2 top-1/2 w-[92%] max-w-lg -translate-x-1/2 -translate-y-1/2"
+            className="fixed z-50 left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-lg max-h-[calc(100dvh-1rem)] -translate-x-1/2 -translate-y-1/2 sm:w-[92%] sm:max-h-[calc(100dvh-2rem)]"
             initial={{ opacity: 0, y: 30, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
@@ -105,7 +105,7 @@ export default function GuestCommentPopup({
             />
 
             <div
-              className="relative rounded-3xl border bg-slate-950/96 p-6 shadow-2xl backdrop-blur-xl"
+              className="relative max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-3xl border bg-slate-950/96 p-4 shadow-2xl backdrop-blur-xl overscroll-contain sm:max-h-[calc(100dvh-2rem)] sm:p-6"
               style={{ borderColor: `${currentTheme.accent}33` }}
             >
               {/* Top accent line */}
@@ -115,10 +115,10 @@ export default function GuestCommentPopup({
               />
 
               {/* Header */}
-              <div className="flex items-start justify-between gap-3 mb-5">
+              <div className="mb-4 flex items-start justify-between gap-3 sm:mb-5">
                 <div className="flex items-center gap-3">
                   <div
-                    className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl sm:h-9 sm:w-9"
                     style={{ background: `${currentTheme.accent}18`, border: `1px solid ${currentTheme.accent}40` }}
                   >
                     <MessageCircle size={16} style={{ color: currentTheme.accent }} />
@@ -138,7 +138,7 @@ export default function GuestCommentPopup({
               </div>
 
               {/* Divider */}
-              <div className="h-px mb-5" style={{ background: `${currentTheme.accent}22` }} />
+              <div className="mb-4 h-px sm:mb-5" style={{ background: `${currentTheme.accent}22` }} />
 
               {/* Textarea */}
               <textarea
@@ -146,9 +146,9 @@ export default function GuestCommentPopup({
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 maxLength={MAX_COMMENT_LENGTH}
-                rows={5}
+                rows={4}
                 placeholder="សូមសរសេរមតិយោបល់ ឬសារជូនពរ..."
-                className="w-full rounded-2xl border bg-white/5 p-4 text-sm text-white placeholder:text-white/30 focus:outline-none transition-colors duration-200 font-khmer leading-7 resize-none"
+                className="w-full resize-none rounded-2xl border bg-white/5 p-3.5 text-[13px] leading-6 text-white placeholder:text-white/30 transition-colors duration-200 focus:outline-none font-khmer sm:p-4 sm:text-sm sm:leading-7"
                 style={{ borderColor: `${currentTheme.accent}33` }}
                 onFocus={(e) => (e.currentTarget.style.borderColor = `${currentTheme.accent}99`)}
                 onBlur={(e) => (e.currentTarget.style.borderColor = `${currentTheme.accent}33`)}
@@ -198,7 +198,7 @@ export default function GuestCommentPopup({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200 font-khmer"
+                  className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/60 transition-all duration-200 hover:bg-white/10 hover:text-white font-khmer"
                 >
                   បិទ
                 </button>
@@ -206,7 +206,7 @@ export default function GuestCommentPopup({
                   type="button"
                   onClick={submitComment}
                   disabled={submitting || charCount === 0}
-                  className="inline-flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white disabled:opacity-50 transition-all duration-200 hover:brightness-110 active:scale-95 font-khmer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white transition-all duration-200 hover:brightness-110 active:scale-95 disabled:opacity-50 font-khmer"
                   style={{ background: `linear-gradient(135deg, ${currentTheme.accent}DD, ${currentTheme.accent})` }}
                 >
                   <Send size={13} />

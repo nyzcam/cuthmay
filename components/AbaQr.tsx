@@ -21,6 +21,13 @@ type AbaQrProps = {
   guestName?: string;
 };
 
+type DisplayQuote = {
+  text: string;
+  author?: string;
+};
+
+const COMMENT_REFRESH_INTERVAL_MS = 30000;
+
 export default function AbaQr({
   merchant = defaultAbaQrData.merchant,
   size = 200,
@@ -32,14 +39,76 @@ export default function AbaQr({
 }: AbaQrProps) {
   const { currentTheme } = useTheme();
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [displayQuotes, setDisplayQuotes] = useState<DisplayQuote[]>(() =>
+    abaQrData.quotes.map((quote) => ({ text: quote }))
+  );
   const [commentOpen, setCommentOpen] = useState(false);
 
   useEffect(() => {
+    setDisplayQuotes(abaQrData.quotes.map((quote) => ({ text: quote })));
+  }, [abaQrData.quotes]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadNewestComments = async () => {
+      const controller = new AbortController();
+      try {
+        const response = await fetch("/api/guests/comment?public=1&limit=8", {
+          signal: controller.signal,
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const result = (await response.json()) as {
+          comments?: Array<{ comment?: string; guestName?: string }>;
+        };
+
+        const newestComments = (result.comments ?? [])
+          .map((item) => ({
+            text: (item.comment ?? "").trim(),
+            author: (item.guestName ?? "").trim(),
+          }))
+          .filter((item) => item.text.length > 0);
+
+        if (isMounted && newestComments.length > 0) {
+          setDisplayQuotes(newestComments);
+          setCurrentQuoteIndex(0);
+        }
+      } catch {
+        // Keep fallback static quotes if request fails.
+      } finally {
+        controller.abort();
+      }
+    };
+
+    void loadNewestComments();
+    const refreshTimer = window.setInterval(() => {
+      void loadNewestComments();
+    }, COMMENT_REFRESH_INTERVAL_MS);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(refreshTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (displayQuotes.length <= 1) {
+      return;
+    }
+
     const interval = setInterval(() => {
-      setCurrentQuoteIndex((prev) => (prev + 1) % abaQrData.quotes.length);
+      setCurrentQuoteIndex((prev) => (prev + 1) % displayQuotes.length);
     }, 8000);
     return () => clearInterval(interval);
-  }, [abaQrData.quotes.length]);
+  }, [displayQuotes.length]);
 
   // Use inline styles instead of dynamic Tailwind classes for borders
   const activeCornerColor = cornerColor || currentTheme.accent;
@@ -48,6 +117,7 @@ export default function AbaQr({
   const cornerBorderStyle = {
     borderColor: activeCornerColor,
   };
+  const activeQuote = displayQuotes[currentQuoteIndex];
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -171,11 +241,13 @@ export default function AbaQr({
             viewport={{ once: true }}
             transition={{ duration: 1.5, delay: 0.3, ease: "easeOut" }}
           >
-            <div
+            <motion.div
+              layout
               className="relative backdrop-blur-sm border rounded-2xl p-6 hover:bg-white/5 transition-all duration-500"
               style={{
                 borderColor: `${currentTheme.accent}33`,
               }}
+              transition={{ layout: { duration: 0.35, ease: "easeInOut" } }}
             >
               <div
                 className="absolute -top-2 left-4 text-4xl font-serif"
@@ -190,19 +262,27 @@ export default function AbaQr({
                 "
               </div>
 
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={currentQuoteIndex}
-                  className="font-khmer text-af italic text-sm md:text-base leading-7 md:leading-8 relative z-10 pt-3 pb-3"
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  layout
+                  key={`${currentQuoteIndex}-${activeQuote?.text ?? ""}`}
+                  className="relative z-10"
                   initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: -20, filter: "blur(4px)" }}
                   transition={{ duration: 0.6, ease: "easeInOut" }}
                 >
-                  {abaQrData.quotes[currentQuoteIndex]}
-                </motion.p>
+                  <p className="font-khmer text-af italic text-sm md:text-base leading-7 md:leading-8 pt-3 pb-3">
+                    {activeQuote?.text ?? ""}
+                  </p>
+                  {activeQuote?.author && (
+                    <p className="mt-1 text-xs md:text-sm font-khmer text-af italic">
+                      " {activeQuote.author} "
+                    </p>
+                  )}
+                </motion.div>
               </AnimatePresence>
-            </div>
+            </motion.div>
 
 
           </motion.div>
