@@ -4,11 +4,13 @@ import { findGuestBySlug, getGuestDisplayName } from "@/data/guestList";
 import { toLimon } from "@/lips/khmerLimon";
 import { getTheme, DEFAULT_THEME, type ThemeName } from "@/config/themeConfig";
 import { patternUrl } from "@/data/patternData";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "edge";
 
 const DEFAULT_GUEST_NAME = "ភ្ញៀវកិត្តិយស";
 const MAX_SLUG_LENGTH = 100;
+const GUESTS_TABLE = process.env.SUPABASE_GUESTS_TABLE ?? "guests";
 const VALID_THEMES = new Set<ThemeName>([
   "red",
   "green",
@@ -43,7 +45,33 @@ async function getFontData(): Promise<ArrayBuffer> {
   return _fontData as ArrayBuffer;
 }
 
-function normalizeGuestName(slug: string) {
+async function getGuestNameFromDatabase(guestSlug: string): Promise<string | null> {
+  try {
+    const supabaseAdmin = getSupabaseAdminClient();
+    const { data, error } = await supabaseAdmin
+      .from(GUESTS_TABLE)
+      .select("khmer_name, title")
+      .eq("slug", guestSlug)
+      .maybeSingle();
+
+    if (error || !data?.khmer_name) {
+      return null;
+    }
+
+    if (data.title) {
+      return `${data.title} ${data.khmer_name}`;
+    }
+
+    return data.khmer_name;
+  } catch {
+    return null;
+  }
+}
+
+async function normalizeGuestName(slug: string): Promise<string> {
+  const dbGuestName = await getGuestNameFromDatabase(slug);
+  if (dbGuestName) return dbGuestName;
+
   const guest = findGuestBySlug(slug);
   if (guest) return getGuestDisplayName(guest);
 
@@ -53,6 +81,11 @@ function normalizeGuestName(slug: string) {
     console.error(`Failed to decode guest slug: ${slug}`);
     return DEFAULT_GUEST_NAME;
   }
+}
+
+function toLimonGuestNameIfKhmer(text: string): string {
+  // Convert only Khmer-script names to avoid corrupting ASCII fallback slugs.
+  return /[\u1780-\u17FF]/.test(text) ? toLimon(text) : text;
 }
 
 function generateOrbGradient(
@@ -92,9 +125,9 @@ export async function GET(
     return new Response("Invalid theme", { status: 500 });
   }
 
-  const guestNameUnicode = normalizeGuestName(guestSlug);
+  const guestNameUnicode = await normalizeGuestName(guestSlug);
 
-  const guestName = toLimon(guestNameUnicode);
+  const guestName = toLimonGuestNameIfKhmer(guestNameUnicode);
   const titleTop = toLimon("សិរីសួស្ដីអាពាហ៍ពិពាហ៍");
   const titleMain = toLimon("សូមគោរពអញ្ជើញ");
   const date = toLimon("ថ្ងៃ អាទិត្យ ទី ១៧ ខែ មករា ឆ្នាំ ២០២៧");
@@ -189,7 +222,7 @@ export async function GET(
           {/* Top Title */}
           <div
             style={{
-              fontSize: 64,
+              fontSize: 68,
               lineHeight: 1.1,
               marginBottom: 8,
               opacity: 0.9,
@@ -203,7 +236,7 @@ export async function GET(
           {/* Sub Title */}
           <div
             style={{
-              fontSize: 48,
+              fontSize: 52,
               marginBottom: 32,
               opacity: 0.85,
             }}
@@ -214,7 +247,7 @@ export async function GET(
           {/* Guest Name */}
           <div
             style={{
-              fontSize: 110,
+              fontSize: 118,
               fontWeight: 700,
               lineHeight: 1.1,
               marginBottom: 36,
@@ -243,7 +276,7 @@ export async function GET(
           {/* Date */}
           <div
             style={{
-              fontSize: 38,
+              fontSize: 42,
               letterSpacing: 1,
               opacity: 0.9,
               textShadow: `0 2px 4px rgba(0,0,0,0.3)`,
