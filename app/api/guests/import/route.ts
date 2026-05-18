@@ -1,17 +1,12 @@
 import { NextResponse } from 'next/server';
 import { Guest } from '@/data/guestList';
+import { getAuthenticatedRequestUser, type AuthenticatedUser } from '@/lib/auth/session';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const MAX_CSV_SIZE_BYTES = 2 * 1024 * 1024;
 const MAX_CSV_ROWS = 2000;
 const MAX_JSON_GUESTS = 500;
 const GUESTS_TABLE = process.env.SUPABASE_GUESTS_TABLE ?? 'guests';
-
-interface AdminUser {
-  id: string;
-  email: string;
-  name: string;
-}
 
 interface ImportRequest {
   guests: Guest[];
@@ -57,62 +52,9 @@ function ensureSlug(guest: Guest, index: number): string {
   return `guest-${Date.now()}-${index}`;
 }
 
-function isAuthenticatedRequest(request: Request): boolean {
-  const authHeader = request.headers.get('authorization');
-  const cookie = request.headers.get('cookie');
-  return Boolean(authHeader || cookie?.includes('auth_token='));
-}
-
-function readCookie(cookieHeader: string | null, cookieName: string): string {
-  if (!cookieHeader) {
-    return '';
-  }
-
-  const token = cookieHeader
-    .split(';')
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(`${cookieName}=`));
-
-  if (!token) {
-    return '';
-  }
-
-  return decodeURIComponent(token.slice(cookieName.length + 1));
-}
-
-async function getAuthenticatedAdmin(request: Request): Promise<AdminUser | null> {
-  const cookieHeader = request.headers.get('cookie');
-  const authToken = readCookie(cookieHeader, 'auth_token');
-
-  if (!authToken) {
-    return null;
-  }
-
-  const supabaseAdmin = getSupabaseAdminClient();
-  const userResult = await supabaseAdmin.auth.getUser(authToken);
-
-  if (userResult.error || !userResult.data.user) {
-    return null;
-  }
-
-  const metadata = userResult.data.user.user_metadata ?? {};
-  const email = userResult.data.user.email ?? '';
-  const name =
-    (typeof metadata.name === 'string' && metadata.name) ||
-    (typeof metadata.full_name === 'string' && metadata.full_name) ||
-    email ||
-    'Admin';
-
-  return {
-    id: userResult.data.user.id,
-    email,
-    name,
-  };
-}
-
 async function persistGuestsToDatabase(
   newGuests: Array<{ slug: string; guest: Guest }>,
-  adminUser: AdminUser
+  adminUser: AuthenticatedUser
 ) {
   try {
     if (newGuests.length === 0) {
@@ -239,14 +181,7 @@ function parseGuestsFromCsv(csvText: string) {
 
 export async function POST(request: Request) {
   try {
-    if (!isAuthenticatedRequest(request)) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Please log in first' },
-        { status: 401 }
-      );
-    }
-
-    const adminUser = await getAuthenticatedAdmin(request);
+    const adminUser = await getAuthenticatedRequestUser(request);
 
     if (!adminUser) {
       return NextResponse.json(
@@ -337,14 +272,7 @@ export async function POST(request: Request) {
 // Handle CSV file upload
 export async function PUT(request: Request) {
   try {
-    if (!isAuthenticatedRequest(request)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const adminUser = await getAuthenticatedAdmin(request);
+    const adminUser = await getAuthenticatedRequestUser(request);
 
     if (!adminUser) {
       return NextResponse.json(

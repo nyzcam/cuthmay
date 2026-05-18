@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { GuestCommentInput, GuestCommentRecord } from "@/types/types";
+import { getAuthenticatedRequestUser } from "@/lib/auth/session";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const MAX_COMMENT_LENGTH = 1200;
@@ -10,12 +11,6 @@ const ALLOWED_COMMENT_STATUSES = new Set<GuestCommentRecord["status"]>([
   "reviewed",
   "archived",
 ]);
-
-function isAuthenticatedRequest(request: Request): boolean {
-  const authHeader = request.headers.get("authorization");
-  const cookie = request.headers.get("cookie");
-  return Boolean(authHeader || cookie?.includes("auth_token="));
-}
 
 function validateInput(body: Partial<GuestCommentInput>) {
   if (!body.guestSlug || typeof body.guestSlug !== "string") {
@@ -145,7 +140,8 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    if (!isAuthenticatedRequest(request)) {
+    const user = await getAuthenticatedRequestUser(request);
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -190,7 +186,8 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    if (!isAuthenticatedRequest(request)) {
+    const user = await getAuthenticatedRequestUser(request);
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

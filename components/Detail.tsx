@@ -211,7 +211,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
         whileInView="visible"
       >
         <motion.div
-          className="flex flex-row justify-center items-start gap-8 md:gap-12 text-af text-lg md:text-xl"
+          className="flex flex-row justify-center items-start gap-4 md:gap-12 text-af text-lg md:text-xl"
           variants={fadeUp}
           custom={1}
         >
@@ -253,24 +253,24 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
         </motion.p>
 
         <motion.div
-          className="flex flex-row justify-between items-center gap-4 md:gap-8 text-af max-w-2xl mx-auto px-4"
+          className="flex flex-row justify-between items-center gap-4 md:gap-8 text-af max-w-2xl mx-auto"
           variants={fadeUp}
           custom={5}
         >
           <div className="text-center space-y-3 flex-1">
             <p className="text-sm md:text-lg">កូនប្រុសនាម</p>
-            <h4 className="text-base md:text-2xl font-medium">
+            <p className="text-base md:text-2xl font-medium">
               {couple.groom}
-            </h4>
+            </p>
           </div>
-          <div className="text-center flex items-center justify-center px-4 md:px-8">
+          <div className="text-center flex items-center justify-center px-2 md:px-8">
             <p className="text-sm md:text-lg whitespace-nowrap">ជាគូនិង</p>
           </div>
           <div className="text-center space-y-3 flex-1">
             <p className="text-sm md:text-lg">កូនស្រីនាម</p>
-            <h4 className="text-base md:text-2xl font-medium">
+            <p className="text-base md:text-2xl font-medium">
               {couple.bride}
-            </h4>
+            </p>
           </div>
         </motion.div>
 

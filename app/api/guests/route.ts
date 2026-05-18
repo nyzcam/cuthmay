@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
+import { getAuthenticatedRequestUser } from "@/lib/auth/session";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const GUESTS_TABLE = process.env.SUPABASE_GUESTS_TABLE ?? "guests";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const user = await getAuthenticatedRequestUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const supabaseAdmin = getSupabaseAdminClient();
     const { data, error } = await supabaseAdmin
       .from(GUESTS_TABLE)
