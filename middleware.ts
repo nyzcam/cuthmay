@@ -11,6 +11,10 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
+
+    if (user.role !== 'admin' && user.role !== 'super_admin') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
   }
 
   return NextResponse.next();

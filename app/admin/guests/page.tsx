@@ -75,6 +75,8 @@ export default function GuestManagementPage() {
   const [isLoadingGuests, setIsLoadingGuests] = useState(true);
   const [isLoadingComments, setIsLoadingComments] = useState(true);
   const [updatingCommentId, setUpdatingCommentId] = useState<string | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+  const [deletingGuestSlug, setDeletingGuestSlug] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRelationship, setFilterRelationship] = useState("all");
@@ -280,6 +282,72 @@ export default function GuestManagementPage() {
       setLoadError(error instanceof Error ? error.message : "Failed to update comment");
     } finally {
       setUpdatingCommentId(null);
+    }
+  }, []);
+
+  const handleCommentDelete = useCallback(async (id: string) => {
+    const confirmed = window.confirm("តើអ្នកប្រាកដថាចង់លុបមតិយោបល់នេះមែនទេ?");
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingCommentId(id);
+    setLoadError(null);
+
+    try {
+      const response = await fetch(`/api/guests/comment?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete comment");
+      }
+
+      setComments((prev) => prev.filter((comment) => comment.id !== id));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to delete comment");
+    } finally {
+      setDeletingCommentId(null);
+    }
+  }, []);
+
+  const handleGuestDelete = useCallback(async (slug: string) => {
+    const confirmed = window.confirm("តើអ្នកប្រាកដថាចង់លុបភ្ញៀវនេះមែនទេ?");
+    if (!confirmed) {
+      return;
+    }
+
+    const localGuestMatch = /^new-(\d+)$/.exec(slug);
+    if (localGuestMatch) {
+      const localIndex = Number(localGuestMatch[1]);
+      if (Number.isInteger(localIndex) && localIndex >= 0) {
+        setAddedGuests((prev) => prev.filter((_, index) => index !== localIndex));
+      }
+      return;
+    }
+
+    setDeletingGuestSlug(slug);
+    setLoadError(null);
+
+    try {
+      const response = await fetch(`/api/guests?slug=${encodeURIComponent(slug)}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete guest");
+      }
+
+      setDbGuests((prev) => prev.filter((guest) => guest.slug !== slug));
+      setComments((prev) => prev.filter((comment) => comment.guestSlug !== slug));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to delete guest");
+    } finally {
+      setDeletingGuestSlug(null);
     }
   }, []);
 
@@ -557,6 +625,8 @@ export default function GuestManagementPage() {
                           guests={paginatedGuests}
                           copiedSlug={copiedSlug}
                           onCopyLink={handleCopyLink}
+                          onRemoveGuest={handleGuestDelete}
+                          deletingGuestSlug={deletingGuestSlug}
                           pageStartIndex={(guestPage - 1) * GUESTS_PER_PAGE}
                         />
                       </div>
@@ -609,7 +679,9 @@ export default function GuestManagementPage() {
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
                   onStatusUpdate={handleCommentStatusUpdate}
+                  onDeleteComment={handleCommentDelete}
                   updatingCommentId={updatingCommentId}
+                  deletingCommentId={deletingCommentId}
                 />
               </motion.div>
             )}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ExternalLink, MessageSquareText, BadgeCheck, Archive } from "lucide-react";
+import { ExternalLink, MessageSquareText, BadgeCheck, Archive, Trash2 } from "lucide-react";
 import { GuestCommentRecord } from "@/types/types";
 import { ADMIN_COLORS } from "@/components/admin/AdminShell";
 
@@ -12,7 +12,9 @@ interface CommentsPanelProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onStatusUpdate: (id: string, status: GuestCommentRecord["status"]) => void;
+  onDeleteComment: (id: string) => void;
   updatingCommentId: string | null;
+  deletingCommentId: string | null;
 }
 
 const COMMENT_STATUS_LABELS: Record<string, string> = {
@@ -37,7 +39,9 @@ export function CommentsPanel({
   searchQuery,
   onSearchChange,
   onStatusUpdate,
+  onDeleteComment,
   updatingCommentId,
+  deletingCommentId,
 }: CommentsPanelProps) {
   const filteredComments = comments.filter((comment) => {
     const matchesStatus = statusFilter === "all" || comment.status === statusFilter;
@@ -154,6 +158,15 @@ export function CommentsPanel({
                     ដាក់ជាថ្មី
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => onDeleteComment(comment.id)}
+                  disabled={deletingCommentId === comment.id}
+                  className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-red-200 border border-red-300/30 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-40"
+                >
+                  <Trash2 size={14} />
+                  លុប
+                </button>
               </div>
             </motion.div>
           ))}

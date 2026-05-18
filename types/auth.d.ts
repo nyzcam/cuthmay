@@ -6,10 +6,13 @@ export interface JwtPayload {
   exp?: number;
 }
 
+export type AuthRole = 'super_admin' | 'admin' | 'guest';
+
 export interface AuthUser {
   id: string;
   email: string;
   name: string;
+  role: AuthRole;
 }
 
 export interface ValidationResult {

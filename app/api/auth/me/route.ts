@@ -5,22 +5,42 @@ import { getSupabaseAuthClient } from '@/lib/supabase/auth';
 
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
+function normalizeRole(value: unknown): 'super_admin' | 'admin' | 'guest' {
+  if (typeof value !== 'string') {
+    return 'guest';
+  }
+
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, '_');
+  if (normalized === 'super_admin' || normalized === 'superadmin') {
+    return 'super_admin';
+  }
+  if (normalized === 'admin') {
+    return 'admin';
+  }
+
+  return 'guest';
+}
+
 function buildUser(user: {
   id: string;
   email?: string;
   user_metadata?: Record<string, unknown>;
+  app_metadata?: Record<string, unknown>;
 }) {
   const metadata = user.user_metadata ?? {};
+  const appMetadata = user.app_metadata ?? {};
   const name =
     (typeof metadata.name === 'string' && metadata.name) ||
     (typeof metadata.full_name === 'string' && metadata.full_name) ||
     user.email ||
     'User';
+  const role = normalizeRole(metadata.role ?? appMetadata.role);
 
   return {
     id: user.id,
     email: user.email ?? '',
     name,
+    role,
     provider: 'supabase',
     authenticated: true,
     verified: true,

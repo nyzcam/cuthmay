@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Copy, CheckCheck, ExternalLink } from "lucide-react";
+import { Copy, CheckCheck, ExternalLink, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Guest } from "@/data/guestList";
 import { ADMIN_COLORS } from "@/components/admin/AdminShell";
@@ -8,6 +8,8 @@ interface GuestListTableProps {
   guests: (Guest & { slug: string })[];
   copiedSlug: string | null;
   onCopyLink: (slug: string) => void;
+  onRemoveGuest: (slug: string) => void;
+  deletingGuestSlug: string | null;
   pageStartIndex: number;
 }
 
@@ -31,6 +33,8 @@ export function GuestListTable({
   guests,
   copiedSlug,
   onCopyLink,
+  onRemoveGuest,
+  deletingGuestSlug,
   pageStartIndex,
 }: GuestListTableProps) {
   return (
@@ -125,6 +129,15 @@ export function GuestListTable({
                       ) : (
                         <Copy size={14} />
                       )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onRemoveGuest(guest.slug)}
+                      disabled={deletingGuestSlug === guest.slug}
+                      className="p-1.5 rounded-lg text-red-300/70 hover:text-red-200 hover:bg-red-500/20 transition-all disabled:opacity-40"
+                      title="លុបភ្ញៀវ"
+                    >
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </td>

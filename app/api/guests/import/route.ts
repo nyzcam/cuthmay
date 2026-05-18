@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { Guest } from '@/data/guestList';
-import { getAuthenticatedRequestUser, type AuthenticatedUser } from '@/lib/auth/session';
+import {
+  canAccessGuestManagement,
+  getAuthenticatedRequestUser,
+  type AuthenticatedUser,
+} from '@/lib/auth/session';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const MAX_CSV_SIZE_BYTES = 2 * 1024 * 1024;
@@ -189,6 +193,12 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+    if (!canAccessGuestManagement(adminUser)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
 
     const body: ImportRequest = await request.json();
 
@@ -278,6 +288,12 @@ export async function PUT(request: Request) {
       return NextResponse.json(
         { error: 'Unauthorized: invalid session' },
         { status: 401 }
+      );
+    }
+    if (!canAccessGuestManagement(adminUser)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
       );
     }
 

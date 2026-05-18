@@ -6,6 +6,22 @@ interface LoginBody {
   password?: string;
 }
 
+function normalizeRole(value: unknown): 'super_admin' | 'admin' | 'guest' {
+  if (typeof value !== 'string') {
+    return 'guest';
+  }
+
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, '_');
+  if (normalized === 'super_admin' || normalized === 'superadmin') {
+    return 'super_admin';
+  }
+  if (normalized === 'admin') {
+    return 'admin';
+  }
+
+  return 'guest';
+}
+
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
 export async function POST(request: Request) {
@@ -44,6 +60,7 @@ export async function POST(request: Request) {
           data.user.user_metadata?.full_name ??
           data.user.email ??
           "User",
+        role: normalizeRole(data.user.user_metadata?.role ?? data.user.app_metadata?.role),
       },
     });
 

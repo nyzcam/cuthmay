@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import type { GuestCommentInput, GuestCommentRecord } from "@/types/types";
-import { getAuthenticatedRequestUser } from "@/lib/auth/session";
+import {
+  canAccessGuestManagement,
+  getAuthenticatedRequestUser,
+  isSuperAdmin,
+} from "@/lib/auth/session";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const MAX_COMMENT_LENGTH = 130;
@@ -213,23 +217,37 @@ export async function GET(request: Request) {
       ? Math.max(1, Math.min(20, Math.trunc(limitParam)))
       : 8;
 
+    let user = null;
     if (!isPublic) {
-      const user = await getAuthenticatedRequestUser(request);
+      user = await getAuthenticatedRequestUser(request);
       if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      if (!canAccessGuestManagement(user)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }
 
     const supabaseAdmin = getSupabaseAdminClient();
+    
+    let queryField = "id, guest_slug, guest_name, page_path, comment, source, status, created_at";
+    // We need to fetch inner relation to filter by owner
+    if (!isPublic && user && !isSuperAdmin(user)) {
+      queryField += `, guests!inner(created_by_user_id)`;
+    }
+
     let query = supabaseAdmin
       .from(COMMENTS_TABLE)
-      .select("id, guest_slug, guest_name, page_path, comment, source, status, created_at")
+      .select(queryField)
       .order("created_at", { ascending: false });
 
     if (isPublic) {
       query = query
         .eq("source", "invite")
         .limit(limit);
+    } else if (user && !isSuperAdmin(user)) {
+      // Filter by the guest's creator
+      query = query.eq("guests.created_by_user_id", user.id);
     }
 
     const { data, error } = await query;
@@ -238,7 +256,7 @@ export async function GET(request: Request) {
       throw new Error(error.message);
     }
 
-    const comments: GuestCommentRecord[] = (data ?? []).map((row) => ({
+    const comments: GuestCommentRecord[] = (data as any[] ?? []).map((row) => ({
       id: String(row.id),
       guestSlug: row.guest_slug,
       guestName: row.guest_name,
@@ -273,6 +291,9 @@ export async function PATCH(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (!canAccessGuestManagement(user)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const body = (await request.json()) as Partial<Pick<GuestCommentRecord, "id" | "status">>;
     const id = body.id?.trim();
@@ -287,6 +308,25 @@ export async function PATCH(request: Request) {
     }
 
     const supabaseAdmin = getSupabaseAdminClient();
+    
+    // Non-super-admins can only modify statuses for their own guests' comments
+    if (!isSuperAdmin(user)) {
+      const { data: commentData, error: commentError } = await supabaseAdmin
+        .from(COMMENTS_TABLE)
+        .select("guests!inner(created_by_user_id)")
+        .eq("id", Number(id))
+        .single();
+        
+      if (commentError) {
+        return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+      }
+      
+      const guestOwnerId = (commentData as any)?.guests?.created_by_user_id;
+      if (guestOwnerId !== user.id) {
+        return NextResponse.json({ error: "Forbidden: You do not own the associated guest" }, { status: 403 });
+      }
+    }
+
     const { data, error } = await supabaseAdmin
       .from(COMMENTS_TABLE)
       .update({ status })
@@ -315,6 +355,68 @@ export async function PATCH(request: Request) {
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Failed to update comment",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const user = await getAuthenticatedRequestUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!canAccessGuestManagement(user)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const url = new URL(request.url);
+    const id = url.searchParams.get("id")?.trim();
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing comment id" }, { status: 400 });
+    }
+
+    const numericId = Number(id);
+    if (!Number.isInteger(numericId) || numericId <= 0) {
+      return NextResponse.json({ error: "Invalid comment id" }, { status: 400 });
+    }
+
+    const supabaseAdmin = getSupabaseAdminClient();
+    
+    // Non-super-admins can only delete comments for their own guests
+    if (!isSuperAdmin(user)) {
+      const { data: commentData, error: commentError } = await supabaseAdmin
+        .from(COMMENTS_TABLE)
+        .select("guests!inner(created_by_user_id)")
+        .eq("id", numericId)
+        .single();
+        
+      if (commentError) {
+        return NextResponse.json({ error: "Comment not found" }, { status: 404 });
+      }
+      
+      const guestOwnerId = (commentData as any)?.guests?.created_by_user_id;
+      if (guestOwnerId !== user.id) {
+        return NextResponse.json({ error: "Forbidden: You do not own the associated guest" }, { status: 403 });
+      }
+    }
+
+    const { error } = await supabaseAdmin
+      .from(COMMENTS_TABLE)
+      .delete()
+      .eq("id", numericId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Failed to delete comment",
       },
       { status: 500 }
     );
