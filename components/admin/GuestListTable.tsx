@@ -100,7 +100,7 @@ export function GuestListTable({
                   </span>
                 </td>
                 <td className="px-5 py-3 text-white/50 hidden xl:table-cell">
-                  <div className="min-w-0">
+                  <div className="min-w-0 font-mono">
                     <p className="truncate text-xs text-white/70">
                       {guest.createdByName ?? guest.createdByEmail ?? "ប្រព័ន្ធ"}
                     </p>

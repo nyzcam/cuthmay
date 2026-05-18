@@ -58,7 +58,6 @@ export function CommentsPanel({
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-white/85 text-xl font-semibold">មតិយោបល់ភ្ញៀវ</h2>
           <p className="text-sm text-white/40">អានមតិយោបល់ដែលភ្ញៀវបានផ្ញើតាមតំណអញ្ជើញ</p>
         </div>
         <div className="text-sm text-white/35">សរុប {filteredComments.length} / {comments.length} មតិយោបល់</div>

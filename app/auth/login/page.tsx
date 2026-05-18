@@ -76,7 +76,6 @@ export default function LoginPage() {
     >
 
       <div className="w-full max-w-md relative z-10">
-        {/* Main Card */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -84,24 +83,22 @@ export default function LoginPage() {
           custom={0}
           className="backdrop-blur-md bg-black/10 border border-white/20 rounded-3xl p-8 space-y-6"
         >
-          {/* Header */}
           <motion.div variants={fadeInUp} custom={1} className="text-center space-y-3">
             <h1 className="text-4xl font-bold" style={shimmerStyle}>
-              ពិធីរៀបរាប់ាប់
+              ចុតហ្មាយ
             </h1>
             <p className="text-white/80 text-sm tracking-widest">
               ការគ្រប់គ្រងបញ្ជីភ្ញៀវ
             </p>
           </motion.div>
 
-          {/* Error Message */}
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="bg-red-500/20 border border-red-400/50 rounded-xl p-3"
             >
-              <p className="text-red-200 text-sm">{error}</p>
+              <p className="text-red-200 text-sm font-mono">{error}</p>
             </motion.div>
           )}
 
@@ -130,7 +127,6 @@ export default function LoginPage() {
             </div>
           </motion.div>
 
-          {/* Divider */}
           <motion.div variants={fadeInUp} custom={3} className="relative">
             <div className="absolute inset-0 flex items-center">
               <div style={{ borderTopColor: `${primary}40`, borderWidth: '1px' }} className="w-full" />
@@ -142,7 +138,6 @@ export default function LoginPage() {
             </div>
           </motion.div>
 
-          {/* Login */}
           <motion.div variants={fadeInUp} custom={4} className="space-y-3">
             <p className="text-white/70 text-xs text-center tracking-wider">
               ចូលប្រើប្រព័ន្ធគ្រប់គ្រង
@@ -162,7 +157,6 @@ export default function LoginPage() {
             </button>
           </motion.div>
 
-          {/* Footer */}
           <motion.div variants={fadeInUp} custom={5} className="text-center text-xs text-white/60 space-y-2 border-t border-white/10 pt-4">
             <p>ដោយការចូលប្រើប្រាស់ លោកអ្នកយល់ព្រម ក្នុងការគ្រប់គ្រងបញ្ជីភ្ញៀវ</p>
             <Link
@@ -173,33 +167,6 @@ export default function LoginPage() {
               ← ត្រលប់ទៅដើម
             </Link>
           </motion.div>
-        </motion.div>
-
-        {/* Features Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="mt-6 backdrop-blur-md bg-white/10 border border-white/20 rounded-3xl p-6 space-y-4"
-        >
-          <h3 className="font-bold text-white text-sm tracking-widest">
-            វិសេษលក្ខណៈ
-          </h3>
-          <ul className="space-y-2 text-sm">
-            {[
-              'បន្ថែមភ្ញៀវម្នាក់ៗ',
-              'នាំចូលជាច្រើននាក់ដោយ CSV',
-              'គ្រប់គ្រងព័ត៌មានលម្អិត',
-              'តាមដានម្តងទៀតនិងការឆ្លើយតប',
-            ].map((feature, i) => (
-              <li key={i} className="flex items-start gap-3 text-white/80">
-                <span style={{ color: light }} className="text-lg">
-                  ✓
-                </span>
-                <span>{feature}</span>
-              </li>
-            ))}
-          </ul>
         </motion.div>
       </div>
     </div>

@@ -188,7 +188,7 @@ const LayoutWrapper: FC<LayoutWrapperProps> = ({ children }) => {
   }, [currentTheme.accent]);
 
   return (
-    <div className="relative flex h-dvh w-full items-center justify-center overflow-hidden px-2">
+    <div className="relative flex h-screen h-dvh w-full items-center justify-center overflow-hidden px-2">
       <GlobalStyles />
       <div
         className="absolute inset-0 z-0"
@@ -201,7 +201,7 @@ const LayoutWrapper: FC<LayoutWrapperProps> = ({ children }) => {
 
       <LiquidGlassFrame
         accent={currentTheme.accent}
-        className="h-[95dvh] sm:h-dvh w-full max-w-3xl"
+        className="h-[95vh] h-[95dvh] sm:h-screen sm:h-dvh w-full max-w-3xl"
       >
         <motion.div
           className="relative h-full w-full overflow-hidden"
@@ -212,7 +212,7 @@ const LayoutWrapper: FC<LayoutWrapperProps> = ({ children }) => {
         >
           <div
             ref={scrollRef}
-            className="h-full w-full overflow-y-auto scrollbar-hide px-4 py-2 sm:px-8"
+            className="h-full w-full overflow-y-auto overscroll-y-contain scrollbar-hide px-4 py-2 sm:px-8 [-webkit-overflow-scrolling:touch]"
           >
             {children}
 
