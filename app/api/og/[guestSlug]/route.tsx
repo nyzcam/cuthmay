@@ -34,15 +34,10 @@ const VALID_THEMES = new Set<ThemeName>([
   "synthwave",
 ]);
 
-let _fontData: ArrayBuffer | null = null;
-
 async function getFontData(): Promise<ArrayBuffer> {
-  if (!_fontData) {
-    _fontData = await fetch(
-      new URL("../../../../app/fonts/lmnr3.ttf", import.meta.url)
-    ).then((res) => res.arrayBuffer());
-  }
-  return _fontData as ArrayBuffer;
+  return fetch(
+    new URL("../../../../app/fonts/lmnr3.ttf", import.meta.url)
+  ).then((res) => res.arrayBuffer());
 }
 
 async function getGuestNameFromDatabase(guestSlug: string): Promise<string | null> {
@@ -69,11 +64,11 @@ async function getGuestNameFromDatabase(guestSlug: string): Promise<string | nul
 }
 
 async function normalizeGuestName(slug: string): Promise<string> {
-  const dbGuestName = await getGuestNameFromDatabase(slug);
-  if (dbGuestName) return dbGuestName;
-
   const guest = findGuestBySlug(slug);
   if (guest) return getGuestDisplayName(guest);
+
+  const dbGuestName = await getGuestNameFromDatabase(slug);
+  if (dbGuestName) return dbGuestName;
 
   try {
     return decodeURIComponent(slug).replace(/-/g, " ");
@@ -84,7 +79,6 @@ async function normalizeGuestName(slug: string): Promise<string> {
 }
 
 function toLimonGuestNameIfKhmer(text: string): string {
-  // Convert only Khmer-script names to avoid corrupting ASCII fallback slugs.
   return /[\u1780-\u17FF]/.test(text) ? toLimon(text) : text;
 }
 
@@ -101,6 +95,15 @@ function generateOrbGradient(
   return `radial-gradient(circle at 30% 30%, rgba(${r}, ${g}, ${b}, ${startOpacity}) 0%, rgba(${r}, ${g}, ${b}, ${endOpacity}) 70%)`;
 }
 
+function hexToRgb(color: string) {
+  const hex = color.replace("#", "");
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+
+  return { r, g, b };
+}
+
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ guestSlug: string }> }
@@ -108,12 +111,10 @@ export async function GET(
   const { guestSlug } = await context.params;
   const { searchParams } = new URL(req.url);
 
-  // Validate input
   if (!guestSlug || guestSlug.length > MAX_SLUG_LENGTH) {
     return new Response("Invalid guest slug", { status: 400 });
   }
 
-  // Validate and get theme
   const themeParam = searchParams.get("theme");
   const themeName: ThemeName = themeParam && VALID_THEMES.has(themeParam as ThemeName)
     ? (themeParam as ThemeName)
@@ -139,8 +140,7 @@ export async function GET(
     console.error("Font loading failed:", error);
     return new Response("Failed to generate image", { status: 500 });
   }
-
-  const borderGradient = `linear-gradient(to bottom, transparent, ${theme.accent}, transparent)`;
+  const accentRgb = hexToRgb(theme.accent);
 
   return new ImageResponse(
     (
@@ -156,7 +156,6 @@ export async function GET(
           overflow: "hidden",
         }}
       >
-        {/* Pattern Background */}
         <div
           style={{
             position: "absolute",
@@ -172,7 +171,6 @@ export async function GET(
           }}
         />
 
-        {/* Decorative Orbs */}
         <div
           style={{
             position: "absolute",
@@ -183,9 +181,7 @@ export async function GET(
             background: generateOrbGradient(theme.accent, 0.4, 0),
           }}
         />
-      
 
-        {/* Main Card */}
         <div
           style={{
             position: "relative",
@@ -193,9 +189,8 @@ export async function GET(
             width: 1080,
             height: 510,
             borderRadius: 32,
-            backgroundColor: "rgba(10, 10, 10, 0.25)",
-            border: `1px solid ${theme.accent}40`,
-            boxShadow: `0 32px 64px -16px rgba(0,0,0,0.4)`,
+            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.16), inset 0 0 28px rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.08)`,
+            opacity: 0.95,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -206,23 +201,32 @@ export async function GET(
             padding: 48,
           }}
         >
-          {/* Inner Decorative Border */}
           <div
             style={{
               position: "absolute",
-              top: 24,
-              bottom: 24,
-              left: 24,
-              right: 24,
-              borderRadius: 16,
-              opacity: 0.8,
+              inset: 0,
+              borderRadius: 32,
+              background: "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 22%, rgba(255,255,255,0) 45%)",
+            }}
+          />
+          
+          <div
+            style={{
+              position: "absolute",
+              right: -40,
+              top: 54,
+              width: 180,
+              height: 360,
+              borderRadius: 999,
+              background: `linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.1) 35%, rgba(255,255,255,0) 100%)`,
+              opacity: 0.9,
+              transform: "rotate(10deg)",
             }}
           />
 
-          {/* Top Title */}
           <div
             style={{
-              fontSize: 68,
+              fontSize: 75,
               lineHeight: 1.1,
               marginBottom: 8,
               opacity: 0.9,
@@ -233,10 +237,9 @@ export async function GET(
             {titleTop}
           </div>
 
-          {/* Sub Title */}
           <div
             style={{
-              fontSize: 52,
+              fontSize: 57,
               marginBottom: 32,
               opacity: 0.85,
             }}
@@ -244,7 +247,6 @@ export async function GET(
             {titleMain}
           </div>
 
-          {/* Guest Name */}
           <div
             style={{
               fontSize: 118,
@@ -259,7 +261,6 @@ export async function GET(
             {guestName}
           </div>
 
-          {/* Divider */}
           <div
             style={{
               display: "flex",
@@ -268,15 +269,18 @@ export async function GET(
               marginBottom: 24,
             }}
           >
-            <div style={{ width: 80, height: 2, background: borderGradient }} />
-            <div style={{ width: 12, height: 12, borderRadius: 6, background: theme.accent, margin: "0 16px" }} />
-            <div style={{ width: 80, height: 2, background: borderGradient }} />
+            <div 
+              style={{ 
+                width: 250, 
+                height: 2, 
+                background: `linear-gradient(to right, transparent, ${theme.accent}, transparent)` 
+              }} 
+            />
           </div>
 
-          {/* Date */}
           <div
             style={{
-              fontSize: 42,
+              fontSize: 52,
               letterSpacing: 1,
               opacity: 0.9,
               textShadow: `0 2px 4px rgba(0,0,0,0.3)`,

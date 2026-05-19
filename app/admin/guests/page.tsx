@@ -18,17 +18,21 @@ import { motion, AnimatePresence, useReducedMotion, type Variants } from "framer
 import { BulkImportForm } from "@/components/BulkImportForm";
 import { SingleGuestForm } from "@/components/SingleGuestForm";
 import AdminShell, { ADMIN_COLORS } from "@/components/admin/AdminShell";
+import { SettingsPanel } from "@/components/admin/SettingsPanel";
 import { Guest } from "@/data/guestList";
 import { GuestCommentRecord } from "@/types/types";
 import { GuestListTable } from "@/components/admin/GuestListTable";
 import { GuestSearchBar } from "@/components/admin/GuestSearchBar";
 import { PaginationControls } from "@/components/admin/PaginationControls";
 import { CommentsPanel } from "@/components/admin/CommentsPanel";
+import { AdminUsersPanel, type AdminUserRow } from "@/components/admin/AdminUsersPanel";
+import { useAuthMe } from "@/hooks/useAuthMe";
+import { useTheme } from "@/providers/ThemeContext";
 
 const MAX_RECENT_GUESTS = 200;
 const GUESTS_PER_PAGE = 10;
 
-type NavSection = "overview" | "guests" | "comments" | "add" | "import";
+type NavSection = "overview" | "guests" | "comments" | "add" | "import" | "settings" | "adminUsers";
 type GuestRecord = Guest & { slug: string };
 type CommentStatus = GuestCommentRecord["status"];
 
@@ -65,16 +69,22 @@ function formatTimestamp(value: string): string {
 
 export default function GuestManagementPage() {
   const router = useRouter();
+  const { user } = useAuthMe();
+  const isSuperAdmin = user?.role === "super_admin";
+  const { currentTheme, currentThemeName, getAllAvailableThemes, setTheme, resetTheme } = useTheme();
   const shouldReduceMotion = useReducedMotion();
   const activeContentRef = useRef<HTMLDivElement | null>(null);
   const [activeNav, setActiveNav] = useState<NavSection>("overview");
   const [dbGuests, setDbGuests] = useState<GuestRecord[]>([]);
   const [comments, setComments] = useState<GuestCommentRecord[]>([]);
+  const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
   const [addedGuests, setAddedGuests] = useState<Guest[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLoadingGuests, setIsLoadingGuests] = useState(true);
   const [isLoadingComments, setIsLoadingComments] = useState(true);
+  const [isLoadingAdminUsers, setIsLoadingAdminUsers] = useState(false);
   const [updatingCommentId, setUpdatingCommentId] = useState<string | null>(null);
+  const [savingAdminUserId, setSavingAdminUserId] = useState<string | null>(null);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [deletingGuestSlug, setDeletingGuestSlug] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -107,6 +117,35 @@ export default function GuestManagementPage() {
     }
   }, []);
 
+  const loadAdminUsers = useCallback(async () => {
+    if (user?.role !== "super_admin") {
+      setAdminUsers([]);
+      return;
+    }
+
+    setIsLoadingAdminUsers(true);
+    setLoadError(null);
+
+    try {
+      const response = await fetch("/api/admin/users", {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load admin users");
+      }
+
+      setAdminUsers(Array.isArray(data.users) ? data.users : []);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to load admin users");
+      setAdminUsers([]);
+    } finally {
+      setIsLoadingAdminUsers(false);
+    }
+  }, [user?.role]);
+
   const loadComments = useCallback(async () => {
     setIsLoadingComments(true);
     try {
@@ -133,6 +172,18 @@ export default function GuestManagementPage() {
     loadGuests();
     loadComments();
   }, [loadGuests, loadComments]);
+
+  useEffect(() => {
+    if (!isSuperAdmin && (activeNav === "adminUsers" || activeNav === "settings")) {
+      setActiveNav("overview");
+    }
+  }, [activeNav, isSuperAdmin]);
+
+  useEffect(() => {
+    if (activeNav === "adminUsers" && isSuperAdmin) {
+      void loadAdminUsers();
+    }
+  }, [activeNav, loadAdminUsers, isSuperAdmin]);
 
   useEffect(() => {
     setGuestPage(1);
@@ -357,6 +408,12 @@ export default function GuestManagementPage() {
     { id: "comments", label: "មតិយោបល់", icon: <MessageSquareText size={18} />, badge: stats.totalComments },
     { id: "add", label: "បន្ថែមភ្ញៀវ", icon: <UserPlus size={18} /> },
     { id: "import", label: "នាំចូលច្រើន", icon: <UploadCloud size={18} /> },
+    ...(isSuperAdmin
+      ? [{ id: "settings" as const, label: "ការកំណត់", icon: <Filter size={18} /> }]
+      : []),
+    ...(isSuperAdmin
+      ? [{ id: "adminUsers" as const, label: "Admin users", icon: <UserPlus size={18} /> }]
+      : []),
   ];
 
   const statCards = [
@@ -365,6 +422,42 @@ export default function GuestManagementPage() {
     { label: "គ្រួសារ", value: stats.family, icon: <CalendarDays size={22} />, color: "#34d399" },
     { label: "មតិយោបល់", value: stats.totalComments, icon: <MessageSquareText size={22} />, color: "#a78bfa" },
   ];
+
+  const refreshGuestData = useCallback(() => {
+    void loadGuests();
+    void loadComments();
+  }, [loadComments, loadGuests]);
+
+  const refreshAdminUsers = useCallback(() => {
+    void loadAdminUsers();
+  }, [loadAdminUsers]);
+
+  const handleAdminUserRoleUpdate = useCallback(async (id: string, role: "super_admin" | "admin" | "guest") => {
+    setSavingAdminUserId(id);
+    setLoadError(null);
+
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id, role }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update user role");
+      }
+
+      setAdminUsers((prev) => prev.map((userRow) => (userRow.id === id ? data.user : userRow)));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to update user role");
+    } finally {
+      setSavingAdminUserId(null);
+    }
+  }, []);
 
   return (
     <AdminShell
@@ -737,6 +830,56 @@ export default function GuestManagementPage() {
                     ))}
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {activeNav === "settings" && isSuperAdmin && (
+              <motion.div
+                key="settings"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <SettingsPanel
+                  currentTheme={currentTheme}
+                  currentThemeName={currentThemeName}
+                  availableThemes={getAllAvailableThemes()}
+                  onThemeChange={setTheme}
+                  onResetTheme={resetTheme}
+                  onRefreshData={refreshGuestData}
+                  onResetFilters={() => {
+                    setSearchQuery("");
+                    setFilterRelationship("all");
+                    setCommentStatusFilter("all");
+                  }}
+                  onClearSearch={() => setSearchQuery("")}
+                  isLoadingGuests={isLoadingGuests}
+                  isLoadingComments={isLoadingComments}
+                  searchQuery={searchQuery}
+                  filterRelationship={filterRelationship}
+                  commentStatusFilter={commentStatusFilter}
+                />
+              </motion.div>
+            )}
+
+            {activeNav === "adminUsers" && isSuperAdmin && (
+              <motion.div
+                key="adminUsers"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <AdminUsersPanel
+                  currentUserId={user.id}
+                  users={adminUsers}
+                  isLoading={isLoadingAdminUsers}
+                  savingUserId={savingAdminUserId}
+                  error={loadError}
+                  onRefresh={refreshAdminUsers}
+                  onUpdateRole={handleAdminUserRoleUpdate}
+                />
               </motion.div>
             )}
       </AnimatePresence>
