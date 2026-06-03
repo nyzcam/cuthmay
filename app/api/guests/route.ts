@@ -3,6 +3,7 @@ import { canAccessGuestManagement, getAuthenticatedRequestUser, isSuperAdmin } f
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const GUESTS_TABLE = process.env.SUPABASE_GUESTS_TABLE ?? "guests";
+const EVENT_ADMINS_TABLE = process.env.SUPABASE_EVENT_ADMINS_TABLE ?? "event_admins";
 
 export async function GET(request: Request) {
   try {
@@ -14,6 +15,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const url = new URL(request.url);
+    const eventId = url.searchParams.get("eventId")?.trim();
+
     const supabaseAdmin = getSupabaseAdminClient();
     let query = supabaseAdmin
       .from(GUESTS_TABLE)
@@ -22,8 +26,32 @@ export async function GET(request: Request) {
       )
       .order("created_at", { ascending: false });
 
+    let allowedEventIds: string[] = [];
+    
     if (!isSuperAdmin(user)) {
-      query = query.eq("created_by_user_id", user.id);
+      const { data: userAdminEvents, error: adminError } = await supabaseAdmin
+        .from(EVENT_ADMINS_TABLE)
+        .select("event_id")
+        .eq("user_id", user.id);
+        
+      if (adminError) throw new Error(adminError.message);
+      
+      allowedEventIds = (userAdminEvents ?? []).map(e => e.event_id);
+      
+      if (allowedEventIds.length === 0) {
+        return NextResponse.json({ guests: [] });
+      }
+
+      // If specific event is requested, verify admin manages it
+      if (eventId && !allowedEventIds.includes(eventId)) {
+        return NextResponse.json({ error: "Forbidden: You are not an admin of this event" }, { status: 403 });
+      }
+
+      query = query.in("event_id", allowedEventIds);
+    }
+
+    if (eventId) {
+      query = query.eq("event_id", eventId);
     }
 
     const { data, error } = await query;
@@ -69,33 +97,36 @@ export async function DELETE(request: Request) {
 
     const url = new URL(request.url);
     const slug = url.searchParams.get("slug")?.trim();
+    const eventId = url.searchParams.get("eventId")?.trim();
 
     if (!slug) {
       return NextResponse.json({ error: "Missing guest slug" }, { status: 400 });
     }
 
+    if (!eventId) {
+      return NextResponse.json({ error: "Missing event id" }, { status: 400 });
+    }
+
     const supabaseAdmin = getSupabaseAdminClient();
     
-    // Non-super-admins can only delete their own guests
+    // Non-super-admins can only delete guests in events they're admin of
     if (!isSuperAdmin(user)) {
-      const { data: guestData, error: guestError } = await supabaseAdmin
-        .from(GUESTS_TABLE)
-        .select("created_by_user_id")
-        .eq("slug", slug)
-        .single();
+      const { data: adminRecord } = await supabaseAdmin
+        .from(EVENT_ADMINS_TABLE)
+        .select("id")
+        .eq("event_id", eventId)
+        .eq("user_id", user.id)
+        .maybeSingle();
         
-      if (guestError) {
-        return NextResponse.json({ error: "Guest not found" }, { status: 404 });
-      }
-      
-      if (guestData.created_by_user_id !== user.id) {
-        return NextResponse.json({ error: "Forbidden: You don't own this guest" }, { status: 403 });
+      if (!adminRecord) {
+        return NextResponse.json({ error: "Forbidden: You are not an admin of this event" }, { status: 403 });
       }
     }
 
     const { error } = await supabaseAdmin
       .from(GUESTS_TABLE)
       .delete()
+      .eq("event_id", eventId)
       .eq("slug", slug);
 
     if (error) {

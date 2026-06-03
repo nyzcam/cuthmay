@@ -130,7 +130,7 @@ function generateUrls(rows, headers, baseUrl, slugIndex) {
   // Add URLs to each row
   rows.forEach(row => {
     const slug = row[slugIndex]?.trim();
-    const url = slug ? `${baseUrl.replace(/\/$/, '')}/invite/${encodeURIComponent(slug)}` : '';
+    const url = slug ? `${baseUrl.replace(/\/$/, '')}/cuthmay/${encodeURIComponent(slug)}` : '';
     row.push(url);
   });
 

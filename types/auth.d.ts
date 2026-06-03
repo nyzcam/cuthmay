@@ -13,6 +13,8 @@ export interface AuthUser {
   email: string;
   name: string;
   role: AuthRole;
+  __isImpersonated?: boolean;
+  __actualUserId?: string;
 }
 
 export interface ValidationResult {

@@ -9,7 +9,7 @@ import {
 } from "motion/react";
 import React, { useState, useEffect, useMemo } from "react";
 import { useTheme } from "../providers/ThemeContext";
-import { defaultDetailData, toKhmerNumber, getDirectionsMapUrl, type DetailData } from "../data/detailData";
+import { defaultDetailData, toKhmerNumber, type DetailData } from "../data/detailData";
 
 interface TimeLeft {
   days: number;
@@ -142,7 +142,7 @@ export default function Details({ detailData = defaultDetailData, targetDate = "
   };
 
   const handleRedirect = () => {
-    const url = getDirectionsMapUrl();
+    const url = detailData.directionMapUrl || "https://maps.app.goo.gl/ZiEYZU2GpxkvH49DA?g_st=ic";
     window.open(url, "_blank");
   };
 

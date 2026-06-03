@@ -12,6 +12,14 @@ interface AdminUserRow {
   createdAt: string;
 }
 
+interface AuthUserRecord {
+  id: string;
+  email?: string;
+  created_at?: string;
+  user_metadata?: Record<string, unknown>;
+  app_metadata?: Record<string, unknown>;
+}
+
 function normalizeRole(value: unknown): AdminRole {
   if (typeof value !== "string") {
     return "guest";
@@ -28,13 +36,7 @@ function normalizeRole(value: unknown): AdminRole {
   return "guest";
 }
 
-function mapUser(user: {
-  id: string;
-  email?: string;
-  created_at?: string;
-  user_metadata?: Record<string, unknown>;
-  app_metadata?: Record<string, unknown>;
-}): AdminUserRow {
+function mapUser(user: AuthUserRecord): AdminUserRow {
   const metadata = user.user_metadata ?? {};
   const appMetadata = user.app_metadata ?? {};
   const name =
@@ -52,10 +54,10 @@ function mapUser(user: {
   };
 }
 
-async function loadAllUsers() {
+async function loadAllAuthUsers() {
   const supabaseAdmin = getSupabaseAdminClient();
   const pageSize = 100;
-  const users: AdminUserRow[] = [];
+  const users: AuthUserRecord[] = [];
   let page = 1;
 
   while (true) {
@@ -69,7 +71,7 @@ async function loadAllUsers() {
     }
 
     const pageUsers = data?.users ?? [];
-    users.push(...pageUsers.map(mapUser));
+    users.push(...pageUsers);
 
     if (pageUsers.length < pageSize) {
       break;
@@ -81,12 +83,28 @@ async function loadAllUsers() {
   return users;
 }
 
+async function loadAllUsers() {
+  const users = await loadAllAuthUsers();
+  return users.map(mapUser);
+}
+
+async function requireSuperAdmin(request: Request) {
+  const currentUser = await getAuthenticatedRequestUser(request);
+  if (!currentUser) {
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+  if (!isSuperAdmin(currentUser)) {
+    return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  }
+
+  return { currentUser };
+}
+
 export async function GET(request: Request) {
   try {
-    const currentUser = await getAuthenticatedRequestUser(request);
-
-    if (!isSuperAdmin(currentUser)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const auth = await requireSuperAdmin(request);
+    if ("error" in auth) {
+      return auth.error;
     }
 
     const users = await loadAllUsers();
@@ -111,15 +129,11 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const currentUser = await getAuthenticatedRequestUser(request);
-
-    if (!currentUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireSuperAdmin(request);
+    if ("error" in auth) {
+      return auth.error;
     }
-
-    if (!isSuperAdmin(currentUser)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const { currentUser } = auth;
 
     const body = (await request.json()) as { id?: string; role?: AdminRole };
     const id = body.id?.trim();
@@ -130,13 +144,8 @@ export async function PATCH(request: Request) {
     }
 
     const supabaseAdmin = getSupabaseAdminClient();
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-
-    if (error) {
-      throw error;
-    }
-
-    const targetUser = data.users.find((user) => user.id === id);
+    const users = await loadAllAuthUsers();
+    const targetUser = users.find((user) => user.id === id);
 
     if (!targetUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -149,7 +158,7 @@ export async function PATCH(request: Request) {
     }
 
     if (currentRole === "super_admin" && role !== "super_admin") {
-      const superAdmins = data.users.filter(
+      const superAdmins = users.filter(
         (user) => normalizeRole(user.user_metadata?.role ?? user.app_metadata?.role) === "super_admin"
       );
 
@@ -186,6 +195,115 @@ export async function PATCH(request: Request) {
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Failed to update admin user",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const auth = await requireSuperAdmin(request);
+    if ("error" in auth) {
+      return auth.error;
+    }
+
+    const body = (await request.json()) as {
+      email?: string;
+      password?: string;
+      name?: string;
+      role?: AdminRole;
+    };
+
+    const email = body.email?.trim().toLowerCase();
+    const password = body.password ?? "";
+    const name = body.name?.trim() || "User";
+    const role = normalizeRole(body.role);
+
+    if (!email) {
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    }
+
+    const supabaseAdmin = getSupabaseAdminClient();
+    const createResult = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        name,
+        role,
+      },
+      app_metadata: {
+        role,
+      },
+    });
+
+    if (createResult.error || !createResult.data.user) {
+      throw createResult.error ?? new Error("Failed to create user");
+    }
+
+    return NextResponse.json({ user: mapUser(createResult.data.user) }, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Failed to create admin user",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const auth = await requireSuperAdmin(request);
+    if ("error" in auth) {
+      return auth.error;
+    }
+    const { currentUser } = auth;
+
+    const body = (await request.json()) as { id?: string };
+    const id = body.id?.trim();
+
+    if (!id) {
+      return NextResponse.json({ error: "User id is required" }, { status: 400 });
+    }
+
+    if (id === currentUser.id) {
+      return NextResponse.json({ error: "You cannot delete your own account" }, { status: 400 });
+    }
+
+    const users = await loadAllAuthUsers();
+    const targetUser = users.find((user) => user.id === id);
+    if (!targetUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const targetRole = normalizeRole(targetUser.user_metadata?.role ?? targetUser.app_metadata?.role);
+    if (targetRole === "super_admin") {
+      const superAdmins = users.filter(
+        (user) => normalizeRole(user.user_metadata?.role ?? user.app_metadata?.role) === "super_admin"
+      );
+
+      if (superAdmins.length <= 1) {
+        return NextResponse.json({ error: "At least one super_admin must remain" }, { status: 400 });
+      }
+    }
+
+    const supabaseAdmin = getSupabaseAdminClient();
+    const deleteResult = await supabaseAdmin.auth.admin.deleteUser(id);
+    if (deleteResult.error) {
+      throw deleteResult.error;
+    }
+
+    return NextResponse.json({ success: true, id });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Failed to delete admin user",
       },
       { status: 500 }
     );

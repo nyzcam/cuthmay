@@ -10,6 +10,11 @@ export interface AuthenticatedUser {
   role: AuthRole;
 }
 
+export interface ImpersonatedUser extends AuthenticatedUser {
+  __isImpersonated: boolean;
+  __actualUserId: string;
+}
+
 function readCookie(cookieHeader: string | null, cookieName: string): string {
   if (!cookieHeader) {
     return "";
@@ -93,11 +98,56 @@ export function getAuthTokenFromRequest(request: Request): string {
   return readCookie(request.headers.get("cookie"), "auth_token");
 }
 
+function getImpersonationDataFromRequest(request: Request): {
+  actualUserId: string;
+  impersonatedUserId: string;
+  impersonatedAt: string;
+} | null {
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  const impersonateDataStr = cookieHeader
+    .split(";")
+    .map(part => part.trim())
+    .find(part => part.startsWith("impersonate_data="))
+    ?.slice("impersonate_data=".length);
+
+  if (!impersonateDataStr) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(decodeURIComponent(impersonateDataStr));
+  } catch {
+    return null;
+  }
+}
+
 export async function getAuthenticatedRequestUser(
   request: Request
 ): Promise<AuthenticatedUser | null> {
   const authToken = getAuthTokenFromRequest(request);
-  return getAuthenticatedUserFromToken(authToken);
+  const actualUser = await getAuthenticatedUserFromToken(authToken);
+
+  // If user is impersonating, return impersonated user's info but mark it
+  const impersonationData = getImpersonationDataFromRequest(request);
+  if (impersonationData && actualUser?.id === impersonationData.actualUserId && isSuperAdmin(actualUser)) {
+    const supabaseAdmin = getSupabaseAdminClient();
+    const impersonatedUserResult = await supabaseAdmin.auth.admin.getUserById(
+      impersonationData.impersonatedUserId
+    );
+
+    if (!impersonatedUserResult.error && impersonatedUserResult.data.user) {
+      // Add metadata to indicate this is an impersonated session
+      const impersonatedUser = buildAuthenticatedUser(impersonatedUserResult.data.user);
+      const userWithMeta: ImpersonatedUser = {
+        ...impersonatedUser,
+        __isImpersonated: true,
+        __actualUserId: actualUser.id,
+      };
+      return userWithMeta;
+    }
+  }
+
+  return actualUser;
 }
 
 export async function getAuthenticatedCookieUser(): Promise<AuthenticatedUser | null> {

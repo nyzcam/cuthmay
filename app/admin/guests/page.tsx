@@ -12,27 +12,30 @@ import {
   CalendarDays,
   Star,
   Clock,
-  Filter,
+  Settings,
 } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion, type Variants } from "framer-motion";
 import { BulkImportForm } from "@/components/BulkImportForm";
 import { SingleGuestForm } from "@/components/SingleGuestForm";
 import AdminShell, { ADMIN_COLORS } from "@/components/admin/AdminShell";
 import { SettingsPanel } from "@/components/admin/SettingsPanel";
+import { EventManagerPanel, type AdminEvent } from "@/components/admin/EventManagerPanel";
+import { getAllThemes } from "@/config/themeConfig";
 import { Guest } from "@/data/guestList";
 import { GuestCommentRecord } from "@/types/types";
 import { GuestListTable } from "@/components/admin/GuestListTable";
 import { GuestSearchBar } from "@/components/admin/GuestSearchBar";
 import { PaginationControls } from "@/components/admin/PaginationControls";
 import { CommentsPanel } from "@/components/admin/CommentsPanel";
-import { AdminUsersPanel, type AdminUserRow } from "@/components/admin/AdminUsersPanel";
+import { AdminUsersPanel, type AdminRole, type AdminUserRow } from "@/components/admin/AdminUsersPanel";
+import { ImpersonationPanel } from "@/components/admin/ImpersonationPanel";
 import { useAuthMe } from "@/hooks/useAuthMe";
 import { useTheme } from "@/providers/ThemeContext";
 
 const MAX_RECENT_GUESTS = 200;
 const GUESTS_PER_PAGE = 10;
 
-type NavSection = "overview" | "guests" | "comments" | "add" | "import" | "settings" | "adminUsers";
+type NavSection = "overview" | "events" | "guests" | "comments" | "add" | "import" | "settings" | "adminUsers";
 type GuestRecord = Guest & { slug: string };
 type CommentStatus = GuestCommentRecord["status"];
 
@@ -77,14 +80,20 @@ export default function GuestManagementPage() {
   const [activeNav, setActiveNav] = useState<NavSection>("overview");
   const [dbGuests, setDbGuests] = useState<GuestRecord[]>([]);
   const [comments, setComments] = useState<GuestCommentRecord[]>([]);
+  const [events, setEvents] = useState<AdminEvent[]>([]);
   const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
   const [addedGuests, setAddedGuests] = useState<Guest[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLoadingGuests, setIsLoadingGuests] = useState(true);
   const [isLoadingComments, setIsLoadingComments] = useState(true);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+  const [isSavingEvent, setIsSavingEvent] = useState(false);
   const [isLoadingAdminUsers, setIsLoadingAdminUsers] = useState(false);
+  const [isCreatingAdminUser, setIsCreatingAdminUser] = useState(false);
   const [updatingCommentId, setUpdatingCommentId] = useState<string | null>(null);
   const [savingAdminUserId, setSavingAdminUserId] = useState<string | null>(null);
+  const [deletingAdminUserId, setDeletingAdminUserId] = useState<string | null>(null);
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [deletingGuestSlug, setDeletingGuestSlug] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -93,12 +102,51 @@ export default function GuestManagementPage() {
   const [commentStatusFilter, setCommentStatusFilter] = useState<"all" | CommentStatus>("all");
   const [guestPage, setGuestPage] = useState(1);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+
+  const loadEvents = useCallback(async () => {
+    setIsLoadingEvents(true);
+    setLoadError(null);
+
+    try {
+      const response = await fetch("/api/admin/events", {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load events");
+      }
+
+      const nextEvents = Array.isArray(data.events) ? data.events : [];
+      setEvents(nextEvents);
+      setSelectedEventId((current) => {
+        if (current && nextEvents.some((event: AdminEvent) => event.id === current)) {
+          return current;
+        }
+        return nextEvents[0]?.id ?? null;
+      });
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to load events");
+      setEvents([]);
+      setSelectedEventId(null);
+    } finally {
+      setIsLoadingEvents(false);
+    }
+  }, []);
 
   const loadGuests = useCallback(async () => {
+    if (!selectedEventId) {
+      setDbGuests([]);
+      setIsLoadingGuests(false);
+      return;
+    }
+
     setIsLoadingGuests(true);
     setLoadError(null);
     try {
-      const response = await fetch("/api/guests", {
+      const response = await fetch(`/api/guests?eventId=${encodeURIComponent(selectedEventId)}`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
       });
@@ -115,7 +163,7 @@ export default function GuestManagementPage() {
     } finally {
       setIsLoadingGuests(false);
     }
-  }, []);
+  }, [selectedEventId]);
 
   const loadAdminUsers = useCallback(async () => {
     if (user?.role !== "super_admin") {
@@ -147,9 +195,15 @@ export default function GuestManagementPage() {
   }, [user?.role]);
 
   const loadComments = useCallback(async () => {
+    if (!selectedEventId) {
+      setComments([]);
+      setIsLoadingComments(false);
+      return;
+    }
+
     setIsLoadingComments(true);
     try {
-      const response = await fetch("/api/guests/comment", {
+      const response = await fetch(`/api/guests/comment?eventId=${encodeURIComponent(selectedEventId)}`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
       });
@@ -166,11 +220,15 @@ export default function GuestManagementPage() {
     } finally {
       setIsLoadingComments(false);
     }
-  }, []);
+  }, [selectedEventId]);
 
   useEffect(() => {
-    loadGuests();
-    loadComments();
+    void loadEvents();
+  }, [loadEvents]);
+
+  useEffect(() => {
+    void loadGuests();
+    void loadComments();
   }, [loadGuests, loadComments]);
 
   useEffect(() => {
@@ -180,7 +238,7 @@ export default function GuestManagementPage() {
   }, [activeNav, isSuperAdmin]);
 
   useEffect(() => {
-    if (activeNav === "adminUsers" && isSuperAdmin) {
+    if (isSuperAdmin && (activeNav === "adminUsers" || activeNav === "events")) {
       void loadAdminUsers();
     }
   }, [activeNav, loadAdminUsers, isSuperAdmin]);
@@ -217,6 +275,13 @@ export default function GuestManagementPage() {
       return matchSearch && matchFilter;
     });
   }, [allGuests, searchQuery, filterRelationship]);
+
+  const selectedEvent = useMemo(
+    () => events.find((event) => event.id === selectedEventId) ?? null,
+    [events, selectedEventId]
+  );
+
+  const selectedEventSlug = selectedEvent?.slug ?? "default";
 
   const totalGuestPages = Math.max(1, Math.ceil(filteredGuests.length / GUESTS_PER_PAGE));
 
@@ -299,13 +364,17 @@ export default function GuestManagementPage() {
   };
 
   const handleCopyLink = useCallback(async (slug: string) => {
-    const url = `${window.location.origin}/invite/${slug}`;
+    const url = `${window.location.origin}/${selectedEventSlug}/${slug}`;
     await navigator.clipboard.writeText(url);
     setCopiedSlug(slug);
     setTimeout(() => setCopiedSlug(null), 2000);
-  }, []);
+  }, [selectedEventSlug]);
 
   const handleCommentStatusUpdate = useCallback(async (id: string, status: CommentStatus) => {
+    if (!selectedEventId) {
+      return;
+    }
+
     setUpdatingCommentId(id);
     setLoadError(null);
 
@@ -315,7 +384,7 @@ export default function GuestManagementPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id, status }),
+        body: JSON.stringify({ id, status, eventId: selectedEventId }),
       });
 
       const data = await response.json();
@@ -334,9 +403,13 @@ export default function GuestManagementPage() {
     } finally {
       setUpdatingCommentId(null);
     }
-  }, []);
+  }, [selectedEventId]);
 
   const handleCommentDelete = useCallback(async (id: string) => {
+    if (!selectedEventId) {
+      return;
+    }
+
     const confirmed = window.confirm("តើអ្នកប្រាកដថាចង់លុបមតិយោបល់នេះមែនទេ?");
     if (!confirmed) {
       return;
@@ -346,7 +419,7 @@ export default function GuestManagementPage() {
     setLoadError(null);
 
     try {
-      const response = await fetch(`/api/guests/comment?id=${encodeURIComponent(id)}`, {
+      const response = await fetch(`/api/guests/comment?id=${encodeURIComponent(id)}&eventId=${encodeURIComponent(selectedEventId)}`, {
         method: "DELETE",
       });
 
@@ -362,9 +435,13 @@ export default function GuestManagementPage() {
     } finally {
       setDeletingCommentId(null);
     }
-  }, []);
+  }, [selectedEventId]);
 
   const handleGuestDelete = useCallback(async (slug: string) => {
+    if (!selectedEventId) {
+      return;
+    }
+
     const confirmed = window.confirm("តើអ្នកប្រាកដថាចង់លុបភ្ញៀវនេះមែនទេ?");
     if (!confirmed) {
       return;
@@ -383,7 +460,7 @@ export default function GuestManagementPage() {
     setLoadError(null);
 
     try {
-      const response = await fetch(`/api/guests?slug=${encodeURIComponent(slug)}`, {
+      const response = await fetch(`/api/guests?slug=${encodeURIComponent(slug)}&eventId=${encodeURIComponent(selectedEventId)}`, {
         method: "DELETE",
       });
 
@@ -400,16 +477,17 @@ export default function GuestManagementPage() {
     } finally {
       setDeletingGuestSlug(null);
     }
-  }, []);
+  }, [selectedEventId]);
 
   const navItems: { id: NavSection; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: "overview", label: "ទិដ្ឋភាពរួម", icon: <LayoutDashboard size={18} /> },
+    { id: "events", label: "កម្មពិធី", icon: <CalendarDays size={18} />, badge: events.length },
     { id: "guests", label: "បញ្ជីភ្ញៀវ", icon: <Users size={18} />, badge: stats.total },
     { id: "comments", label: "មតិយោបល់", icon: <MessageSquareText size={18} />, badge: stats.totalComments },
     { id: "add", label: "បន្ថែមភ្ញៀវ", icon: <UserPlus size={18} /> },
     { id: "import", label: "នាំចូលច្រើន", icon: <UploadCloud size={18} /> },
     ...(isSuperAdmin
-      ? [{ id: "settings" as const, label: "ការកំណត់", icon: <Filter size={18} /> }]
+      ? [{ id: "settings" as const, label: "ការកំណត់", icon: <Settings size={18} /> }]
       : []),
     ...(isSuperAdmin
       ? [{ id: "adminUsers" as const, label: "Admin users", icon: <UserPlus size={18} /> }]
@@ -424,15 +502,143 @@ export default function GuestManagementPage() {
   ];
 
   const refreshGuestData = useCallback(() => {
+    void loadEvents();
     void loadGuests();
     void loadComments();
-  }, [loadComments, loadGuests]);
+  }, [loadComments, loadEvents, loadGuests]);
+
+  const handleCreateEvent = useCallback(async (payload: {
+    slug: string;
+    displayName: string;
+    groomName?: string;
+    brideName?: string;
+    groomFatherName?: string;
+    groomMotherName?: string;
+    brideFatherName?: string;
+    brideMotherName?: string;
+    weddingDate?: string;
+    lunarDate?: string;
+    locationText?: string;
+    directionMapUrl?: string;
+    directionsJson?: Array<{ id: number; description: string; detail: string }>;
+    heroTitle?: string;
+    heroSubtitle?: string;
+    invitationText?: string;
+    theme?: string;
+    ownerUserId?: string;
+  }) => {
+    setIsSavingEvent(true);
+    setLoadError(null);
+
+    try {
+      const response = await fetch("/api/admin/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create event");
+      }
+
+      const created = data.event as AdminEvent;
+      setEvents((prev) => [created, ...prev]);
+      setSelectedEventId(created.id);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to create event");
+    } finally {
+      setIsSavingEvent(false);
+    }
+  }, []);
+
+  const handleUpdateEvent = useCallback(async (
+    eventId: string,
+    payload: {
+      slug: string;
+      displayName: string;
+      groomName?: string;
+      brideName?: string;
+      groomFatherName?: string;
+      groomMotherName?: string;
+      brideFatherName?: string;
+      brideMotherName?: string;
+      weddingDate?: string;
+      lunarDate?: string;
+      locationText?: string;
+      directionMapUrl?: string;
+      directionsJson?: Array<{ id: number; description: string; detail: string }>;
+      heroTitle?: string;
+      heroSubtitle?: string;
+      invitationText?: string;
+      theme?: string;
+      ownerUserId?: string;
+    }
+  ) => {
+    setIsSavingEvent(true);
+    setLoadError(null);
+
+    try {
+      const response = await fetch(`/api/admin/events/${encodeURIComponent(eventId)}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update event");
+      }
+
+      const updated = data.event as AdminEvent;
+      setEvents((prev) => prev.map((event) => (event.id === updated.id ? updated : event)));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to update event");
+    } finally {
+      setIsSavingEvent(false);
+    }
+  }, []);
+
+  const handleDeleteEvent = useCallback(async (eventId: string) => {
+    const confirmed = window.confirm("Delete this event and all related guests/comments?");
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingEventId(eventId);
+    setLoadError(null);
+
+    try {
+      const response = await fetch(`/api/admin/events/${encodeURIComponent(eventId)}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete event");
+      }
+
+      setEvents((prev) => {
+        const next = prev.filter((event) => event.id !== eventId);
+        setSelectedEventId(next[0]?.id ?? null);
+        return next;
+      });
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to delete event");
+    } finally {
+      setDeletingEventId(null);
+    }
+  }, []);
 
   const refreshAdminUsers = useCallback(() => {
     void loadAdminUsers();
   }, [loadAdminUsers]);
 
-  const handleAdminUserRoleUpdate = useCallback(async (id: string, role: "super_admin" | "admin" | "guest") => {
+  const handleAdminUserRoleUpdate = useCallback(async (id: string, role: AdminRole) => {
     setSavingAdminUserId(id);
     setLoadError(null);
 
@@ -459,15 +665,99 @@ export default function GuestManagementPage() {
     }
   }, []);
 
+  const handleCreateAdminUser = useCallback(async (payload: {
+    name: string;
+    email: string;
+    password: string;
+    role: AdminRole;
+  }) => {
+    setIsCreatingAdminUser(true);
+    setLoadError(null);
+
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create user");
+      }
+
+      setAdminUsers((prev) => [data.user, ...prev]);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to create user");
+    } finally {
+      setIsCreatingAdminUser(false);
+    }
+  }, []);
+
+  const handleDeleteAdminUser = useCallback(async (id: string) => {
+    const confirmed = window.confirm("តើអ្នកប្រាកដថាចង់លុបអ្នកប្រើនេះមែនទេ?");
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingAdminUserId(id);
+    setLoadError(null);
+
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete user");
+      }
+
+      setAdminUsers((prev) => prev.filter((userRow) => userRow.id !== id));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Failed to delete user");
+    } finally {
+      setDeletingAdminUserId(null);
+    }
+  }, []);
+
   return (
     <AdminShell
-      activeNav={activeNav}
-      navItems={navItems}
-      onSelectNav={setActiveNav}
-      onLogout={handleLogout}
-      isLoggingOut={isLoggingOut}
-    >
-      <div ref={activeContentRef} className="hide-scrollbar h-full min-h-0 overflow-y-auto pr-1">
+       activeNav={activeNav}
+       navItems={navItems}
+       onSelectNav={setActiveNav}
+       onLogout={handleLogout}
+       isLoggingOut={isLoggingOut}
+       inviteHref={selectedEvent ? `/${selectedEvent.slug}` : "/"}
+       headerTitle={selectedEvent ? `${selectedEvent.displayName} · ${navItems.find((item) => item.id === activeNav)?.label ?? "Admin"}` : undefined}
+       user={user ? { name: user.name, email: user.email, role: user.role, __isImpersonated: user.__isImpersonated } : null}
+     >
+        <div ref={activeContentRef} className="hide-scrollbar h-full min-h-0 overflow-y-auto pr-1">
+      {/* ─── IMPERSONATION BANNER ─── */}
+      {user?.__isImpersonated && (
+        <div className="mb-4 flex items-center justify-between rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+          <span>
+            កំពុង Login ជា <strong>{user.name}</strong> ({user.email})
+          </span>
+          <button
+            onClick={async () => {
+              await fetch("/api/admin/impersonate", { method: "DELETE" });
+              window.location.reload();
+            }}
+            className="ml-4 rounded bg-amber-500/20 px-3 py-1 text-amber-200 hover:bg-amber-500/30 transition-colors"
+          >
+            បញ្ឈប់ Impersonation
+          </button>
+        </div>
+      )}
       <AnimatePresence mode="wait">
             {/* ─── OVERVIEW ─── */}
             {activeNav === "overview" && (
@@ -527,7 +817,7 @@ export default function GuestManagementPage() {
                     className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-6"
                   >
                     <h2 className="text-white/80 font-bold mb-4 flex items-center gap-2">
-                      <Filter size={16} />
+                      <Settings size={16} />
                       ប្រភេទភ្ញៀវ
                     </h2>
                     <div className="space-y-3">
@@ -681,6 +971,31 @@ export default function GuestManagementPage() {
               </motion.div>
             )}
 
+            {activeNav === "events" && (
+              <motion.div
+                key="events"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <EventManagerPanel
+                  events={events}
+                  selectedEventId={selectedEventId}
+                  loading={isLoadingEvents}
+                  saving={isSavingEvent}
+                  deletingEventId={deletingEventId}
+                  error={loadError}
+                  themes={getAllThemes()}
+                  assignableOwners={adminUsers}
+                  onSelectEvent={setSelectedEventId}
+                  onCreateEvent={handleCreateEvent}
+                  onUpdateEvent={handleUpdateEvent}
+                  onDeleteEvent={handleDeleteEvent}
+                />
+              </motion.div>
+            )}
+
             {/* ─── GUEST LIST ─── */}
             {activeNav === "guests" && (
               <motion.div
@@ -698,6 +1013,11 @@ export default function GuestManagementPage() {
                 )}
 
                 <div className="space-y-3 overflow-auto">
+                  {!selectedEventId && (
+                    <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                      Select an event in the Events tab before managing guests.
+                    </div>
+                  )}
                   
                   <GuestSearchBar
                     searchQuery={searchQuery}
@@ -721,6 +1041,7 @@ export default function GuestManagementPage() {
                           onRemoveGuest={handleGuestDelete}
                           deletingGuestSlug={deletingGuestSlug}
                           pageStartIndex={(guestPage - 1) * GUESTS_PER_PAGE}
+                          eventSlug={selectedEventSlug}
                         />
                       </div>
 
@@ -788,7 +1109,13 @@ export default function GuestManagementPage() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
               >
-                <SingleGuestForm onGuestAdded={handleGuestAdded} />
+                {!selectedEventId ? (
+                  <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                    Select an event in the Events tab before adding guests.
+                  </div>
+                ) : (
+                  <SingleGuestForm onGuestAdded={handleGuestAdded} eventId={selectedEventId} />
+                )}
               </motion.div>
             )}
 
@@ -802,7 +1129,13 @@ export default function GuestManagementPage() {
                 transition={{ duration: 0.3 }}
                 className="space-y-6"
               >
-                <BulkImportForm onImportComplete={handleImportComplete} />
+                {!selectedEventId ? (
+                  <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                    Select an event in the Events tab before importing guests.
+                  </div>
+                ) : (
+                  <BulkImportForm onImportComplete={handleImportComplete} eventId={selectedEventId} />
+                )}
 
                 {/* CSV Format Reference */}
                 <div
@@ -870,15 +1203,25 @@ export default function GuestManagementPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
+                className="space-y-6"
               >
+                <ImpersonationPanel
+                  currentUserId={user.id}
+                  isSuperAdmin={isSuperAdmin}
+                  adminUsers={adminUsers}
+                />
                 <AdminUsersPanel
                   currentUserId={user.id}
                   users={adminUsers}
                   isLoading={isLoadingAdminUsers}
                   savingUserId={savingAdminUserId}
+                  deletingUserId={deletingAdminUserId}
+                  isCreatingUser={isCreatingAdminUser}
                   error={loadError}
                   onRefresh={refreshAdminUsers}
                   onUpdateRole={handleAdminUserRoleUpdate}
+                  onCreateUser={handleCreateAdminUser}
+                  onDeleteUser={handleDeleteAdminUser}
                 />
               </motion.div>
             )}

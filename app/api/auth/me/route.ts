@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseAuthClient } from '@/lib/supabase/auth';
+import { isSuperAdmin } from '@/lib/auth/session';
 
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
@@ -61,7 +62,36 @@ export async function GET(request: Request) {
     const userResult = await supabaseAdmin.auth.getUser(authToken);
 
     if (!userResult.error && userResult.data.user) {
-      return NextResponse.json(buildUser(userResult.data.user), {
+      const actualUser = buildUser(userResult.data.user);
+
+      // Check for active impersonation session
+      const impersonateDataStr = cookieStore.get('impersonate_data')?.value ?? '';
+      if (impersonateDataStr && isSuperAdmin(actualUser)) {
+        try {
+          const impersonationData = JSON.parse(decodeURIComponent(impersonateDataStr)) as {
+            actualUserId: string;
+            impersonatedUserId: string;
+          };
+
+          if (impersonationData.actualUserId === actualUser.id) {
+            const impersonatedResult = await supabaseAdmin.auth.admin.getUserById(
+              impersonationData.impersonatedUserId
+            );
+
+            if (!impersonatedResult.error && impersonatedResult.data.user) {
+              const impersonatedUser = buildUser(impersonatedResult.data.user);
+              return NextResponse.json(
+                { ...impersonatedUser, __isImpersonated: true, __actualUserId: actualUser.id },
+                { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' } }
+              );
+            }
+          }
+        } catch {
+          // Invalid impersonation data, ignore and return actual user
+        }
+      }
+
+      return NextResponse.json(actualUser, {
         headers: {
           'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
         },

@@ -7,11 +7,12 @@ import { useTheme } from "@/providers/ThemeContext";
 
 interface BulkImportProps {
   onImportComplete: (count: number) => void;
+  eventId: string;
 }
 
 const MAX_CSV_SIZE_BYTES = 2 * 1024 * 1024;
 
-export function BulkImportForm({ onImportComplete }: BulkImportProps) {
+export function BulkImportForm({ onImportComplete, eventId }: BulkImportProps) {
   const { currentTheme } = useTheme();
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -100,7 +101,7 @@ export function BulkImportForm({ onImportComplete }: BulkImportProps) {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("/api/guests/import", {
+      const response = await fetch(`/api/guests/import?eventId=${encodeURIComponent(eventId)}`, {
         method: "PUT",
         body: formData,
       });

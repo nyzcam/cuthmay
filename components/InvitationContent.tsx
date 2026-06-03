@@ -19,6 +19,9 @@ export default function InvitationContent({
   const { currentTheme } = useTheme();
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
+  const groomInitial = [...(heroData.groomName ?? defaultHeroData.groomName ?? "ក")][0] ?? "ក";
+  const brideInitial = [...(heroData.brideName ?? defaultHeroData.brideName ?? "វ")][0] ?? "វ";
+
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
@@ -142,7 +145,7 @@ export default function InvitationContent({
                   transformOrigin: "center",
                 }}
               >
-                ក
+                {groomInitial}
               </ShimmerText>
 
               <ShimmerText
@@ -155,7 +158,7 @@ export default function InvitationContent({
                 }}
                 delay={0.5}
               >
-                វ
+                {brideInitial}
               </ShimmerText>
 
               <ShimmerText

@@ -8,6 +8,7 @@ import { Guest } from '@/data/guestList';
 
 interface SingleGuestFormProps {
   onGuestAdded: (guest: Guest) => void;
+  eventId: string;
 }
 
 type Relationship = 'family' | 'friend' | 'colleague' | 'vip' | 'guest';
@@ -88,7 +89,7 @@ function validateForm(formData: SingleGuestFormData): FormErrors {
   return errors;
 }
 
-export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
+export function SingleGuestForm({ onGuestAdded, eventId }: SingleGuestFormProps) {
   const { currentTheme } = useTheme();
   const nameInputRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState<SingleGuestFormData>(INITIAL_FORM_DATA);
@@ -185,11 +186,13 @@ export function SingleGuestForm({ onGuestAdded }: SingleGuestFormProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/guests/import', {
+      const response = await fetch(`/api/guests/import?eventId=${encodeURIComponent(eventId)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        cache: 'no-store',
+        credentials: 'same-origin',
         body: JSON.stringify({
           guests: [
             {

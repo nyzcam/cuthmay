@@ -11,6 +11,7 @@ interface GuestListTableProps {
   onRemoveGuest: (slug: string) => void;
   deletingGuestSlug: string | null;
   pageStartIndex: number;
+  eventSlug: string;
 }
 
 const RELATIONSHIP_LABELS: Record<string, string> = {
@@ -36,6 +37,7 @@ export function GuestListTable({
   onRemoveGuest,
   deletingGuestSlug,
   pageStartIndex,
+  eventSlug,
 }: GuestListTableProps) {
   return (
     <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl">
@@ -112,7 +114,7 @@ export function GuestListTable({
                 <td className="px-5 py-3">
                   <div className="flex items-center justify-end gap-2">
                     <Link
-                      href={`/invite/${guest.slug}`}
+                      href={`/${eventSlug}/${guest.slug}`}
                       target="_blank"
                       className="p-1.5 rounded-lg text-white/30 hover:text-white/70 hover:bg-white/10 transition-all"
                       title="មើលការអញ្ជើញ"

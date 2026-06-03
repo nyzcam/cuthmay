@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { BadgeCheck, Crown, Shield, Search, RefreshCw, UserCog } from "lucide-react";
+import { BadgeCheck, Crown, Shield, Trash2, UserPlus2 } from "lucide-react";
 
-type AdminRole = "super_admin" | "admin" | "guest";
+export type AdminRole = "super_admin" | "admin" | "guest";
 
 export interface AdminUserRow {
   id: string;
@@ -17,13 +16,22 @@ interface AdminUsersPanelProps {
   users: AdminUserRow[];
   isLoading: boolean;
   savingUserId: string | null;
+  deletingUserId: string | null;
+  isCreatingUser: boolean;
   error: string | null;
   onRefresh: () => void;
   onUpdateRole: (id: string, role: AdminRole) => void;
+  onDeleteUser: (id: string) => void;
+  onCreateUser: (payload: {
+    name: string;
+    email: string;
+    password: string;
+    role: AdminRole;
+  }) => void;
 }
 
 const ROLE_LABELS: Record<AdminRole, string> = {
-  super_admin: "Super admin",
+  super_admin: "Super Admin",
   admin: "Admin",
   guest: "Guest",
 };
@@ -48,12 +56,20 @@ export function AdminUsersPanel({
   users,
   isLoading,
   savingUserId,
+  deletingUserId,
+  isCreatingUser,
   error,
   onRefresh,
   onUpdateRole,
+  onDeleteUser,
+  onCreateUser,
 }: AdminUsersPanelProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | AdminRole>("all");
+  const [createName, setCreateName] = useState("");
+  const [createEmail, setCreateEmail] = useState("");
+  const [createPassword, setCreatePassword] = useState("");
+  const [createRole, setCreateRole] = useState<AdminRole>("admin");
 
   const filteredUsers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -77,74 +93,68 @@ export function AdminUsersPanel({
     [users]
   );
 
+  const handleCreateSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    onCreateUser({
+      name: createName,
+      email: createEmail,
+      password: createPassword,
+      role: createRole,
+    });
+
+    setCreatePassword("");
+  };
+
   return (
-    <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-6 backdrop-blur-md"
+    <div className="space-y-6 font-sans">
+      <form
+        onSubmit={handleCreateSubmit}
+        className="grid gap-3 rounded-2xl border border-emerald-300/20 bg-emerald-500/5 p-4 sm:grid-cols-2 lg:grid-cols-5"
       >
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-amber-200/90">
-              <UserCog size={16} />
-              <span className="text-sm font-medium">Super admin only</span>
-            </div>
-            <h2 className="text-xl font-bold text-white">Control admin users</h2>
-            <p className="max-w-2xl text-sm leading-6 text-white/60">
-              មើល និងកែសម្រួល role របស់អ្នកប្រើ admin បានតែ super_admin ប៉ុណ្ណោះ។
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:bg-white/10"
-          >
-            <RefreshCw size={15} className={isLoading ? "animate-spin" : undefined} />
-            Refresh
-          </button>
-        </div>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/35">Users</p>
-            <p className="mt-3 text-2xl font-bold text-white">{counts.total}</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/35">Super admins</p>
-            <p className="mt-3 text-2xl font-bold text-white">{counts.superAdmins}</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-black/15 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/35">Admins</p>
-            <p className="mt-3 text-2xl font-bold text-white">{counts.admins}</p>
-          </div>
-        </div>
-      </motion.div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-          <input
-            type="text"
-            placeholder="Search admin users..."
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-white/80 placeholder-white/30 focus:border-white/30 focus:outline-none focus:bg-white/10"
-          />
-        </div>
-
+        <p className="sm:col-span-2 lg:col-span-5 text-xs uppercase tracking-[0.18em] text-emerald-100/70">Create admin user</p>
+        <input
+          type="text"
+          placeholder="Full name"
+          value={createName}
+          onChange={(event) => setCreateName(event.target.value)}
+          className="rounded-xl border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white/80 placeholder-white/30 focus:border-white/30 focus:outline-none"
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={createEmail}
+          onChange={(event) => setCreateEmail(event.target.value)}
+          required
+          className="rounded-xl border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white/80 placeholder-white/30 focus:border-white/30 focus:outline-none"
+        />
+        <input
+          type="password"
+          placeholder="Password (min. 8 characters)"
+          value={createPassword}
+          onChange={(event) => setCreatePassword(event.target.value)}
+          required
+          minLength={8}
+          className="rounded-xl border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white/80 placeholder-white/30 focus:border-white/30 focus:outline-none"
+        />
         <select
-          value={roleFilter}
-          onChange={(event) => setRoleFilter(event.target.value as "all" | AdminRole)}
-          className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/70 focus:border-white/30 focus:outline-none appearance-none"
+          value={createRole}
+          onChange={(event) => setCreateRole(event.target.value as AdminRole)}
+          className="rounded-xl border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white/70 focus:border-white/30 focus:outline-none"
         >
-          <option value="all">All roles</option>
-          <option value="super_admin">Super admin</option>
-          <option value="admin">Admin</option>
           <option value="guest">Guest</option>
+          <option value="admin">Admin</option>
+          <option value="super_admin">Super Admin</option>
         </select>
-      </div>
+        <button
+          type="submit"
+          disabled={isCreatingUser}
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-500/15 px-3 py-2.5 text-sm text-cyan-100 transition hover:bg-cyan-500/25 disabled:opacity-60"
+        >
+          <UserPlus2 size={15} />
+          {isCreatingUser ? "Creating..." : "Create user"}
+        </button>
+      </form>
 
       {error && (
         <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
@@ -162,20 +172,20 @@ export function AdminUsersPanel({
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[880px] text-sm">
-              <thead className="bg-black/10 text-white/40 text-xs uppercase tracking-wider">
+              <thead className="bg-black/20 text-white/45 text-xs uppercase tracking-wider">
                 <tr>
                   <th className="px-5 py-3 text-left">User</th>
                   <th className="px-5 py-3 text-left">Email</th>
                   <th className="px-5 py-3 text-left">Created</th>
                   <th className="px-5 py-3 text-left">Role</th>
-                  <th className="px-5 py-3 text-right">Action</th>
+                  <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map((user) => {
                   const isCurrentUser = user.id === currentUserId;
                   return (
-                    <tr key={user.id} className="border-t border-white/5 hover:bg-white/5 transition-colors">
+                    <tr key={user.id} className="border-t border-white/5 transition-colors hover:bg-white/[0.07]">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <div
@@ -219,14 +229,23 @@ export function AdminUsersPanel({
                         <div className="inline-flex items-center gap-2">
                           <select
                             value={user.role}
-                            disabled={savingUserId === user.id || isCurrentUser}
+                            disabled={savingUserId === user.id || deletingUserId === user.id || isCurrentUser}
                             onChange={(event) => onUpdateRole(user.id, event.target.value as AdminRole)}
-                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/75 focus:border-white/30 focus:outline-none disabled:opacity-40"
+                            className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/75 focus:border-white/30 focus:outline-none disabled:opacity-40"
                           >
                             <option value="guest">Guest</option>
                             <option value="admin">Admin</option>
-                            <option value="super_admin">Super admin</option>
+                            <option value="super_admin">Super Admin</option>
                           </select>
+                          <button
+                            type="button"
+                            onClick={() => onDeleteUser(user.id)}
+                            disabled={deletingUserId === user.id || isCurrentUser}
+                            className="rounded-xl border border-red-300/30 bg-red-500/10 px-2.5 py-2 text-xs text-red-200 transition hover:bg-red-500/20 disabled:opacity-40"
+                            title="Delete user"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                         {isCurrentUser && (
                           <p className="mt-2 text-[11px] text-white/30">Your own role is locked in the UI.</p>

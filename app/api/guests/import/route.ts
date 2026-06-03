@@ -3,6 +3,7 @@ import { Guest } from '@/data/guestList';
 import {
   canAccessGuestManagement,
   getAuthenticatedRequestUser,
+  isSuperAdmin,
   type AuthenticatedUser,
 } from '@/lib/auth/session';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
@@ -11,6 +12,7 @@ const MAX_CSV_SIZE_BYTES = 2 * 1024 * 1024;
 const MAX_CSV_ROWS = 2000;
 const MAX_JSON_GUESTS = 500;
 const GUESTS_TABLE = process.env.SUPABASE_GUESTS_TABLE ?? 'guests';
+const EVENTS_TABLE = process.env.SUPABASE_EVENTS_TABLE ?? 'events';
 
 interface ImportRequest {
   guests: Guest[];
@@ -56,9 +58,43 @@ function ensureSlug(guest: Guest, index: number): string {
   return `guest-${Date.now()}-${index}`;
 }
 
+async function assertEventAccess(eventId: string, adminUser: AuthenticatedUser) {
+  if (isSuperAdmin(adminUser)) {
+    return null;
+  }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  const { data: eventData, error: eventError } = await supabaseAdmin
+    .from(EVENTS_TABLE)
+    .select('owner_user_id')
+    .eq('id', eventId)
+    .maybeSingle();
+
+  if (eventError) {
+    throw new Error(eventError.message);
+  }
+
+  if (!eventData) {
+    return NextResponse.json(
+      { error: 'Event not found' },
+      { status: 404 }
+    );
+  }
+
+  if (eventData.owner_user_id !== adminUser.id) {
+    return NextResponse.json(
+      { error: 'Forbidden: You do not own this event' },
+      { status: 403 }
+    );
+  }
+
+  return null;
+}
+
 async function persistGuestsToDatabase(
   newGuests: Array<{ slug: string; guest: Guest }>,
-  adminUser: AuthenticatedUser
+  adminUser: AuthenticatedUser,
+  eventId: string
 ) {
   try {
     if (newGuests.length === 0) {
@@ -70,6 +106,7 @@ async function persistGuestsToDatabase(
     const { data: existingGuests, error: existingError } = await supabaseAdmin
       .from(GUESTS_TABLE)
       .select('slug')
+      .eq('event_id', eventId)
       .in('slug', incomingSlugs);
 
     if (existingError) {
@@ -100,6 +137,7 @@ async function persistGuestsToDatabase(
       created_by_user_id: adminUser.id,
       created_by_email: adminUser.email || null,
       created_by_name: adminUser.name || null,
+      event_id: eventId,
     }));
 
     const { error: insertError } = await supabaseAdmin
@@ -185,6 +223,14 @@ function parseGuestsFromCsv(csvText: string) {
 
 export async function POST(request: Request) {
   try {
+        const eventId = (new URL(request.url)).searchParams.get('eventId')?.trim();
+        if (!eventId) {
+          return NextResponse.json(
+            { error: 'Missing event id' },
+            { status: 400 }
+          );
+        }
+
     const adminUser = await getAuthenticatedRequestUser(request);
 
     if (!adminUser) {
@@ -198,6 +244,11 @@ export async function POST(request: Request) {
         { error: 'Forbidden' },
         { status: 403 }
       );
+    }
+
+    const accessError = await assertEventAccess(eventId, adminUser);
+    if (accessError) {
+      return accessError;
     }
 
     const body: ImportRequest = await request.json();
@@ -247,7 +298,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { addedCount, skippedCount } = await persistGuestsToDatabase(validGuests, adminUser);
+    const { addedCount, skippedCount } = await persistGuestsToDatabase(validGuests, adminUser, eventId);
 
     const response: ImportResponse = {
       success: errors.length === 0,
@@ -282,6 +333,14 @@ export async function POST(request: Request) {
 // Handle CSV file upload
 export async function PUT(request: Request) {
   try {
+        const eventId = (new URL(request.url)).searchParams.get('eventId')?.trim();
+        if (!eventId) {
+          return NextResponse.json(
+            { error: 'Missing event id' },
+            { status: 400 }
+          );
+        }
+
     const adminUser = await getAuthenticatedRequestUser(request);
 
     if (!adminUser) {
@@ -295,6 +354,11 @@ export async function PUT(request: Request) {
         { error: 'Forbidden' },
         { status: 403 }
       );
+    }
+
+    const accessError = await assertEventAccess(eventId, adminUser);
+    if (accessError) {
+      return accessError;
     }
 
     const formData = await request.formData();
@@ -337,7 +401,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { addedCount, skippedCount } = await persistGuestsToDatabase(guests, adminUser);
+    const { addedCount, skippedCount } = await persistGuestsToDatabase(guests, adminUser, eventId);
 
     return NextResponse.json({
       success: errors.length === 0,

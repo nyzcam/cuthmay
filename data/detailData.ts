@@ -31,6 +31,7 @@ export interface DetailData {
   couple: Couple;
   dateInfo: DateInfo;
   directions: Omit<Direction, 'distance'>[];
+  directionMapUrl?: string;
 }
 
 export const defaultDetailData: DetailData = {
@@ -60,6 +61,7 @@ export const defaultDetailData: DetailData = {
         "ដល់ខ្លោងទ្វារវត្តសិរីធានីខាងស្ដាំដៃ រួចបត់ចូលប្រមាណ ១.៥គ.ម លោកអ្នកនឹងទៅដល់ផ្ទះពិធីមង្គលការ។",
     },
   ],
+  directionMapUrl: "https://maps.app.goo.gl/ZiEYZU2GpxkvH49DA?g_st=ic",
 };
 
 /**

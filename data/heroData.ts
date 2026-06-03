@@ -10,6 +10,8 @@ export interface HeroData {
   subtitle: string;
   invitation: string;
   honorifics: string;
+  groomName?: string;
+  brideName?: string;
   eventDate: {
     day: string;
     dayOfWeek: string;
@@ -25,6 +27,8 @@ export const defaultHeroData: HeroData = {
   subtitle: "សូមគោរមអញ្ជើញ",
   invitation: "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា",
   honorifics: "សូមគោរមអញ្ជើញ",
+  groomName: "សែត កុម្ភម្នី",
+  brideName: "ដេត វឌ្ឍណា",
   eventDate: {
     day: "១៧",
     dayOfWeek: "អាទិត្យ",
