@@ -29,6 +29,7 @@ import { PaginationControls } from "@/components/admin/PaginationControls";
 import { CommentsPanel } from "@/components/admin/CommentsPanel";
 import { AdminUsersPanel, type AdminRole, type AdminUserRow } from "@/components/admin/AdminUsersPanel";
 import { ImpersonationPanel } from "@/components/admin/ImpersonationPanel";
+import { EventAdminsPanel, type EventAdminAssignment } from "@/components/admin/EventAdminsPanel";
 import { useAuthMe } from "@/hooks/useAuthMe";
 import { useTheme } from "@/providers/ThemeContext";
 
@@ -88,6 +89,11 @@ export default function GuestManagementPage() {
   const [isLoadingComments, setIsLoadingComments] = useState(true);
   const [isLoadingEvents, setIsLoadingEvents] = useState(true);
   const [isSavingEvent, setIsSavingEvent] = useState(false);
+  const [eventAdmins, setEventAdmins] = useState<EventAdminAssignment[]>([]);
+  const [isLoadingEventAdmins, setIsLoadingEventAdmins] = useState(false);
+  const [isAddingEventAdmin, setIsAddingEventAdmin] = useState(false);
+  const [removingEventAdminUserId, setRemovingEventAdminUserId] = useState<string | null>(null);
+  const [eventAdminsError, setEventAdminsError] = useState<string | null>(null);
   const [isLoadingAdminUsers, setIsLoadingAdminUsers] = useState(false);
   const [isCreatingAdminUser, setIsCreatingAdminUser] = useState(false);
   const [updatingCommentId, setUpdatingCommentId] = useState<string | null>(null);
@@ -222,6 +228,35 @@ export default function GuestManagementPage() {
     }
   }, [selectedEventId]);
 
+  const loadEventAdmins = useCallback(async () => {
+    if (!isSuperAdmin || !selectedEventId) {
+      setEventAdmins([]);
+      setEventAdminsError(null);
+      return;
+    }
+
+    setIsLoadingEventAdmins(true);
+    setEventAdminsError(null);
+    try {
+      const response = await fetch(`/api/admin/events/${encodeURIComponent(selectedEventId)}/admins`, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load event admins");
+      }
+
+      setEventAdmins(Array.isArray(data.admins) ? data.admins : []);
+    } catch (error) {
+      setEventAdminsError(error instanceof Error ? error.message : "Failed to load event admins");
+      setEventAdmins([]);
+    } finally {
+      setIsLoadingEventAdmins(false);
+    }
+  }, [isSuperAdmin, selectedEventId]);
+
   useEffect(() => {
     void loadEvents();
   }, [loadEvents]);
@@ -242,6 +277,12 @@ export default function GuestManagementPage() {
       void loadAdminUsers();
     }
   }, [activeNav, loadAdminUsers, isSuperAdmin]);
+
+  useEffect(() => {
+    if (activeNav === "events") {
+      void loadEventAdmins();
+    }
+  }, [activeNav, loadEventAdmins]);
 
   useEffect(() => {
     setGuestPage(1);
@@ -526,6 +567,7 @@ export default function GuestManagementPage() {
     invitationText?: string;
     theme?: string;
     ownerUserId?: string;
+    adminUserIds?: string[];
   }) => {
     setIsSavingEvent(true);
     setLoadError(null);
@@ -575,6 +617,7 @@ export default function GuestManagementPage() {
       invitationText?: string;
       theme?: string;
       ownerUserId?: string;
+      adminUserIds?: string[];
     }
   ) => {
     setIsSavingEvent(true);
@@ -633,6 +676,69 @@ export default function GuestManagementPage() {
       setDeletingEventId(null);
     }
   }, []);
+
+  const handleAddEventAdmin = useCallback(async (payload: { userId: string; role: "admin" | "owner" }) => {
+    if (!selectedEventId) {
+      return;
+    }
+
+    setIsAddingEventAdmin(true);
+    setEventAdminsError(null);
+    try {
+      const response = await fetch(`/api/admin/events/${encodeURIComponent(selectedEventId)}/admins`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to add event admin");
+      }
+
+      const created = data.admin as EventAdminAssignment;
+      setEventAdmins((prev) => [...prev, created]);
+    } catch (error) {
+      setEventAdminsError(error instanceof Error ? error.message : "Failed to add event admin");
+    } finally {
+      setIsAddingEventAdmin(false);
+    }
+  }, [selectedEventId]);
+
+  const handleRemoveEventAdmin = useCallback(async (userId: string) => {
+    if (!selectedEventId) {
+      return;
+    }
+
+    const confirmed = window.confirm("Remove this admin from the selected event?");
+    if (!confirmed) {
+      return;
+    }
+
+    setRemovingEventAdminUserId(userId);
+    setEventAdminsError(null);
+    try {
+      const response = await fetch(
+        `/api/admin/events/${encodeURIComponent(selectedEventId)}/admins/${encodeURIComponent(userId)}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to remove event admin");
+      }
+
+      setEventAdmins((prev) => prev.filter((admin) => admin.userId !== userId));
+    } catch (error) {
+      setEventAdminsError(error instanceof Error ? error.message : "Failed to remove event admin");
+    } finally {
+      setRemovingEventAdminUserId(null);
+    }
+  }, [selectedEventId]);
 
   const refreshAdminUsers = useCallback(() => {
     void loadAdminUsers();
@@ -978,6 +1084,7 @@ export default function GuestManagementPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
+                className="space-y-4"
               >
                 <EventManagerPanel
                   events={events}
@@ -993,6 +1100,21 @@ export default function GuestManagementPage() {
                   onUpdateEvent={handleUpdateEvent}
                   onDeleteEvent={handleDeleteEvent}
                 />
+                {isSuperAdmin && (
+                  <EventAdminsPanel
+                    eventId={selectedEventId}
+                    eventLabel={selectedEvent?.displayName}
+                    admins={eventAdmins}
+                    adminUsers={adminUsers}
+                    isLoading={isLoadingEventAdmins}
+                    isAdding={isAddingEventAdmin}
+                    removingUserId={removingEventAdminUserId}
+                    error={eventAdminsError}
+                    onRefresh={() => void loadEventAdmins()}
+                    onAddAdmin={handleAddEventAdmin}
+                    onRemoveAdmin={handleRemoveEventAdmin}
+                  />
+                )}
               </motion.div>
             )}
 

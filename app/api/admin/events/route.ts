@@ -23,7 +23,62 @@ type EventPayload = {
   invitationText?: string;
   theme?: string;
   ownerUserId?: string;
+  adminUserIds?: string[];
 };
+
+function normalizeRole(value: unknown): "super_admin" | "admin" | "guest" {
+  if (typeof value !== "string") {
+    return "guest";
+  }
+
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, "_");
+  if (normalized === "super_admin" || normalized === "superadmin") {
+    return "super_admin";
+  }
+  if (normalized === "admin") {
+    return "admin";
+  }
+
+  return "guest";
+}
+
+function normalizeUserIds(userIds: string[] | undefined): string[] {
+  if (!Array.isArray(userIds)) {
+    return [];
+  }
+
+  return Array.from(new Set(userIds.map((value) => value?.trim()).filter(Boolean))) as string[];
+}
+
+async function validateAdminUserIds(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdminClient>,
+  userIds: string[]
+): Promise<{ validIds: string[]; invalidIds: string[]; nonAdminIds: string[] }> {
+  const validIds: string[] = [];
+  const invalidIds: string[] = [];
+  const nonAdminIds: string[] = [];
+
+  for (const userId of userIds) {
+    const userResult = await supabaseAdmin.auth.admin.getUserById(userId);
+    if (userResult.error || !userResult.data.user) {
+      invalidIds.push(userId);
+      continue;
+    }
+
+    const role = normalizeRole(
+      userResult.data.user.user_metadata?.role ?? userResult.data.user.app_metadata?.role
+    );
+
+    if (role !== "admin" && role !== "super_admin") {
+      nonAdminIds.push(userId);
+      continue;
+    }
+
+    validIds.push(userResult.data.user.id);
+  }
+
+  return { validIds, invalidIds, nonAdminIds };
+}
 
 function toSlug(value: string): string {
   return value
@@ -110,8 +165,12 @@ export async function GET(request: Request) {
 
         const eventIds = adminEvents ? adminEvents.map((ae) => ae.event_id) : [];
 
-        // Also include events they directly own for safety during transition
-        query = query.or(`id.in.(${eventIds.join(',')}),owner_user_id.eq.${user.id}`);
+        // Also include events they directly own for safety during transition.
+        if (eventIds.length === 0) {
+          query = query.eq("owner_user_id", user.id);
+        } else {
+          query = query.or(`id.in.(${eventIds.join(",")}),owner_user_id.eq.${user.id}`);
+        }
       }
     }
 
@@ -147,6 +206,12 @@ export async function POST(request: Request) {
     if (!canAccessGuestManagement(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+    if (!isSuperAdmin(user)) {
+      return NextResponse.json(
+        { error: "Forbidden: Only super admins can create events" },
+        { status: 403 }
+      );
+    }
 
     const body = (await request.json()) as EventPayload;
     const displayName = body.displayName?.trim();
@@ -168,8 +233,27 @@ export async function POST(request: Request) {
 
     const supabaseAdmin = getSupabaseAdminClient();
     
-    // Only superadmin can assign to a different owner
-    const finalOwnerId = isSuperAdmin(user) && body.ownerUserId?.trim() ? body.ownerUserId.trim() : user.id;
+    const finalOwnerId = body.ownerUserId?.trim() ? body.ownerUserId.trim() : user.id;
+    const requestedAdminUserIds = normalizeUserIds(body.adminUserIds);
+
+    const adminUserIdsToAssign = Array.from(new Set([finalOwnerId, ...requestedAdminUserIds]));
+    if (adminUserIdsToAssign.length > 0) {
+      const { invalidIds, nonAdminIds } = await validateAdminUserIds(supabaseAdmin, adminUserIdsToAssign);
+
+      if (invalidIds.length > 0) {
+        return NextResponse.json(
+          { error: `Admin user not found: ${invalidIds.join(", ")}` },
+          { status: 400 }
+        );
+      }
+
+      if (nonAdminIds.length > 0) {
+        return NextResponse.json(
+          { error: `Only admin or super_admin users can be assigned: ${nonAdminIds.join(", ")}` },
+          { status: 400 }
+        );
+      }
+    }
 
     let currentSlug = slug;
     let data, error;
@@ -196,7 +280,7 @@ export async function POST(request: Request) {
           hero_title: body.heroTitle?.trim() || null,
           hero_subtitle: body.heroSubtitle?.trim() || null,
           invitation_text: body.invitationText?.trim() || null,
-          theme: isSuperAdmin(user) ? (body.theme?.trim() || 'default') : 'default',
+          theme: body.theme?.trim() || 'default',
         })
         .select(
           "id, slug, owner_user_id, display_name, groom_name, bride_name, groom_father_name, groom_mother_name, bride_father_name, bride_mother_name, wedding_date, lunar_date, location_text, direction_map_url, directions_json, hero_title, hero_subtitle, invitation_text, theme, created_at, updated_at"
@@ -225,12 +309,19 @@ export async function POST(request: Request) {
 
     if (data) {
       const EVENT_ADMINS_TABLE = process.env.SUPABASE_EVENT_ADMINS_TABLE ?? "event_admins";
-      // Add the creator as the owner automatically in the event_admins table
-      await supabaseAdmin.from(EVENT_ADMINS_TABLE).insert({
+      const adminRows = adminUserIdsToAssign.map((userId) => ({
         event_id: data.id,
-        user_id: finalOwnerId,
-        role: "owner"
-      });
+        user_id: userId,
+        role: userId === finalOwnerId ? "owner" : "admin",
+      }));
+
+      const { error: adminInsertError } = await supabaseAdmin
+        .from(EVENT_ADMINS_TABLE)
+        .upsert(adminRows, { onConflict: "event_id,user_id" });
+
+      if (adminInsertError) {
+        throw new Error(adminInsertError.message);
+      }
     }
 
     return NextResponse.json({ event: mapEventRow(data) }, { status: 201 });

@@ -13,6 +13,7 @@ const MAX_CSV_ROWS = 2000;
 const MAX_JSON_GUESTS = 500;
 const GUESTS_TABLE = process.env.SUPABASE_GUESTS_TABLE ?? 'guests';
 const EVENTS_TABLE = process.env.SUPABASE_EVENTS_TABLE ?? 'events';
+const EVENT_ADMINS_TABLE = process.env.SUPABASE_EVENT_ADMINS_TABLE ?? 'event_admins';
 
 interface ImportRequest {
   guests: Guest[];
@@ -66,7 +67,7 @@ async function assertEventAccess(eventId: string, adminUser: AuthenticatedUser) 
   const supabaseAdmin = getSupabaseAdminClient();
   const { data: eventData, error: eventError } = await supabaseAdmin
     .from(EVENTS_TABLE)
-    .select('owner_user_id')
+    .select('id')
     .eq('id', eventId)
     .maybeSingle();
 
@@ -81,9 +82,20 @@ async function assertEventAccess(eventId: string, adminUser: AuthenticatedUser) 
     );
   }
 
-  if (eventData.owner_user_id !== adminUser.id) {
+  const { data: adminRecord, error: adminError } = await supabaseAdmin
+    .from(EVENT_ADMINS_TABLE)
+    .select('id')
+    .eq('event_id', eventId)
+    .eq('user_id', adminUser.id)
+    .maybeSingle();
+
+  if (adminError) {
+    throw new Error(adminError.message);
+  }
+
+  if (!adminRecord) {
     return NextResponse.json(
-      { error: 'Forbidden: You do not own this event' },
+      { error: 'Forbidden: You are not an admin of this event' },
       { status: 403 }
     );
   }

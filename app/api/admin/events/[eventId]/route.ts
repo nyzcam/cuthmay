@@ -24,6 +24,7 @@ type EventPayload = {
   invitationText?: string;
   theme?: string;
   ownerUserId?: string;
+  adminUserIds?: string[];
 };
 
 type EventRow = {
@@ -64,6 +65,44 @@ function normalizeRole(value: unknown): "super_admin" | "admin" | "guest" {
   }
 
   return "guest";
+}
+
+function normalizeUserIds(userIds: string[] | undefined): string[] {
+  if (!Array.isArray(userIds)) {
+    return [];
+  }
+
+  return Array.from(new Set(userIds.map((value) => value?.trim()).filter(Boolean))) as string[];
+}
+
+async function validateAdminUserIds(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdminClient>,
+  userIds: string[]
+): Promise<{ validIds: string[]; invalidIds: string[]; nonAdminIds: string[] }> {
+  const validIds: string[] = [];
+  const invalidIds: string[] = [];
+  const nonAdminIds: string[] = [];
+
+  for (const userId of userIds) {
+    const userResult = await supabaseAdmin.auth.admin.getUserById(userId);
+    if (userResult.error || !userResult.data.user) {
+      invalidIds.push(userId);
+      continue;
+    }
+
+    const role = normalizeRole(
+      userResult.data.user.user_metadata?.role ?? userResult.data.user.app_metadata?.role
+    );
+
+    if (role !== "admin" && role !== "super_admin") {
+      nonAdminIds.push(userId);
+      continue;
+    }
+
+    validIds.push(userResult.data.user.id);
+  }
+
+  return { validIds, invalidIds, nonAdminIds };
 }
 
 async function resolveEventOwnerId(
@@ -189,7 +228,7 @@ async function getAuthorizedEvent(eventId: string, request: Request) {
     }
   }
 
-  return { user };
+  return { user, event };
 }
 
 export async function PATCH(
@@ -205,6 +244,28 @@ export async function PATCH(
 
     const body = (await request.json()) as EventPayload;
     const updates: Record<string, unknown> = {};
+    let resolvedOwnerUserId = auth.event.owner_user_id;
+
+    if (!isSuperAdmin(auth.user) && body.theme !== undefined) {
+      return NextResponse.json(
+        { error: "Forbidden: Only super admins can edit event theme" },
+        { status: 403 }
+      );
+    }
+
+    if (!isSuperAdmin(auth.user) && body.ownerUserId !== undefined) {
+      return NextResponse.json(
+        { error: "Forbidden: Only super admins can assign event owner" },
+        { status: 403 }
+      );
+    }
+
+    if (!isSuperAdmin(auth.user) && body.adminUserIds !== undefined) {
+      return NextResponse.json(
+        { error: "Forbidden: Only super admins can assign event admins" },
+        { status: 403 }
+      );
+    }
 
     if (body.displayName !== undefined) {
       const displayName = body.displayName.trim();
@@ -243,7 +304,8 @@ export async function PATCH(
       if (ownerResolution.error) {
         return ownerResolution.error;
       }
-      updates.owner_user_id = ownerResolution.ownerId;
+      resolvedOwnerUserId = ownerResolution.ownerId ?? resolvedOwnerUserId;
+      updates.owner_user_id = resolvedOwnerUserId;
     }
 
     if (body.weddingDate !== undefined) {
@@ -254,25 +316,110 @@ export async function PATCH(
       updates.wedding_date = weddingDate;
     }
 
-    if (Object.keys(updates).length === 0) {
+    const shouldSyncAdmins = isSuperAdmin(auth.user) && (body.adminUserIds !== undefined || body.ownerUserId !== undefined);
+
+    if (Object.keys(updates).length === 0 && !shouldSyncAdmins) {
       return NextResponse.json({ error: "No updates provided" }, { status: 400 });
     }
 
     const supabaseAdmin = getSupabaseAdminClient();
-    const { data, error } = await supabaseAdmin
-      .from(EVENTS_TABLE)
-      .update(updates)
-      .eq("id", eventId)
-      .select(
-        "id, slug, owner_user_id, display_name, groom_name, bride_name, groom_father_name, groom_mother_name, bride_father_name, bride_mother_name, wedding_date, lunar_date, location_text, direction_map_url, directions_json, hero_title, hero_subtitle, invitation_text, theme, created_at, updated_at"
-      )
-      .single();
+    let data: EventRow | null = null;
 
-    if (error) {
-      if (error.code === "23505") {
-        return NextResponse.json({ error: "Event slug already exists" }, { status: 409 });
+    if (Object.keys(updates).length > 0) {
+      const { data: updatedEvent, error } = await supabaseAdmin
+        .from(EVENTS_TABLE)
+        .update(updates)
+        .eq("id", eventId)
+        .select(
+          "id, slug, owner_user_id, display_name, groom_name, bride_name, groom_father_name, groom_mother_name, bride_father_name, bride_mother_name, wedding_date, lunar_date, location_text, direction_map_url, directions_json, hero_title, hero_subtitle, invitation_text, theme, created_at, updated_at"
+        )
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          return NextResponse.json({ error: "Event slug already exists" }, { status: 409 });
+        }
+        throw new Error(error.message);
       }
-      throw new Error(error.message);
+
+      data = updatedEvent;
+    } else {
+      const { data: existingEvent, error } = await supabaseAdmin
+        .from(EVENTS_TABLE)
+        .select(
+          "id, slug, owner_user_id, display_name, groom_name, bride_name, groom_father_name, groom_mother_name, bride_father_name, bride_mother_name, wedding_date, lunar_date, location_text, direction_map_url, directions_json, hero_title, hero_subtitle, invitation_text, theme, created_at, updated_at"
+        )
+        .eq("id", eventId)
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      data = existingEvent;
+    }
+
+    if (shouldSyncAdmins) {
+      const requestedAdminIds = normalizeUserIds(body.adminUserIds);
+      const adminUserIdsToAssign = Array.from(new Set([resolvedOwnerUserId, ...requestedAdminIds]));
+
+      const { invalidIds, nonAdminIds } = await validateAdminUserIds(supabaseAdmin, adminUserIdsToAssign);
+      if (invalidIds.length > 0) {
+        return NextResponse.json(
+          { error: `Admin user not found: ${invalidIds.join(", ")}` },
+          { status: 400 }
+        );
+      }
+
+      if (nonAdminIds.length > 0) {
+        return NextResponse.json(
+          { error: `Only admin or super_admin users can be assigned: ${nonAdminIds.join(", ")}` },
+          { status: 400 }
+        );
+      }
+
+      const { data: existingAdmins, error: existingAdminsError } = await supabaseAdmin
+        .from(EVENT_ADMINS_TABLE)
+        .select("user_id")
+        .eq("event_id", eventId);
+
+      if (existingAdminsError) {
+        throw new Error(existingAdminsError.message);
+      }
+
+      const userIdsToRemove = (existingAdmins ?? [])
+        .map((row) => row.user_id as string)
+        .filter((userId) => !adminUserIdsToAssign.includes(userId));
+
+      if (userIdsToRemove.length > 0) {
+        const { error: deleteOldAdminsError } = await supabaseAdmin
+          .from(EVENT_ADMINS_TABLE)
+          .delete()
+          .eq("event_id", eventId)
+          .in("user_id", userIdsToRemove);
+
+        if (deleteOldAdminsError) {
+          throw new Error(deleteOldAdminsError.message);
+        }
+      }
+
+      const adminRows = adminUserIdsToAssign.map((userId) => ({
+        event_id: eventId,
+        user_id: userId,
+        role: userId === resolvedOwnerUserId ? "owner" : "admin",
+      }));
+
+      const { error: upsertAdminsError } = await supabaseAdmin
+        .from(EVENT_ADMINS_TABLE)
+        .upsert(adminRows, { onConflict: "event_id,user_id" });
+
+      if (upsertAdminsError) {
+        throw new Error(upsertAdminsError.message);
+      }
+    }
+
+    if (!data) {
+      throw new Error("Failed to load updated event");
     }
 
     return NextResponse.json({ event: mapEventRow(data) });

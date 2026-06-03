@@ -46,6 +46,7 @@ type EventPayload = {
   invitationText?: string;
   theme?: string;
   ownerUserId?: string;
+  adminUserIds?: string[];
 };
 
 interface EventManagerPanelProps {
@@ -85,6 +86,7 @@ type FormState = {
   invitationText: string;
   theme: string;
   ownerUserId: string;
+  adminUserIds: string;
 };
 
 const emptyForm: FormState = {
@@ -109,6 +111,7 @@ const emptyForm: FormState = {
   invitationText: "",
   theme: "default",
   ownerUserId: "",
+  adminUserIds: "",
 };
 
 function toDateInputValue(value: string | null | undefined): string {
@@ -131,6 +134,19 @@ function formToDirectionsJson(form: FormState): Array<{ id: number; description:
   if (form.dir1Desc) dirs.push({ id: 1, description: form.dir1Desc, detail: form.dir1Detail });
   if (form.dir2Desc) dirs.push({ id: 2, description: form.dir2Desc, detail: form.dir2Detail });
   return dirs.length > 0 ? dirs : undefined;
+}
+
+function parseAdminUserIds(value: string): string[] | undefined {
+  const ids = Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    )
+  );
+
+  return ids.length > 0 ? ids : undefined;
 }
 
 function eventToForm(event: AdminEvent): FormState {
@@ -157,6 +173,7 @@ function eventToForm(event: AdminEvent): FormState {
     invitationText: event.invitationText ?? "",
     theme: event.theme ?? "default",
     ownerUserId: event.ownerUserId ?? "",
+    adminUserIds: "",
   };
 }
 
@@ -180,6 +197,7 @@ function formToPayload(form: FormState): EventPayload {
     invitationText: form.invitationText || undefined,
     theme: form.theme || undefined,
     ownerUserId: form.ownerUserId || undefined,
+    adminUserIds: parseAdminUserIds(form.adminUserIds),
   };
 }
 
@@ -274,6 +292,53 @@ function EventFormFields({ form, onChange, themes, isSuperAdmin, assignableOwner
           ) : (
             <input aria-label="Admin/Owner User ID" value={form.ownerUserId} onChange={(e) => onChange("ownerUserId", e.target.value)} placeholder="Owner User ID (System Admin Only)" className="rounded-xl border border-orange-500/30 bg-black/25 px-4 py-2.5 text-orange-200 outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors w-full" />
           )}
+          <div className="md:col-span-2">
+            <p className="mb-2 text-xs uppercase text-orange-200 font-khmer">អ្នកគ្រប់គ្រងបន្ថែម (Additional Admins)</p>
+            {assignableOwners && assignableOwners.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                {assignableOwners.map((u) => {
+                  const isAdmin = form.adminUserIds
+                    .split(",")
+                    .map(id => id.trim())
+                    .includes(u.id);
+
+                  return (
+                    <label key={u.id} className="flex items-center gap-2 text-orange-100 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={isAdmin}
+                        onChange={(e) => {
+                          const currentIds = form.adminUserIds
+                            .split(",")
+                            .map(id => id.trim())
+                            .filter(Boolean);
+                          
+                          if (e.target.checked) {
+                            if (!currentIds.includes(u.id)) currentIds.push(u.id);
+                          } else {
+                            const index = currentIds.indexOf(u.id);
+                            if (index !== -1) currentIds.splice(index, 1);
+                          }
+                          
+                          onChange("adminUserIds", currentIds.join(","));
+                        }}
+                        className="rounded border-orange-500/30 bg-black/25 text-orange-500 focus:ring-1 focus:ring-orange-400"
+                      />
+                      {u.name} ({u.email})
+                    </label>
+                  );
+                })}
+              </div>
+            ) : (
+              <input
+                aria-label="Additional Admin User IDs"
+                value={form.adminUserIds}
+                onChange={(e) => onChange("adminUserIds", e.target.value)}
+                placeholder="Additional Admin User IDs (comma-separated)"
+                className="rounded-xl border border-orange-500/30 bg-black/25 px-4 py-2.5 text-orange-200 outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors w-full"
+              />
+            )}
+          </div>
         </FormBlock>
       )}
     </div>
@@ -336,18 +401,20 @@ export function EventManagerPanel({
               </option>
             ))}
           </select>
-          <button
-            type="button"
-            onClick={() => setShowCreateForm((prev) => !prev)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white/85 hover:bg-white/10 font-khmer"
-          >
-            <CalendarPlus size={15} />
-            {showCreateForm ? "បិទ (Close)" : "បង្កើតព្រឹត្តិការណ៍"}
-          </button>
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => setShowCreateForm((prev) => !prev)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white/85 hover:bg-white/10 font-khmer"
+            >
+              <CalendarPlus size={15} />
+              {showCreateForm ? "បិទ (Close)" : "បង្កើតព្រឹត្តិការណ៍"}
+            </button>
+          )}
         </div>
       </div>
 
-      {showCreateForm && (
+      {isSuperAdmin && showCreateForm && (
         <motion.form
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
