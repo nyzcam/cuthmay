@@ -5,9 +5,8 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 const EVENT_ADMINS_TABLE = process.env.SUPABASE_EVENT_ADMINS_TABLE ?? "event_admins";
 const EVENTS_TABLE = process.env.SUPABASE_EVENTS_TABLE ?? "events";
 
-type EventAdmin = {
+type EventAdminRow = {
   id: number;
-  event_id: string;
   user_id: string;
   role: "admin" | "owner";
   created_at: string;
@@ -83,7 +82,7 @@ export async function GET(
     }
 
     return NextResponse.json({
-      admins: (admins ?? []).map((admin: EventAdmin) => ({
+      admins: (admins ?? []).map((admin: EventAdminRow) => ({
         id: admin.id,
         userId: admin.user_id,
         role: admin.role,
