@@ -1,9 +1,11 @@
-import React, { useMemo, useState } from "react";
-import { CalendarPlus, Pencil, Save, Trash2, XCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import React, { useMemo, useRef, useState } from "react";
+import { CalendarPlus, ChevronDown, Pencil, Plus, Save, Trash2, XCircle } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Theme } from "@/config/themeConfig";
 import { useAuthMe } from "@/hooks/useAuthMe";
 import { type AdminUserRow } from "@/components/admin/AdminUsersPanel";
+
+// ── Types ────────────────────────────────────────────────────────────────────
 
 export interface AdminEvent {
   id: string;
@@ -40,7 +42,7 @@ type EventPayload = {
   lunarDate?: string;
   locationText?: string;
   directionMapUrl?: string;
-  directionsJson?: Array<{ id: number; description: string; detail: string }>;
+  directionsJson?: Array<{ id: number; detail: string }>;
   heroTitle?: string;
   heroSubtitle?: string;
   invitationText?: string;
@@ -64,6 +66,15 @@ interface EventManagerPanelProps {
   onDeleteEvent: (eventId: string) => Promise<void>;
 }
 
+// ── Direction types ───────────────────────────────────────────────────────────
+
+type DirectionEntry = {
+  id: number;
+  details: string[];
+};
+
+// ── FormState (directions split out) ─────────────────────────────────────────
+
 type FormState = {
   slug: string;
   displayName: string;
@@ -77,10 +88,6 @@ type FormState = {
   lunarDate: string;
   locationText: string;
   directionMapUrl: string;
-  dir1Desc: string;
-  dir1Detail: string;
-  dir2Desc: string;
-  dir2Detail: string;
   heroTitle: string;
   heroSubtitle: string;
   invitationText: string;
@@ -102,10 +109,6 @@ const emptyForm: FormState = {
   lunarDate: "",
   locationText: "",
   directionMapUrl: "",
-  dir1Desc: "",
-  dir1Detail: "",
-  dir2Desc: "",
-  dir2Detail: "",
   heroTitle: "",
   heroSubtitle: "",
   invitationText: "",
@@ -113,6 +116,10 @@ const emptyForm: FormState = {
   ownerUserId: "",
   adminUserIds: "",
 };
+
+const emptyDirections: DirectionEntry[] = [];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function toDateInputValue(value: string | null | undefined): string {
   if (!value) return "";
@@ -129,28 +136,35 @@ function toIsoUtc(localDateTime: string): string | undefined {
   return date.toISOString();
 }
 
-function formToDirectionsJson(form: FormState): Array<{ id: number; description: string; detail: string }> | undefined {
-  const dirs: Array<{ id: number; description: string; detail: string }> = [];
-  if (form.dir1Desc) dirs.push({ id: 1, description: form.dir1Desc, detail: form.dir1Detail });
-  if (form.dir2Desc) dirs.push({ id: 2, description: form.dir2Desc, detail: form.dir2Detail });
-  return dirs.length > 0 ? dirs : undefined;
-}
-
 function parseAdminUserIds(value: string): string[] | undefined {
-  const ids = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean)
-    )
-  );
-
+  const ids = Array.from(new Set(value.split(",").map((s) => s.trim()).filter(Boolean)));
   return ids.length > 0 ? ids : undefined;
 }
 
+/** Convert DirectionEntry[] → the API shape */
+function directionsToJson(
+  dirs: DirectionEntry[]
+): Array<{ id: number; detail: string }> | undefined {
+  const result = dirs
+    .map((d) => ({
+      id: d.id,
+      detail: d.details.filter(Boolean).join("\n"),
+    }));
+  return result.length > 0 ? result : undefined;
+}
+
+/** Convert API directionsJson → DirectionEntry[] */
+function jsonToDirections(
+  json: Array<{ id: number; detail: string }> | null | undefined
+): DirectionEntry[] {
+  if (!json || json.length === 0) return [];
+  return json.map((d) => ({
+    id: d.id,
+    details: d.detail ? d.detail.split("\n") : [""],
+  }));
+}
+
 function eventToForm(event: AdminEvent): FormState {
-  const d = event.directionsJson;
   return {
     slug: event.slug,
     displayName: event.displayName,
@@ -164,10 +178,6 @@ function eventToForm(event: AdminEvent): FormState {
     lunarDate: event.lunarDate ?? "",
     locationText: event.locationText ?? "",
     directionMapUrl: event.directionMapUrl ?? "",
-    dir1Desc: d?.[0]?.description ?? "",
-    dir1Detail: d?.[0]?.detail ?? "",
-    dir2Desc: d?.[1]?.description ?? "",
-    dir2Detail: d?.[1]?.detail ?? "",
     heroTitle: event.heroTitle ?? "",
     heroSubtitle: event.heroSubtitle ?? "",
     invitationText: event.invitationText ?? "",
@@ -177,7 +187,7 @@ function eventToForm(event: AdminEvent): FormState {
   };
 }
 
-function formToPayload(form: FormState): EventPayload {
+function formToPayload(form: FormState, directions: DirectionEntry[]): EventPayload {
   return {
     slug: form.slug,
     displayName: form.displayName,
@@ -191,7 +201,7 @@ function formToPayload(form: FormState): EventPayload {
     lunarDate: form.lunarDate || undefined,
     locationText: form.locationText || undefined,
     directionMapUrl: form.directionMapUrl || undefined,
-    directionsJson: formToDirectionsJson(form),
+    directionsJson: directionsToJson(directions),
     heroTitle: form.heroTitle || undefined,
     heroSubtitle: form.heroSubtitle || undefined,
     invitationText: form.invitationText || undefined,
@@ -201,149 +211,246 @@ function formToPayload(form: FormState): EventPayload {
   };
 }
 
-const inputCls = "rounded-xl border border-white/15 bg-black/25 px-4 py-2.5 text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors w-full";
-const textareaCls = "rounded-xl border border-white/15 bg-black/25 px-4 py-2.5 text-white outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors w-full resize-y min-h-[80px]";
+// ── Shared styles ─────────────────────────────────────────────────────────────
 
-function FormBlock({ label, children }: { label: string; children: React.ReactNode }) {
+const inputCls =
+  "w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white " +
+  "placeholder:text-white/25 outline-none focus:border-white/30 focus:bg-white/[0.07] transition-colors duration-150";
+
+const textareaCls =
+  "w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white " +
+  "placeholder:text-white/25 outline-none focus:border-white/30 focus:bg-white/[0.07] " +
+  "transition-colors duration-150 resize-y min-h-[80px]";
+
+// ── Layout helpers ────────────────────────────────────────────────────────────
+
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-black/15 p-4">
-      <p className="mb-3 text-xs uppercase tracking-[0.12em] text-white/40 font-khmer">{label}</p>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        {children}
-      </div>
+    <div className="space-y-2">
+      <p className="text-[10px] font-medium uppercase tracking-widest text-white/30 font-khmer">{label}</p>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{children}</div>
     </div>
   );
 }
 
-interface EventFormFieldsProps {
-  form: FormState;
-  onChange: (field: keyof FormState, value: string) => void;
-  themes: Theme[];
-  isSuperAdmin?: boolean;
-  assignableOwners?: AdminUserRow[];
+function FullWidth({ children }: { children: React.ReactNode }) {
+  return <div className="sm:col-span-2">{children}</div>;
 }
 
-function EventFormFields({ form, onChange, themes, isSuperAdmin, assignableOwners }: EventFormFieldsProps) {
+// ── Button ────────────────────────────────────────────────────────────────────
+
+function Btn({
+  type = "button",
+  variant = "ghost",
+  disabled,
+  onClick,
+  children,
+}: {
+  type?: "button" | "submit";
+  variant?: "ghost" | "primary" | "danger";
+  disabled?: boolean;
+  onClick?: () => void;
+  children: React.ReactNode;
+}) {
+  const base =
+    "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium " +
+    "transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed";
+  const styles = {
+    ghost: "border border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.07] hover:text-white",
+    primary: "border border-white/15 bg-white/10 text-white hover:bg-white/[0.15]",
+    danger: "border border-red-400/20 bg-red-500/10 text-red-300 hover:bg-red-500/20",
+  };
   return (
-    <div className="mt-4 space-y-3">
-      <FormBlock label="ព្រឹត្តិការណ៍">
-        <input required aria-label="ឈ្មោះបង្ហាញ" value={form.displayName} onChange={(e) => onChange("displayName", e.target.value)} placeholder="ឈ្មោះបង្ហាញ (Display Name)" className={inputCls} />
-        <input required aria-label="តំណភ្ជាប់" value={form.slug} onChange={(e) => onChange("slug", e.target.value)} placeholder="តំណភ្ជាប់ (Slug)" className={inputCls} />
-      </FormBlock>
+    <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${styles[variant]}`}>
+      {children}
+    </button>
+  );
+}
 
-      <FormBlock label="គូស្នេហ៍">
-        <input aria-label="ឈ្មោះកូនកំលោះ" value={form.groomName} onChange={(e) => onChange("groomName", e.target.value)} placeholder="ឈ្មោះកូនកំលោះ (Groom Name)" className={inputCls} />
-        <input aria-label="ឈ្មោះកូនក្រមុំ" value={form.brideName} onChange={(e) => onChange("brideName", e.target.value)} placeholder="ឈ្មោះកូនក្រមុំ (Bride Name)" className={inputCls} />
-      </FormBlock>
+export function DirectionsSection({
+  mapUrl,
+  onMapUrl,
+  directions,
+  onDirections,
+}: {
+  mapUrl: string;
+  onMapUrl: (v: string) => void;
+  directions: any[];
+  onDirections: (dirs: any[]) => void;
+}) {
+  const [enabled, setEnabled] = useState(directions.length > 0);
+  const nextId = useRef(Math.max(0, ...directions.map((d) => d.id)) + 1);
 
-      <FormBlock label="ពេលវេលា & ទីតាំង">
-        <input type="datetime-local" aria-label="កាលបរិច្ឆេទ" value={form.weddingDate} onChange={(e) => onChange("weddingDate", e.target.value)} className={inputCls} />
-        <input aria-label="ថ្ងៃខែព្រះចន្ទ" value={form.lunarDate} onChange={(e) => onChange("lunarDate", e.target.value)} placeholder="ថ្ងៃខែព្រះចន្ទ (Lunar Date)" className={inputCls} />
-        <div className="md:col-span-2">
-          <input aria-label="ទីតាំង" value={form.locationText} onChange={(e) => onChange("locationText", e.target.value)} placeholder="ទីតាំង (Location)" className={inputCls} />
-        </div>
-      </FormBlock>
+  const toggle = (checked: boolean) => {
+    setEnabled(checked);
+    if (checked && directions.length === 0) {
+      onDirections([{ id: nextId.current++, value: "" }]);
+    }
+    if (!checked) {
+      onDirections([]);
+    }
+  };
 
-      <FormBlock label="ឪពុកម្ដាយ">
-        <input aria-label="ឈ្មោះឪពុកកំលោះ" value={form.groomFatherName} onChange={(e) => onChange("groomFatherName", e.target.value)} placeholder="ឈ្មោះឪពុកកំលោះ (Groom Father)" className={inputCls} />
-        <input aria-label="ឈ្មោះម្ដាយកំលោះ" value={form.groomMotherName} onChange={(e) => onChange("groomMotherName", e.target.value)} placeholder="ឈ្មោះម្ដាយកំលោះ (Groom Mother)" className={inputCls} />
-        <input aria-label="ឈ្មោះឪពុកក្រមុំ" value={form.brideFatherName} onChange={(e) => onChange("brideFatherName", e.target.value)} placeholder="ឈ្មោះឪពុកក្រមុំ (Bride Father)" className={inputCls} />
-        <input aria-label="ឈ្មោះម្ដាយក្រមុំ" value={form.brideMotherName} onChange={(e) => onChange("brideMotherName", e.target.value)} placeholder="ឈ្មោះម្ដាយក្រមុំ (Bride Mother)" className={inputCls} />
-      </FormBlock>
+  const addDir = () => {
+    onDirections([...directions, { id: nextId.current++, value: "" }]);
+  };
 
-      <FormBlock label="ទិសដៅ">
-        <div className="md:col-span-2">
-          <input aria-label="Direction Map URL" value={form.directionMapUrl} onChange={(e) => onChange("directionMapUrl", e.target.value)} placeholder="Google Maps URL" className={inputCls} />
-        </div>
-        <input aria-label="ទិសដៅទី១ ការពិពណ៌នា" value={form.dir1Desc} onChange={(e) => onChange("dir1Desc", e.target.value)} placeholder="ទិសដៅទី១ - ការពិពណ៌នា" className={inputCls} />
-        <input aria-label="ទិសដៅទី១ ព័ត៌មានលម្អិត" value={form.dir1Detail} onChange={(e) => onChange("dir1Detail", e.target.value)} placeholder="ទិសដៅទី១ - ព័ត៌មានលម្អិត" className={inputCls} />
-        <input aria-label="ទិសដៅទី២ ការពិពណ៌នា" value={form.dir2Desc} onChange={(e) => onChange("dir2Desc", e.target.value)} placeholder="ទិសដៅទី២ - ការពិពណ៌នា" className={inputCls} />
-        <input aria-label="ទិសដៅទី២ ព័ត៌មានលម្អិត" value={form.dir2Detail} onChange={(e) => onChange("dir2Detail", e.target.value)} placeholder="ទិសដៅទី២ - ព័ត៌មានលម្អិត" className={inputCls} />
-      </FormBlock>
+  const removeDir = (id: number) => {
+    const next = directions.filter((d) => d.id !== id);
+    onDirections(next);
+    if (next.length === 0) setEnabled(false);
+  };
 
-      <FormBlock label="ខ្លឹមសារ (Content)">
-        <input aria-label="Hero Title" value={form.heroTitle} onChange={(e) => onChange("heroTitle", e.target.value)} placeholder="Hero Title" className={inputCls} />
-        <input aria-label="Hero Subtitle" value={form.heroSubtitle} onChange={(e) => onChange("heroSubtitle", e.target.value)} placeholder="Hero Subtitle" className={inputCls} />
-        <div className="md:col-span-2">
-          <textarea aria-label="Invitation Text" value={form.invitationText} onChange={(e) => onChange("invitationText", e.target.value)} placeholder="Invitation Text" className={textareaCls} />
-        </div>
-      </FormBlock>
+  const updateDir = (id: number, value: string) => {
+    onDirections(directions.map((d) => (d.id === id ? { ...d, value } : d)));
+  };
 
-      {isSuperAdmin && (
-        <FormBlock label="Admin">
-          <select aria-label="Theme" value={form.theme} onChange={(e) => onChange("theme", e.target.value)} className={inputCls}>
-            <option value="" disabled>ជ្រើសរើស Theme</option>
-            {themes.map(t => (
-              <option key={t.id} value={t.id}>{t.name} ({t.id})</option>
+  return (
+    <Section label="ទិសដៅ">
+      {/* Map URL */}
+      <FullWidth>
+        <input
+          value={mapUrl}
+          onChange={(e) => onMapUrl(e.target.value)}
+          placeholder="Google Maps URL"
+          className={inputCls}
+        />
+      </FullWidth>
+
+      {/* Toggle */}
+      <FullWidth>
+        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 select-none transition-colors hover:bg-white/[0.06]">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => toggle(e.target.checked)}
+            className="h-3.5 w-3.5 accent-white"
+          />
+          <span className="text-sm text-white/60">Direction footnote</span>
+        </label>
+      </FullWidth>
+
+      {/* Footnote List */}
+      {enabled && (
+        <FullWidth>
+          <div className="space-y-2">
+            {directions.map((dir, i) => (
+              <div key={dir.id} className="flex items-center gap-2">
+                <input
+                  value={dir.value || ""} // Using 'value' instead of 'details'
+                  onChange={(e) => updateDir(dir.id, e.target.value)}
+                  placeholder={`Footnote ${i + 1}`}
+                  className={inputCls}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeDir(dir.id)}
+                  className="flex items-center p-0.5 text-white/25 transition-colors hover:text-red-400"
+                  aria-label={`Remove footnote ${i + 1}`}
+                >
+                  <XCircle size={15} />
+                </button>
+              </div>
             ))}
-          </select>
-          {assignableOwners && assignableOwners.length > 0 ? (
-            <select
-              aria-label="Owner User"
-              value={form.ownerUserId}
-              onChange={(e) => onChange("ownerUserId", e.target.value)}
-              className="rounded-xl border border-orange-500/30 bg-black/25 px-4 py-2.5 text-orange-200 outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors w-full"
+
+            <button
+              type="button"
+              onClick={addDir}
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-white/15 py-2 text-[12px] text-white/35 transition-colors hover:border-white/25 hover:text-white/60"
             >
-              <option value="">ជ្រើសរើស Owner</option>
-              {assignableOwners.map((u) => (
-                <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+              <Plus size={12} />
+              Add footnote
+            </button>
+          </div>
+        </FullWidth>
+      )}
+    </Section>
+  );
+}
+
+
+interface EventFormFieldsProps {
+  form: FormState;
+  directions: DirectionEntry[];
+  onChange: (field: keyof FormState, value: string) => void;
+  onDirections: (dirs: DirectionEntry[]) => void;
+  themes: Theme[];
+  isSuperAdmin?: boolean;
+}
+
+function EventFormFields({
+  form,
+  directions,
+  onChange,
+  onDirections,
+  themes,
+  isSuperAdmin,
+}: EventFormFieldsProps) {
+  const f =
+    (field: keyof FormState) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      onChange(field, e.target.value);
+
+  return (
+    <div className="space-y-5">
+      {/* Event */}
+      <Section label="ព្រឹត្តិការណ៍">
+        <input value={form.displayName} onChange={f("displayName")} placeholder="Display Name" className={inputCls} required />
+        <input value={form.slug} onChange={f("slug")} placeholder="Slug" className={inputCls} required />
+      </Section>
+
+      {/* Couple */}
+      <Section label="គូស្នេហ៍">
+        <input value={form.groomName} onChange={f("groomName")} placeholder="Groom Name" className={inputCls} />
+        <input value={form.brideName} onChange={f("brideName")} placeholder="Bride Name" className={inputCls} />
+      </Section>
+
+      {/* Date & Location */}
+      <Section label="ពេលវេលា & ទីតាំង">
+        <input type="datetime-local" value={form.weddingDate} onChange={f("weddingDate")} className={inputCls} />
+        <input value={form.lunarDate} onChange={f("lunarDate")} placeholder="Lunar Date" className={inputCls} />
+        <FullWidth>
+          <input value={form.locationText} onChange={f("locationText")} placeholder="Location" className={inputCls} />
+        </FullWidth>
+      </Section>
+
+      {/* Parents */}
+      <Section label="ឪពុកម្ដាយ">
+        <input value={form.groomFatherName} onChange={f("groomFatherName")} placeholder="Groom Father" className={inputCls} />
+        <input value={form.groomMotherName} onChange={f("groomMotherName")} placeholder="Groom Mother" className={inputCls} />
+        <input value={form.brideFatherName} onChange={f("brideFatherName")} placeholder="Bride Father" className={inputCls} />
+        <input value={form.brideMotherName} onChange={f("brideMotherName")} placeholder="Bride Mother" className={inputCls} />
+      </Section>
+
+      {/* Directions — new UX */}
+      <DirectionsSection
+        mapUrl={form.directionMapUrl}
+        onMapUrl={(v) => onChange("directionMapUrl", v)}
+        directions={directions}
+        onDirections={onDirections}
+      />
+
+      {/* Admin (super admin only) */}
+      {isSuperAdmin && (
+        <Section label="Admin">
+          <div className="relative">
+            <select value={form.theme} onChange={f("theme")} className={`${inputCls} appearance-none pr-8`}>
+              <option value="" disabled>Select Theme</option>
+              {themes.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name} ({t.id})
+                </option>
               ))}
             </select>
-          ) : (
-            <input aria-label="Admin/Owner User ID" value={form.ownerUserId} onChange={(e) => onChange("ownerUserId", e.target.value)} placeholder="Owner User ID (System Admin Only)" className="rounded-xl border border-orange-500/30 bg-black/25 px-4 py-2.5 text-orange-200 outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors w-full" />
-          )}
-          <div className="md:col-span-2">
-            <p className="mb-2 text-xs uppercase text-orange-200 font-khmer">អ្នកគ្រប់គ្រងបន្ថែម (Additional Admins)</p>
-            {assignableOwners && assignableOwners.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                {assignableOwners.map((u) => {
-                  const isAdmin = form.adminUserIds
-                    .split(",")
-                    .map(id => id.trim())
-                    .includes(u.id);
-
-                  return (
-                    <label key={u.id} className="flex items-center gap-2 text-orange-100 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={isAdmin}
-                        onChange={(e) => {
-                          const currentIds = form.adminUserIds
-                            .split(",")
-                            .map(id => id.trim())
-                            .filter(Boolean);
-                          
-                          if (e.target.checked) {
-                            if (!currentIds.includes(u.id)) currentIds.push(u.id);
-                          } else {
-                            const index = currentIds.indexOf(u.id);
-                            if (index !== -1) currentIds.splice(index, 1);
-                          }
-                          
-                          onChange("adminUserIds", currentIds.join(","));
-                        }}
-                        className="rounded border-orange-500/30 bg-black/25 text-orange-500 focus:ring-1 focus:ring-orange-400"
-                      />
-                      {u.name} ({u.email})
-                    </label>
-                  );
-                })}
-              </div>
-            ) : (
-              <input
-                aria-label="Additional Admin User IDs"
-                value={form.adminUserIds}
-                onChange={(e) => onChange("adminUserIds", e.target.value)}
-                placeholder="Additional Admin User IDs (comma-separated)"
-                className="rounded-xl border border-orange-500/30 bg-black/25 px-4 py-2.5 text-orange-200 outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors w-full"
-              />
-            )}
+            <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30" />
           </div>
-        </FormBlock>
+        </Section>
       )}
     </div>
   );
 }
+
+// ── Main panel ────────────────────────────────────────────────────────────────
 
 export function EventManagerPanel({
   events,
@@ -363,139 +470,153 @@ export function EventManagerPanel({
   const isSuperAdmin = user?.role === "super_admin";
 
   const selectedEvent = useMemo(
-    () => events.find((event) => event.id === selectedEventId) ?? null,
+    () => events.find((e) => e.id === selectedEventId) ?? null,
     [events, selectedEventId]
   );
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createForm, setCreateForm] = useState<FormState>(emptyForm);
+  const [createDirections, setCreateDirections] = useState<DirectionEntry[]>(emptyDirections);
+
   const [editForm, setEditForm] = useState<FormState>(emptyForm);
+  const [editDirections, setEditDirections] = useState<DirectionEntry[]>(emptyDirections);
 
   React.useEffect(() => {
-    setEditForm(selectedEvent ? eventToForm(selectedEvent) : emptyForm);
+    if (selectedEvent) {
+      setEditForm(eventToForm(selectedEvent));
+      setEditDirections(jsonToDirections(selectedEvent.directionsJson));
+    } else {
+      setEditForm(emptyForm);
+      setEditDirections(emptyDirections);
+    }
   }, [selectedEvent]);
 
-  const hasEvent = events.length > 0;
+  const hasEvents = events.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 font-khmer">
+      {/* Error */}
       {error && (
-        <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="rounded-lg border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {error}
         </div>
       )}
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-        <p className="text-xs uppercase tracking-[0.14em] text-white/35 font-khmer">ជ្រើសរើស ព្រឹត្តិការណ៍</p>
-        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+      {/* Event selector */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
           <select
             value={selectedEventId ?? ""}
             onChange={(e) => onSelectEvent(e.target.value)}
-            className="w-full rounded-xl border border-white/15 bg-black/25 px-4 py-2.5 text-white outline-none font-khmer"
-            disabled={loading || !hasEvent}
+            disabled={loading || !hasEvents}
+            className={`${inputCls} appearance-none pr-8`}
           >
-            {!hasEvent && <option value="">មិនមានព្រឹត្តិការណ៍ទេ</option>}
+            {!hasEvents && <option value="">មិនមានព្រឹត្តិការណ៍</option>}
             {events.map((event) => (
               <option key={event.id} value={event.id}>
                 {event.displayName} ({event.slug})
               </option>
             ))}
           </select>
-          {isSuperAdmin && (
-            <button
-              type="button"
-              onClick={() => setShowCreateForm((prev) => !prev)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white/85 hover:bg-white/10 font-khmer"
-            >
-              <CalendarPlus size={15} />
-              {showCreateForm ? "បិទ (Close)" : "បង្កើតព្រឹត្តិការណ៍"}
-            </button>
-          )}
+          <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30" />
         </div>
+
+        {isSuperAdmin && (
+          <Btn onClick={() => setShowCreateForm((p) => !p)}>
+            <CalendarPlus size={14} />
+            {showCreateForm ? "Close" : "New"}
+          </Btn>
+        )}
       </div>
 
-      {isSuperAdmin && showCreateForm && (
-        <motion.form
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-white/10 bg-white/5 p-5 font-khmer"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            await onCreateEvent(formToPayload(createForm));
-            setCreateForm(emptyForm);
-            setShowCreateForm(false);
-          }}
-        >
-          <h3 className="text-lg font-semibold text-white">បង្កើតព្រឹត្តិការណ៍</h3>
-          <EventFormFields 
-            form={createForm} 
-            onChange={(field, value) => setCreateForm((prev) => ({ ...prev, [field]: value }))} 
-            themes={themes}
-            isSuperAdmin={isSuperAdmin}
-            assignableOwners={assignableOwners}
-          />
-          <div className="mt-4 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setShowCreateForm(false)}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/80"
+      {/* Create form */}
+      <AnimatePresence>
+        {isSuperAdmin && showCreateForm && (
+          <motion.div
+            key="create"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <form
+              className="rounded-xl border border-white/10 bg-white/[0.03] p-5 space-y-5"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await onCreateEvent(formToPayload(createForm, createDirections));
+                setCreateForm(emptyForm);
+                setCreateDirections(emptyDirections);
+                setShowCreateForm(false);
+              }}
             >
-              <XCircle size={14} />
-              បោះបង់
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-500/20 px-4 py-2 text-sm text-cyan-100 disabled:opacity-60"
-            >
-              <Save size={14} />
-              {saving ? "កំពុងរក្សាទុក..." : "បង្កើត"}
-            </button>
-          </div>
-        </motion.form>
-      )}
+              <p className="text-[10px] font-medium uppercase tracking-widest text-white/30">
+                បង្កើតព្រឹត្តិការណ៍ថ្មី
+              </p>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-5 font-khmer">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-white">កែប្រែព្រឹត្តិការណ៍</h3>
+              <EventFormFields
+                form={createForm}
+                directions={createDirections}
+                onChange={(field, value) => setCreateForm((prev) => ({ ...prev, [field]: value }))}
+                onDirections={setCreateDirections}
+                themes={themes}
+                isSuperAdmin={isSuperAdmin}
+              />
+
+              <div className="flex justify-end gap-2 pt-1">
+                <Btn onClick={() => setShowCreateForm(false)}>
+                  <XCircle size={13} /> Cancel
+                </Btn>
+                <Btn type="submit" variant="primary" disabled={saving}>
+                  <Save size={13} /> {saving ? "Saving…" : "Create"}
+                </Btn>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit form */}
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
+        <div className="mb-5 flex items-center justify-between">
+          <p className="text-[10px] font-medium uppercase tracking-widest text-white/30">
+            {selectedEvent ? selectedEvent.displayName : "កែប្រែព្រឹត្តិការណ៍"}
+          </p>
           {selectedEvent && (
-            <button
-              type="button"
+            <Btn
+              variant="danger"
               onClick={() => void onDeleteEvent(selectedEvent.id)}
               disabled={deletingEventId === selectedEvent.id || saving}
-              className="inline-flex items-center gap-2 rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-2 text-sm text-red-200 disabled:opacity-50"
             >
-              <Trash2 size={14} />
-              {deletingEventId === selectedEvent.id ? "កំពុងលុប..." : "លុប"}
-            </button>
+              <Trash2 size={13} />
+              {deletingEventId === selectedEvent.id ? "Deleting…" : "Delete"}
+            </Btn>
           )}
         </div>
 
         {!selectedEvent ? (
-          <p className="text-sm text-white/45">ជ្រើសរើសព្រឹត្តិការណ៍ដើម្បីកែប្រែ។</p>
+          <p className="text-sm text-white/25">ជ្រើសរើសព្រឹត្តិការណ៍ដើម្បីកែប្រែ</p>
         ) : (
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              await onUpdateEvent(selectedEvent.id, formToPayload(editForm));
+              await onUpdateEvent(selectedEvent.id, formToPayload(editForm, editDirections));
             }}
           >
-            <EventFormFields 
-              form={editForm} 
-              onChange={(field, value) => setEditForm((prev) => ({ ...prev, [field]: value }))} 
+            <EventFormFields
+              form={editForm}
+              directions={editDirections}
+              onChange={(field, value) => setEditForm((prev) => ({ ...prev, [field]: value }))}
+              onDirections={setEditDirections}
               themes={themes}
               isSuperAdmin={isSuperAdmin}
-              assignableOwners={assignableOwners}
             />
-            <div className="mt-4 flex justify-end">
-              <button
-                type="submit"
-                disabled={saving}
-                className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/30 bg-cyan-500/20 px-4 py-2 text-sm text-cyan-100 disabled:opacity-60"
-              >
-                <Pencil size={14} />
-                {saving ? "កំពុងរក្សាទុក..." : "ធ្វើបច្ចុប្បន្នភាព"}
-              </button>
+
+            <div className="mt-5 flex justify-end">
+              <Btn type="submit" variant="primary" disabled={saving}>
+                <Pencil size={13} />
+                {saving ? "Saving…" : "Update"}
+              </Btn>
             </div>
           </form>
         )}
