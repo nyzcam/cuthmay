@@ -2,15 +2,18 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { CommentsPanel } from "@/components/admin/CommentsPanel";
+import {
+  CommentsPanel,
+  type CommentStatusFilter,
+} from "@/components/admin/CommentsPanel";
 import { type GuestCommentRecord } from "@/types/types";
 
 interface CommentsSectionProps {
   loadError: string | null;
   comments: React.ComponentProps<typeof CommentsPanel>["comments"];
   isLoadingComments: React.ComponentProps<typeof CommentsPanel>["isLoading"];
-  commentStatusFilter: "all" | GuestCommentRecord["status"];
-  onCommentStatusFilterChange: (status: "all" | GuestCommentRecord["status"]) => void;
+  commentStatusFilter: CommentStatusFilter;
+  onCommentStatusFilterChange: (status: CommentStatusFilter) => void;
   searchQuery: React.ComponentProps<typeof CommentsPanel>["searchQuery"];
   onSearchChange: React.ComponentProps<typeof CommentsPanel>["onSearchChange"];
   onCommentStatusUpdate: React.ComponentProps<typeof CommentsPanel>["onStatusUpdate"];

@@ -4,11 +4,13 @@ import { ExternalLink, MessageSquareText, BadgeCheck, Archive, Trash2 } from "lu
 import { GuestCommentRecord } from "@/types/types";
 import { ADMIN_COLORS } from "@/components/admin/AdminShell";
 
+export type CommentStatusFilter = "all" | GuestCommentRecord["status"];
+
 interface CommentsPanelProps {
   comments: GuestCommentRecord[];
   isLoading: boolean;
-  statusFilter: string;
-  onStatusFilterChange: (status: string) => void;
+  statusFilter: CommentStatusFilter;
+  onStatusFilterChange: (status: CommentStatusFilter) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onStatusUpdate: (id: string, status: GuestCommentRecord["status"]) => void;
@@ -22,6 +24,12 @@ const COMMENT_STATUS_LABELS: Record<string, string> = {
   reviewed: "បានមើល",
   archived: "បានទុក",
 };
+
+const COMMENT_STATUS_FILTERS: CommentStatusFilter[] = ["all", "new", "reviewed", "archived"];
+
+function isCommentStatusFilter(value: string): value is CommentStatusFilter {
+  return COMMENT_STATUS_FILTERS.includes(value as CommentStatusFilter);
+}
 
 function formatTimestamp(value: string): string {
   const date = new Date(value);
@@ -76,7 +84,11 @@ export function CommentsPanel({
         </div>
         <select
           value={statusFilter}
-          onChange={(e) => onStatusFilterChange(e.target.value)}
+          onChange={(e) => {
+            if (isCommentStatusFilter(e.target.value)) {
+              onStatusFilterChange(e.target.value);
+            }
+          }}
           className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm focus:outline-none focus:border-white/30 appearance-none"
         >
           <option value="all">ស្ថានភាពទាំងអស់</option>
