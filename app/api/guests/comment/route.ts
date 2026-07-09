@@ -49,6 +49,17 @@ function normalizeComment(raw: string) {
     .trim();
 }
 
+function normalizePagePath(raw: string) {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("/")) {
+    return `/${trimmed}`;
+  }
+  if (trimmed.length > 1 && trimmed.endsWith("/")) {
+    return trimmed.slice(0, -1);
+  }
+  return trimmed;
+}
+
 function validateInput(body: Partial<GuestCommentInput>) {
   if (!body.guestSlug || typeof body.guestSlug !== "string") {
     return "Missing guest slug";
@@ -89,15 +100,15 @@ export async function POST(request: Request) {
     }
 
     const guestSlug = body.guestSlug!.trim();
-    const pagePath = body.pagePath!.trim();
+    const submittedPagePath = normalizePagePath(body.pagePath!);
     const normalizedComment = normalizeComment(body.comment!);
     const referer = request.headers.get("referer");
     const origin = request.headers.get("origin");
     const host = request.headers.get("host");
     const clientIp = getClientIp(request);
     const supabaseAdmin = getSupabaseAdminClient();
-    const eventPathMatch = /^\/([^/]+)\/([^/]+)$/.exec(pagePath);
-    const isLegacyPath = pagePath === `/invite/${guestSlug}`;
+    const eventPathMatch = /^\/([^/]+)\/([^/]+)$/.exec(submittedPagePath);
+    const isLegacyPath = submittedPagePath === `/invite/${guestSlug}`;
 
     if (!isLegacyPath && (!eventPathMatch || eventPathMatch[2] !== guestSlug)) {
       return NextResponse.json(
@@ -177,8 +188,8 @@ export async function POST(request: Request) {
 
     if (referer) {
       try {
-        const refererPath = new URL(referer).pathname;
-        if (refererPath !== pagePath) {
+        const refererPath = normalizePagePath(new URL(referer).pathname);
+        if (refererPath !== submittedPagePath) {
           return NextResponse.json(
             { success: false, error: "Invalid comment source URL" },
             { status: 400 }
@@ -197,7 +208,7 @@ export async function POST(request: Request) {
     const record: Omit<GuestCommentRecord, "id" | "createdAt"> = {
       guestSlug,
       guestName: normalizedGuestName,
-      pagePath,
+      pagePath: submittedPagePath,
       comment: normalizedComment,
       source: "invite",
       status: "new",

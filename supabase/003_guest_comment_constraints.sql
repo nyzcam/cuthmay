@@ -15,7 +15,15 @@ alter table public.guest_comments
 
 alter table public.guest_comments
   add constraint guest_comments_page_path_check
-  check (page_path = '/invite/' || guest_slug);
+  check (
+    page_path = '/invite/' || guest_slug
+    or (
+      page_path like '/%/%'
+      and split_part(page_path, '/', 2) <> ''
+      and split_part(page_path, '/', 3) = guest_slug
+      and split_part(page_path, '/', 4) = ''
+    )
+  );
 
 create or replace function public.enforce_guest_comment_limit()
 returns trigger

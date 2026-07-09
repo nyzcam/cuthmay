@@ -54,7 +54,7 @@ export default function AbaQr({
     const loadNewestComments = async () => {
       const controller = new AbortController();
       try {
-        const response = await fetch("/api/guests/comment?public=1&limit=8", {
+        const response = await fetch("/api/guests/comment?public=1&limit=6", {
           signal: controller.signal,
           cache: "no-store",
           headers: {
