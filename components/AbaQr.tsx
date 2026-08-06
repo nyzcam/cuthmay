@@ -44,6 +44,9 @@ export default function AbaQr({
   );
   const [commentOpen, setCommentOpen] = useState(false);
 
+  const CACHE_KEY = "newest-comments-cache";
+  const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
   useEffect(() => {
     setDisplayQuotes(abaQrData.quotes.map((quote) => ({ text: quote })));
   }, [abaQrData.quotes]);
@@ -52,7 +55,25 @@ export default function AbaQr({
     let isMounted = true;
 
     const loadNewestComments = async () => {
+      // Check cache first
+      const cached = localStorage.getItem(CACHE_KEY);
+
+      if (cached) {
+        try {
+          const { timestamp, comments } = JSON.parse(cached);
+
+          if (Date.now() - timestamp < CACHE_DURATION) {
+            setDisplayQuotes(comments);
+            setCurrentQuoteIndex(0);
+            return;
+          }
+        } catch {
+          localStorage.removeItem(CACHE_KEY);
+        }
+      }
+
       const controller = new AbortController();
+
       try {
         const response = await fetch("/api/guests/comment?public=1&limit=6", {
           signal: controller.signal,
@@ -62,9 +83,7 @@ export default function AbaQr({
           },
         });
 
-        if (!response.ok) {
-          return;
-        }
+        if (!response.ok) return;
 
         const result = (await response.json()) as {
           comments?: Array<{ comment?: string; guestName?: string }>;
@@ -77,14 +96,23 @@ export default function AbaQr({
           }))
           .filter((item) => item.text.length > 0);
 
-        if (isMounted && newestComments.length > 0) {
+        if (newestComments.length > 0) {
           setDisplayQuotes(newestComments);
           setCurrentQuoteIndex(0);
+
+          // Save cache
+          localStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({
+              timestamp: Date.now(),
+              comments: newestComments,
+            })
+          );
         }
-      } catch {
-        // Keep fallback static quotes if request fails.
-      } finally {
-        controller.abort();
+      } catch (err) {
+        if ((err as DOMException).name !== "AbortError") {
+          console.error(err);
+        }
       }
     };
 
